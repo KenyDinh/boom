@@ -1,0 +1,6 @@
+#if(${account})
+<h2>Welcome ${account.getUsername()}</h2>
+<form action="home_page.htm" method="post">
+<input type="submit" name="logout" value="Logout" />
+</form>
+#end ##if(${account})

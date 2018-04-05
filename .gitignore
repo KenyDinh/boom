@@ -1,0 +1,6 @@
+.svn/*
+Program/web/.settings/*
+Program/web/build/*
+Program/web/.classpath
+Program/web/.project
+Tools/Click-IDE/*
