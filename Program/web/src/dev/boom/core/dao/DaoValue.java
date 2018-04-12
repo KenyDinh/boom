@@ -34,8 +34,12 @@ public class DaoValue implements Cloneable {
 		return null;
 	}
 
-	public String getTableName() {
+	protected String getTableName() {
 		return null;
+	}
+	
+	public String getRealTableName() {
+		return getTableName();
 	}
 
 	public String getUpdateWhereClause() {

@@ -114,7 +114,7 @@ public class CommonDaoService {
 			if (updateClause.isEmpty()) {
 				return true;
 			}
-			GameLog.getInstance().info(String.format("UPDATE %s %s", dao.getTableName(), updateClause));
+			GameLog.getInstance().info(String.format("UPDATE %s %s", dao.getRealTableName(), updateClause));
 			int ret = session.createQuery(String.format("UPDATE %s %s", dao.getClass().getSimpleName(), updateClause)).executeUpdate();
 			if (ret <= 0) {
 				tx.rollback();
@@ -146,7 +146,7 @@ public class CommonDaoService {
 			if (!whereClause.isEmpty()) {
 				sql += " WHERE " + whereClause;
 			}
-			GameLog.getInstance().info(String.format("SELECT * FROM %s WHERE %s", dao.getTableName(), whereClause));
+			GameLog.getInstance().info(String.format("SELECT * FROM %s WHERE %s", dao.getRealTableName(), whereClause));
 			List list = session.createQuery(sql).list();
 			if (list != null && !list.isEmpty()) {
 				ret = new ArrayList<>();
@@ -176,7 +176,7 @@ public class CommonDaoService {
 			if (deleteClause.isEmpty()) {
 				return true;
 			}
-			GameLog.getInstance().info(String.format("DELETE FROM %s WHERE %s", dao.getTableName(), deleteClause));
+			GameLog.getInstance().info(String.format("DELETE FROM %s WHERE %s", dao.getRealTableName(), deleteClause));
 			int ret = session.createQuery(String.format("DELETE FROM %s WHERE %s", dao.getClass().getSimpleName(), deleteClause)).executeUpdate();
 			if (ret <= 0) {
 				tx.rollback();
