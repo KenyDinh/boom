@@ -188,6 +188,47 @@ public class CommonMethod {
 		return sb.toString();
 	}
 	
+	@SuppressWarnings("rawtypes")
+	public static String getChangePasswordFormModal(String contextPath, Map messages) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("<div class=\"modal fade\" id=\"change-password-modal\">");
+			sb.append("<div class=\"modal-dialog modal-dialog-centered modal-md\" >");
+				sb.append("<div class=\"modal-content\" >");
+					//header
+					sb.append("<div class=\"modal-header bg-success\">");
+						sb.append("<h4 class=\"modal-title\">").append(messages.get("MSG_GENERAL_SIGNUP")).append("</h4>");
+						sb.append("<button type=\"button\" class=\"close\" data-dismiss=\"modal\">&times;</button>");
+					sb.append("</div>");
+					//body
+					sb.append("<div class=\"modal-body\">");
+						sb.append("<form id=\"change-password-form\">");
+							sb.append("<div class=\"form-group\">");
+								sb.append("<label for=\"form-cp-current-password\">").append(messages.get("MSG_GENERAL_CURRENT_PASSWORD") + ":").append("</label>");
+								sb.append("<input type=\"text\" class=\"form-control\" id=\"form-cp-current-password\" name=\"form-cp-current-password\" required placeholder=\"enter your current password\"/>");
+							sb.append("</div>");
+							sb.append("<div class=\"form-group\">");
+								sb.append("<label for=\"form-cp-new-password\">").append(messages.get("MSG_GENERAL_PASSWORD") +":").append("</label>");
+								sb.append("<input type=\"password\" class=\"form-control\" id=\"form-cp-new-password\" name=\"form-cp-new-password\" required placeholder=\"enter your new password\"/>");
+							sb.append("</div>");
+							sb.append("<div class=\"form-group\">");
+								sb.append("<label for=\"form-cp-re-new-password\">").append(messages.get("MSG_GENERAL_CONFIRM_PASSWORD") +":").append("</label>");
+								sb.append("<input type=\"password\" class=\"form-control\" id=\"form-cp-re-new-password\" name=\"form-cp-re-new-password\" required placeholder=\"re-enter your new password\"/>");
+							sb.append("</div>");
+							sb.append("<div class=\"form-group\" id=\"regist-message\">");
+							sb.append("</div>");
+							sb.append("<button type=\"submit\" class=\"btn btn-success\" onclick=\"onclickChangePassword();this.blur();return false;\">").append(messages.get("MSG_GENERAL_SUBMIT")).append("</button>");
+						sb.append("</form>");
+					sb.append("</div>");
+					//footer
+					sb.append("<div class=\"modal-footer\">");
+						sb.append("<button type=\"button\" class=\"btn btn-danger\" data-dismiss=\"modal\">").append(messages.get("MSG_GENERAL_CLOSE")).append("</button>");
+					sb.append("</div>");
+				sb.append("</div>");
+			sb.append("</div>");
+		sb.append("</div>");
+		return sb.toString();
+	}
+	
 	public static long getFinalCost(int totalOrder, MenuInfo menuInfo, OrderInfo order) {
 		int sale = 100;
 		if (menuInfo.getSale() > 0 && menuInfo.getSale() < 100) {

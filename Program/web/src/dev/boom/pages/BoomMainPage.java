@@ -2,8 +2,10 @@ package dev.boom.pages;
 
 import dev.boom.common.CommonMethod;
 import dev.boom.common.enums.MainNavBarEnum;
+import dev.boom.common.enums.UserFlagEnum;
 import dev.boom.core.BoomSession;
 import dev.boom.entity.info.UserInfo;
+import dev.boom.pages.manage.milktea.MilkTeaManageMenu;
 import dev.boom.services.UserService;
 
 public class BoomMainPage extends Template {
@@ -66,11 +68,15 @@ public class BoomMainPage extends Template {
 							sb.append(userInfo.getUsername());
 						sb.append("</div>");
 						sb.append("<div class=\"my-2 my-sm-0 dropdown\" style=\"margin-left:1rem;\">");
-							sb.append(String.format("<img src=\"%s\" style=\"cursor:pointer;width:48px;\" data-toggle=\"dropdown\"/>", getHostURL() + getContextPath() + "/img/page/friday.png"));
+							sb.append(String.format("<img src=\"%s\" style=\"cursor:pointer;width:48px;\" data-toggle=\"dropdown\"/>", getHostURL() + getContextPath() + "/img/page/common-user.png"));
 							sb.append("<div class=\"dropdown-menu\" style=\"right:0;left:unset;\">");
 								sb.append("<a class=\"dropdown-item\" href=\"#\">" + getMessage("MSG_GENERAL_MY_PROFILE") + "</a>");
 								sb.append("<a class=\"dropdown-item\" href=\"#\">" + getMessage("MSG_GENERAL_MY_ACCOUNT") + "</a>");
-								sb.append("<a class=\"dropdown-item\" href=\"#\" data-toggle=\"modal\" data-target=\"#change-password-modal\">" + getMessage("MSG_ACCOUNT_CHANGE_PASSWORD") + "</a>");
+								//sb.append("<a class=\"dropdown-item\" href=\"#\" data-toggle=\"modal\" data-target=\"#change-password-modal\">" + getMessage("MSG_ACCOUNT_CHANGE_PASSWORD") + "</a>");
+								if (UserFlagEnum.ADMINISTRATOR.isValid(userInfo.getFlag())) {
+									sb.append("<div class=\"dropdown-divider\"></div>");
+									sb.append("<a class=\"dropdown-item\" href=\"" + getHostURL() + getPagePath(MilkTeaManageMenu.class) + "\">" + getMessage("MSG_GENERAL_ADMIN_PAGE") + "</a>");
+								}
 								sb.append("<div class=\"dropdown-divider\"></div>");
 								sb.append("<a class=\"dropdown-item\" href=\"#\" id=\"logout\">" + getMessage("MSG_GENERAL_LOGOUT") + "</a>");
 							sb.append("</div>");

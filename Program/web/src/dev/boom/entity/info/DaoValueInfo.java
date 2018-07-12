@@ -22,8 +22,8 @@ public class DaoValueInfo extends DaoValue {
 		try {
 			for (Field field : getFieldList()) {
 				field.setAccessible(true);
-				Object o1 = field.get(getOriginal());
-				Object o2 = field.get(this);
+				Object o1 = getSafeFieldValue(field, getOriginal());
+				Object o2 = getSafeFieldValue(field, this);
 				if (field.getName().equals(this.getPrimaryKey())) {
 					if (!o2.toString().equals("0")) {
 						sb.append(field.getName()).append(" = ");
@@ -76,7 +76,7 @@ public class DaoValueInfo extends DaoValue {
 		try {
 			for (Field field : getFieldList()) {
 				field.setAccessible(true);
-				Object o1 = field.get(this);
+				Object o1 = getSafeFieldValue(field, this);
 				if (sb.length() > 0) {
 					sb.append(",");
 				}
@@ -107,8 +107,8 @@ public class DaoValueInfo extends DaoValue {
 		try {
 			for (Field field : getFieldList()) {
 				field.setAccessible(true);
-				Object o1 = field.get(getOriginal());
-				Object o2 = field.get(this);
+				Object o1 = getSafeFieldValue(field, getOriginal());
+				Object o2 = getSafeFieldValue(field, this);
 				if (field.getName().equals(this.getPrimaryKey())) {
 					if (o1.toString().equals("0")) {
 						return "";

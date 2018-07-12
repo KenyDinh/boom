@@ -96,6 +96,16 @@ public abstract class DaoValue implements Cloneable, Serializable {
 	protected String getTableName() {
 		return null;
 	}
+	
+	protected Object getSafeFieldValue(Field field, Object object) throws IllegalArgumentException, IllegalAccessException {
+		Object o = field.get(object);
+		if (field.getType() == String.class) {
+			String safeValue = o.toString().replaceAll("'", "''");
+			safeValue = safeValue.replaceAll("\\\\", "\\\\\\\\");
+			return safeValue;
+		}
+		return o;
+	}
 
 	// ------------------------------------------------------- //
 
