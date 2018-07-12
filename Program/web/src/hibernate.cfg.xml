@@ -15,7 +15,19 @@
         <property name="show_sql">false</property>
         
         <!-- mapping resources here-->
-        <mapping resource="dev/boom/mapping/AccountInfo.hbm.xml"></mapping>
+        <mapping resource="dev/boom/mapping/UserInfo.hbm.xml"></mapping>
+        <mapping resource="dev/boom/mapping/MilkTeaUserInfo.hbm.xml"></mapping>
+        <mapping resource="dev/boom/mapping/ShopInfo.hbm.xml"></mapping>
+        <mapping resource="dev/boom/mapping/DishInfo.hbm.xml"></mapping>
+        <mapping resource="dev/boom/mapping/ShopOptionInfo.hbm.xml"></mapping>
+        <mapping resource="dev/boom/mapping/MenuInfo.hbm.xml"></mapping>
+        <mapping resource="dev/boom/mapping/OrderInfo.hbm.xml"></mapping>
+        
+        <mapping resource="dev/boom/mapping/NihongoOwningInfo.hbm.xml"></mapping>
+        <mapping resource="dev/boom/mapping/NihongoPetInfo.hbm.xml"></mapping>
+        <mapping resource="dev/boom/mapping/NihongoProgressInfo.hbm.xml"></mapping>
+        <mapping resource="dev/boom/mapping/NihongoUserInfo.hbm.xml"></mapping>
+        <mapping resource="dev/boom/mapping/NihongoWordInfo.hbm.xml"></mapping>
         
     </session-factory>
 </hibernate-configuration>

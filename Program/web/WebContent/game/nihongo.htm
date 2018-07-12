@@ -1,0 +1,65 @@
+<div ng-app="fridayApp" ng-controller="nihongoCtrl">
+	<div class="banner">
+		<div class="banner-text">${title}</div>
+	</div>
+	<div class="body-container">
+		<div class="unit-button text-info" ng-repeat="unit in unitList track by $index" ng-click="openPlayPopup($index)"><b>Unit {{unit}}</b>
+			<div class="unit-button-hover-content">
+				<div class="unit-button-hover-text">Take the test</div>
+			</div>
+			<div class="unit-button-progress-background"></div>
+			<div ng-if="getProgressInt($index) > 0 && getProgressInt($index) != 99" class="unit-button-progress-number">{{ getProgress($index) }}</div>
+			<div ng-if="getProgressInt($index) == 0" class="unit-button-progress-question"></div>
+			<div ng-if="getProgressInt($index) == 99" class="unit-button-progress-star"></div>
+		</div>
+		<div class="pet-box-container">
+			<div class="pet-box-star-container">Star count:
+				<div class="pet-box-star-icon"></div>
+				<div class="pet-box-star-count">{{ starCount }}</div>
+				<div class="pet-box-shop pet-box-url" ng-click="openShopPopup()">Buy more</div>
+				<div class="pet-box-outer-container"><div ng-repeat="userPet in owningList track by $index" class="pet-box-outer-box">
+					<div class="pet-box-name">{{ getPetName(userPet.pet_id) }}</div>
+					<div class="pet-box-pet" ng-style="{ 'background': 'url(' + userPet.imageUrl + ')' }"></div>
+					<div ng-if="canLevelUp(userPet)" class="pet-box-name pet-box-url" ng-click="levelUp(userPet.id)">Level up!</div>
+				</div></div>
+			</div>
+		</div>
+	</div>
+	<div ng-if="openingPlayPopup" class="popup-container" ng-click="closePlayPopup()">
+		<div class="play-container" ng-click="keepPlayPopup($event)">
+			<div class="pomu-question-container">
+				<div class="pomu-word" ng-bind-html="currentWord.word | unsafe"></div>
+				<div class="pomu-sideword" ng-bind-html="currentWord.sideWord | unsafe"></div>
+			</div>
+			<div ng-if="endGame" class="pomu-end-game-frame">{{ endGameMessage }}</div>
+			<div ng-if="endGame" class="pomu-play-again">
+				<div class="pomu-play-again-text" ng-click="getUnitWordList(0)">ーー＞　再試行する　＜－－</div>
+			</div>
+			<div class="pomu-line-container" ng-style="tatamiStyle">
+				<div class="pomu-stand" ng-style="pomuStyle" ng-class="{ pomu_fall: wrongAnswer, pomu_win: endGame && !wrongAnswer }"></div>
+				<div class="pomu-tatamiline"></div>
+				<div class="pomu-top-tatamiline"></div>
+				<div class="pomu-answer-container">
+					<div ng-repeat="answer in answerList track by $index" class="pomu-answer-part-container" ng-click="chooseAnswer($index)">
+						<div class="pomu-answer-image" ng-class="{ pomu_hole: $index === isHole }"></div>
+						<div ng-if="!inAnimation" class="pomu-answer-middle" ng-bind-html="answer | unsafe"  ng-class="{ pomu_right: endGame&&(answer === currentWord.meaning) }"></div>
+					</div>
+				</div>
+				<div class="pomu-question-counter-current">{{ curentIndex + 1 }}/{{ testLength }}</div>
+				<div class="pomu-question-counter-next">{{ curentIndex + 2 }}/{{ testLength }}</div>
+				<div class="pomu-question-counter-pre">{{ curentIndex }}/{{ testLength }}</div>
+			</div>
+		</div>
+	</div>
+	<div ng-if="openingShopPopup" class="popup-container" ng-click="closeShopPopup()">
+		<div class="shop-container" ng-click="keepShopPopup($event)">
+			<div ng-repeat="pet in petMap track by $index" class="pet-box-outer-box-shop">
+				<div class="pet-box-name">{{ pet.pet_name }}</div>
+				<div class="pet-box-pet" ng-style="{ 'background': 'url(${context}/img/game/nihongo/pet/' + pet.id + '_01.gif)' }"></div>
+				<div class="pet-box-name pet-box-url" ng-click="buyPet(pet.id)">Buy</div>
+			</div>
+			*Images source: vnsharing.site
+		</div>
+	</div>
+	<div ng-if="inAnimation" class="animation-poster"></div>
+</div>

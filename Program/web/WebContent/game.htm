@@ -1,0 +1,24 @@
+
+<div class="row">
+	<div class="col-sm-2">
+	</div>
+	<div class="col-sm-8">
+		## opening menu
+		<div>
+			<div class="row">
+				<div class="col-sm-12 bg-success text-center rounded" style="line-height:2;margin-top:1rem;margin-bottom:0.5rem;">
+					${messages.get('MSG_GAME_LIST_GAME_AVAILABLE')}
+				</div>
+			</div>
+			#if(${list_game})
+				${list_game}
+			#else ##if(${list_game})
+				<div class="col-sm-12 text-center">
+				${messages.get('MSG_GAME_NO_GAME_AVAILABLE')}
+				</div>
+			#end ##if(${list_game})
+		</div>
+	</div>
+	<div class="col-sm-2">
+	</div>
+</div>

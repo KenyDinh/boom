@@ -1,0 +1,20 @@
+.rating{
+	position:relative;
+}
+.rating .stars {
+    display: inline-block;
+}
+.rating .stars span {
+    display: inline-block;
+    width: 16px;
+    height: 14px;
+    background: url('/friday/img/milktea/icon_stars.png') no-repeat -5px -3px;
+    margin-left: 2px;
+    cursor: pointer;
+}
+.rating .stars span.full {
+    background-position: -5px -42px;
+}
+.rating .stars span.half {
+    background-position: -5px -21px;
+}

@@ -24,10 +24,24 @@
 <click-app charset="UTF-8">
 
   <pages package="dev.boom.pages">
-  	<page classname="Index" path="index.htm"/>
   	<page classname="Template" path="template.htm"/>
-  	<page classname="Register" path="register.htm"/>
-  	<page classname="HomePage" path="home_page.htm"/>
+  	<page classname="Home" path="home.htm"/>
+  	<page classname="Game" path="game.htm"/>
+  	<page classname="About" path="about.htm"/>
+  	<!-- Account -->
+  	<page classname="account.Login" path="account/login.htm"/>
+  	<page classname="account.Register" path="account/register.htm"/>
+  	<!-- Milk Tea -->
+  	<page classname="milktea.MilkTeaMenu" path="milktea/milk_tea_menu.htm"/>
+  	<page classname="milktea.MilkTeaListShop" path="milktea/milk_tea_list_shop.htm"/>
+  	<page classname="milktea.MilkTeaRanking" path="milktea/milk_tea_ranking.htm"/>
+  	<page classname="milktea.MilkTeaOther" path="milktea/milk_tea_other.htm"/>
+  	<page classname="milktea.MilkTeaManageOrder" path="milktea/milk_tea_manage_order.htm"/>
+  	<!-- Game -->
+  	<page classname="game.Nihongo" path="game/nihongo.htm"/>
+  	<page classname="game.json.NihongoJson" path="game/json/nihongo_json.json"/>
+  	<!-- Manage Pages -->
+  	<page classname="manage.milktea.MilkTeaManageMenu" path="manage/milktea/milk_tea_manage_menu.htm"/>
   </pages>
 
 </click-app>

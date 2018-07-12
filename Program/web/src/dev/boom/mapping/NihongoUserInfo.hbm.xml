@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<class name="dev.boom.entity.info.NihongoUserInfo" table="nihongo_user_info" catalog="boom">
+		<id name="user_id" type="java.lang.Long">
+			<column name="user_id" not-null="true"/>
+		</id>
+		<property name="username" type="java.lang.String">
+			<column name="username" length="16" not-null="true" unique="true"/>
+		</property>
+		<property name="star" type="java.lang.Integer">
+			<column name="star" not-null="true" />
+		</property>
+		<property name="created" type="java.util.Date">
+			<column name="created" not-null="true" />
+		</property>
+		<property name="updated" type="java.util.Date">
+			<column name="updated" not-null="true" />
+		</property>
+	</class>
+</hibernate-mapping>

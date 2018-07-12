@@ -1,0 +1,74 @@
+
+#if (${error})
+	${error}
+	<p style="margin-top:1.5rem;">
+		<a href="${backLink}">Back</a>
+	</p>
+#else ##if (${error})
+	#if (${menuInfo}) 
+		<div class="col-lg-4 col-md-6 col-sm-12">
+			<form method="post" action="${backLink}">
+				<input type="hidden" name="mode" value="1"/>
+				<div class="form-group">
+				  <fieldset>
+				    <label class="control-label" for="menu_id">Id</label>
+				    <input class="form-control" id="menu_id" type="text" name="menu_id" value="${menuInfo.getId()}" readonly>
+				  </fieldset>
+				</div>
+				<div class="form-group">
+				  <fieldset>
+				    <label class="control-label" for="menu_name">Name</label>
+				    <input class="form-control" id="menu_name" type="text" name="menu_name" value="${menuInfo.getName()}" readonly>
+				  </fieldset>
+				</div>
+				<div class="form-group">
+				  <fieldset>
+				    <label class="control-label" for="sale">Sale</label>
+				    <input class="form-control" id="sale" type="number" min="0" max="100" step="5" name="sale" value="${menuInfo.getSale()}">
+				  </fieldset>
+				</div>
+				<div class="form-group">
+				  <fieldset>
+				    <label class="control-label" for="code">Code</label>
+				    <input class="form-control" id="code" type="text" name="code" value="${menuInfo.getCode()}">
+				  </fieldset>
+				</div>
+				<div class="form-group">
+				  <fieldset>
+				    <label class="control-label" for="max_discount">Max Discount</label>
+				    <input class="form-control" id="max_discount" type="number" min="0" step="1000" name="max_discount" value="${menuInfo.getMax_discount()}">
+				  </fieldset>
+				</div>
+				<div class="form-group">
+				  <fieldset>
+				    <label class="control-label" for="shipping_fee">Shipping Fee</label>
+				    <input class="form-control" id="shipping_fee" type="number" min="0" step="1000" name="shipping_fee" value="${menuInfo.getShipping_fee()}">
+				  </fieldset>
+				</div>
+				<div class="form-group">
+				  <fieldset>
+				    <label class="control-label" for="description">Description</label>
+				    <textarea class="form-control" id="description" name="description">${menuInfo.getDescription()}</textarea>
+				  </fieldset>
+				</div>
+				<div class="form-group">
+				  <fieldset>
+				    <label class="control-label" for="status">Status</label>
+				    $!{selectStatus}
+				  </fieldset>
+				</div>
+				<button type="submit" class="btn btn-primary">Submit</button>
+			</form>
+			<p style="margin-top:2rem;">
+				<a href="${backLink}">Back</a>
+			</p>
+		</div>
+	#elseif (${table}) ##if (${menuInfo}) 
+		<div>$!{home}</div>
+		<h5 class="text-center font-weight-bold text-info">Table Menu</h5>
+		<div>
+			${table}
+		</div>
+	#end ##if (${menuInfo}) 
+
+#end ##if (${error})

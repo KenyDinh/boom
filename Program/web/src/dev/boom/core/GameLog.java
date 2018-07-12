@@ -3,6 +3,8 @@ package dev.boom.core;
 import org.apache.click.service.ConsoleLogService;
 import org.apache.click.util.HtmlStringBuffer;
 
+import dev.boom.common.CommonMethod;
+
 public class GameLog extends ConsoleLogService {
 	
 	static class SingletonHolder {
@@ -22,6 +24,9 @@ public class GameLog extends ConsoleLogService {
         HtmlStringBuffer buffer = new HtmlStringBuffer();
 
         buffer.append("[");
+		buffer.append(CommonMethod.getFormatStringNow());
+		buffer.append("] ");
+        buffer.append("[");
         buffer.append(name);
         buffer.append("]");
 
@@ -36,4 +41,12 @@ public class GameLog extends ConsoleLogService {
         }
 	}
 
+	/**
+	 * for socket log
+	 * @param level
+	 * @param message
+	 */
+	public void log(int level, String message) {
+		log(level, message, null);
+	}
 }

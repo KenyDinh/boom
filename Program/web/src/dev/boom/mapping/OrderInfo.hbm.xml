@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="dev.boom.entity.info.OrderInfo" table="order_info" catalog="boom">
+        <id name="id" type="java.lang.Long">
+            <column name="id" />
+            <generator class="increment" />
+        </id>
+        <property name="user_id" type="java.lang.Long">
+            <column name="user_id" not-null="true" />
+        </property>
+        <property name="username" type="java.lang.String">
+            <column name="username" length="16" not-null="true" />
+        </property>
+        <property name="menu_id" type="java.lang.Long">
+            <column name="menu_id" not-null="true" />
+        </property>
+        <property name="shop_id" type="java.lang.Long">
+            <column name="shop_id" not-null="true" />
+        </property>
+        <property name="dish_id" type="java.lang.Long">
+            <column name="dish_id" not-null="true" />
+        </property>
+        <property name="dish_name" type="java.lang.String">
+            <column name="dish_name" length="125" not-null="true" />
+        </property>
+        <property name="dish_type" type="java.lang.String">
+            <column name="dish_type" length="125" not-null="true" />
+        </property>
+        <property name="dish_price" type="java.lang.Long">
+            <column name="dish_price" not-null="true" />
+        </property>
+        <property name="final_price" type="java.lang.Long">
+            <column name="final_price" not-null="true" />
+        </property>
+        <property name="dish_code" type="java.lang.Integer">
+            <column name="dish_code" not-null="true" />
+        </property>
+        <property name="voting_star" type="java.lang.Long">
+            <column name="voting_star" not-null="true" />
+        </property>
+        <property name="quantity" type="java.lang.Long">
+            <column name="quantity" not-null="true" />
+        </property>
+        <property name="option_list" type="java.lang.String">
+            <column name="option_list" not-null="true" />
+        </property>
+        <property name="flag" type="java.lang.Integer">
+            <column name="flag" not-null="true" />
+        </property>
+        <property name="created" type="java.util.Date">
+            <column name="created" not-null="true" />
+        </property>
+        <property name="updated" type="java.util.Date">
+            <column name="updated" not-null="true" />
+        </property>
+    </class>
+</hibernate-mapping>
