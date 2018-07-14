@@ -1,0 +1,28 @@
+{
+	"manifest_version": 2,
+	"name": "Friday",
+	"version": "1.0",
+	"description": "Looking for Friday's Menu'",
+	"icons":{
+		"16": "image/icon/favicon_16.png",
+		"24": "image/icon/favicon_24.png",
+		"32": "image/icon/favicon_32.png",
+		"48": "image/icon/favicon_48.png",
+		"64": "image/icon/favicon_64.png"
+	},
+	"background": {
+		"scripts": ["js/data_object.js","js/pre_image_data.js","background/socket.js","background/log.js","background/common.js","background/background.js"],
+		"persistent":true
+	},
+	"browser_action": {
+		"default_icon": "image/icon/favicon_16.png",
+		"default_popup": "popup/popup.html"
+	},
+	"content_scripts" : [
+		{
+			"matches" : [ "https://www.now.vn/*" ],
+			"js": ["js/jquery-3.2.1.min.js","js/data_object.js","content/content.js"]
+		}
+	],
+	"permissions": ["tabs","<all_urls>"]
+}
