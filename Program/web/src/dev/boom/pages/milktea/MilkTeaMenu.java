@@ -134,12 +134,16 @@ public class MilkTeaMenu extends MilkTeaMainPage {
 							sb.append("<span>");
 								sb.append(MessageFormat.format(getMessage("MSG_MILK_TEA_MENU_INFO_SALE_RATE"), menuInfo.getSale()));
 							sb.append("</span>");
+						if (menuInfo.getMax_discount() > 0) {
 							sb.append("<span style=\"margin-left:1rem;\">");
-								sb.append(MessageFormat.format(getMessage("MSG_MILK_TEA_MENU_INFO_SALE_MAX_DISCOUNT"), MilkTeaCommonFunc.getShowPriceWithUnit(menuInfo.getMax_discount(), "", messages)));
+							sb.append(MessageFormat.format(getMessage("MSG_MILK_TEA_MENU_INFO_SALE_MAX_DISCOUNT"), MilkTeaCommonFunc.getShowPriceWithUnit(menuInfo.getMax_discount(), "", messages)));
 							sb.append("</span>");
-						sb.append("</div>");
-						sb.append("<div style=\"margin-bottom:0.5rem;\">");
+							sb.append("</div>");
+							sb.append("<div style=\"margin-bottom:0.5rem;\">");
 							sb.append("<span>");
+						} else {
+							sb.append("<span style=\"margin-left:1rem;\">");
+						}
 								sb.append(MessageFormat.format(getMessage("MSG_MILK_TEA_MENU_INFO_SHIPPING_FEE"), MilkTeaCommonFunc.getShowPriceWithUnit(menuInfo.getShipping_fee(), "", messages)));
 							sb.append("</span>");
 						sb.append("</div>");

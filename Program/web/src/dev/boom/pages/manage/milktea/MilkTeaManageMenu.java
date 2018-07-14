@@ -30,6 +30,8 @@ public class MilkTeaManageMenu extends ManagePageBase {
 	private static final long serialVersionUID = 1L;
 
 	private static final int MODE_EDIT = 1;
+	private static final int DEFAULT_ICE = 100;
+	private static final int DEFAULT_SUGAR = 100;
 
 	private int mode = 0;
 
@@ -196,7 +198,11 @@ public class MilkTeaManageMenu extends ManagePageBase {
 				table.append("<td>").append(menu.getName()).append("</td>");
 				table.append("<td>").append(menu.getSale() > 0 ? (menu.getSale() + "%") : "0").append("</td>");
 				table.append("<td>").append(menu.getCode()).append("</td>");
-				table.append("<td>").append(MilkTeaCommonFunc.getShowPriceWithUnit(menu.getMax_discount(), "", getMessages())).append("</td>");
+				if (menu.getMax_discount() > 0) {
+					table.append("<td>").append(MilkTeaCommonFunc.getShowPriceWithUnit(menu.getMax_discount(), "", getMessages())).append("</td>");
+				} else {
+					table.append("<td>-</td>");
+				}
 				table.append("<td>").append(MilkTeaCommonFunc.getShowPriceWithUnit(menu.getShipping_fee(), "", getMessages())).append("</td>");
 				table.append("<td><div data-toggle=\"tooltip\" data-placement=\"bottom\" style=\"width:200px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;\" title=\"").append(menu.getDescription()).append("\">").append(menu.getDescription()).append("</div></td>");
 				table.append("<td>").append(MilkTeaMenuStatus.valueOf(menu.getStatus()).name()).append("</td>");
@@ -259,6 +265,8 @@ public class MilkTeaManageMenu extends ManagePageBase {
 								}
 							}
 						}
+						long countIce = 0;
+						long countSugar = 0;
 						if (!optionIds.isEmpty()) {
 							List<ShopOptionInfo> shopOptionList = ShopService.getShopOptionListByIds(optionIds);
 							if (shopOptionList != null && !shopOptionList.isEmpty()) {
@@ -266,12 +274,20 @@ public class MilkTeaManageMenu extends ManagePageBase {
 									if (optionInfo.getType() == ShopService.ITEM_OPTION_TYPE_TOPPING) {
 										mtUser.setTotal_topping(mtUser.getTotal_topping() + 1);
 									} else if (optionInfo.getType() == ShopService.ITEM_OPTION_TYPE_ICE) {
+										countIce++;
 										mtUser.setTotal_ice(mtUser.getTotal_ice() + MilkTeaCommonFunc.calcOptionAmount(optionInfo.getName()));
 									} else if (optionInfo.getType() == ShopService.ITEM_OPTION_TYPE_SUGAR) {
+										countSugar++;
 										mtUser.setTotal_sugar(mtUser.getTotal_sugar() + MilkTeaCommonFunc.calcOptionAmount(optionInfo.getName()));
 									}
 								}
 							}
+						}
+						if (countIce == 0) {
+							mtUser.setTotal_ice(mtUser.getTotal_ice() + DEFAULT_ICE);
+						}
+						if (countSugar == 0) {
+							mtUser.setTotal_sugar(mtUser.getTotal_sugar() + DEFAULT_SUGAR);
 						}
 						listUser.put(userId, mtUser);
 						order.setFinal_price(finalCost);
