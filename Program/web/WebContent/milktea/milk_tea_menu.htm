@@ -26,7 +26,7 @@ ${milkTeaBanner}
 			#end ##if (${dish_list})
 		</div>
 		##
-		<div class="col-sm-6" id="order-list">
+		<div class="col-sm-6">
 			$!{order_list}
 		</div>
 	</div>
@@ -35,52 +35,7 @@ ${milkTeaBanner}
 		<div class="col-sm-2">
 		</div>
 		<div class="col-sm-8">
-			## opening menu
-			<div>
-				<div class="row">
-				<div class="col-sm-12 bg-success text-center rounded" style="line-height:2;margin-top:1rem;margin-bottom:0.5rem;">
-					${messages.get('MSG_MILK_TEA_MENU_OPENING')}
-				</div>
-				</div>
-				#if(${listOpeningMenu})
-					${listOpeningMenu}
-				#else ##if(${listOpeningMenu})
-					<div class="col-sm-12 text-center">
-					${messages.get('MSG_MILK_TEA_NO_MENU_OPENING')}
-					</div>
-				#end ##if(${listOpeningMenu})
-			</div>
-			## delivering menu
-			<div>
-				<div class="row">
-				<div class="col-sm-12 bg-success text-center rounded" style="line-height:2;margin-top:1rem;margin-bottom:0.5rem;">
-					${messages.get('MSG_MILK_TEA_MENU_DELIVERING')}
-				</div>
-				</div>
-				#if(${listDeliveringMenu})
-					${listDeliveringMenu}
-				#else ##if(${listOpeningMenu})
-					<div class="col-sm-12 text-center">
-					${messages.get('MSG_MILK_TEA_NO_MENU_DELIVERING')}
-					</div>
-				#end ##if(${listOpeningMenu})
-			</div>
-			## completed menu
-			<div>
-				<div class="row">
-				<div class="col-sm-12 bg-success text-center rounded" style="line-height:2;margin-top:1rem;margin-bottom:0.5rem;">
-					${messages.get('MSG_MILK_TEA_MENU_COMPLETED')}
-				</div>
-				</div>
-				#if(${listCompletedMenu})
-					${listCompletedMenu}
-				#else ##if(${listOpeningMenu})
-					<div class="col-sm-12 text-center">
-					${messages.get('MSG_MILK_TEA_NO_MENU_COMPLETED')}
-					</div>
-				#end ##if(${listOpeningMenu})
-			</div>
-			
+			$!{menuList}			
 		</div>
 		<div class="col-sm-2">
 		</div>
@@ -88,4 +43,9 @@ ${milkTeaBanner}
 #end ##if (${menuInfo})
 ## footer
 <div class="row" style="height:50px;">
+</div>
+<div style="display:none;">
+	#if (${milkteaToken})
+	<span id="milktea-token">${milkteaToken}</span>
+	#end
 </div>

@@ -4,8 +4,12 @@ $(document).ready(function() {
 			$('form#logout-form').trigger('submit');
 		}
 	});
-	$('[data-toggle="tooltip"]').tooltip();
+	initToolTip();
 });
+
+function initToolTip() {
+	$('[data-toggle="tooltip"]').tooltip();
+}
 function onclickLogin() {
 	if ($('div#login-form-modal').length) {
 		var username = document.getElementById('form-login-username');

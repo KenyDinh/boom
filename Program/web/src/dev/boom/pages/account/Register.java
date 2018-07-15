@@ -3,6 +3,7 @@ package dev.boom.pages.account;
 import java.util.Enumeration;
 
 import dev.boom.core.BoomSession;
+import dev.boom.core.GameLog;
 import dev.boom.entity.info.UserInfo;
 import dev.boom.pages.PageBase;
 import dev.boom.services.UserService;
@@ -26,10 +27,6 @@ public class Register extends PageBase {
 		}
 		if (!getContext().isPost()) {
 			return false;
-		}
-		Enumeration<String> headerNames = getContext().getRequest().getHeaderNames();
-		while (headerNames.hasMoreElements()) {
-			System.out.println(headerNames.nextElement());
 		}
 		return true;
 	}
@@ -58,7 +55,7 @@ public class Register extends PageBase {
 			return;
 		}
 		if (!username.matches("[a-z]+\\d?\\.[a-z]+") || username.length() > 32) {
-			System.out.println("username is not matches!");
+			GameLog.getInstance().error("username is not matches!");
 			error = true;
 			return;
 		}

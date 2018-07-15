@@ -53,6 +53,24 @@ public class SocketSessionPool {
 		return ret;
 	}
 	
+	public static void removeSocketSession(long userId, String endPointName) {
+		SocketSessionBase socketSession = null;
+		if (mapSocketSession.containsKey(endPointName)) {
+			for (String key : mapSocketSession.get(endPointName).keySet()) {
+				SocketSessionBase ssb = mapSocketSession.get(endPointName).get(key);
+				if (ssb.getEndPointName().equals(endPointName) && ssb.getUserId() == userId) {
+					socketSession = ssb;
+					break;
+				}
+			}
+		}
+		if (socketSession != null) {
+			removeSocketSession(socketSession);
+		} else {
+			GameLog.getInstance().error("[SocketSessionPool] (removeSocketSession) socket not found by user_id:" + userId);
+		}
+	}
+	
 	public static void removeSocketSession(SocketSessionBase socketSession) {
 		removeSocketSession(socketSession, true);
 	}
@@ -65,6 +83,7 @@ public class SocketSessionPool {
 		if (mapSocketSession.containsKey(endPointName)) {
 			if (mapSocketSession.get(endPointName).containsKey(socketSession.getToken())) {
 				mapSocketSession.get(endPointName).remove(socketSession.getToken());
+				socketSession.closeSession();
 			}
 		}
 	}
@@ -86,6 +105,18 @@ public class SocketSessionPool {
 		String key = getPlayerKey(endpoint, userInfo);
 		listValidToken.add(key);
 		mapTokenUserId.put(key, userInfo.getId());
+		return key;
+	}
+	
+	/**
+	 * @param endpoint
+	 * @param uuid
+	 * @return token for non-user
+	 */
+	public static String generateValidToken(String endpoint, String uuid) {
+		String base = endpoint + "-" + uuid;
+		String key = CommonMethod.getEncryptMD5(base);
+		listValidToken.add(key);
 		return key;
 	}
 	

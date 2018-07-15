@@ -2,6 +2,7 @@ package dev.boom.pages.milktea;
 
 import dev.boom.common.enums.MainNavBarEnum;
 import dev.boom.common.milktea.MilkTeaTabEnum;
+import dev.boom.core.BoomProperties;
 import dev.boom.pages.BoomMainPage;
 
 public class MilkTeaMainPage extends BoomMainPage {
@@ -34,7 +35,7 @@ public class MilkTeaMainPage extends BoomMainPage {
 	
 	private void initMilkTeaBanner() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("<div class=\"row\" style=\"min-height:9.375rem;max-height:15.625rem;\" id=\"milktea-intro\" >");
+		sb.append("<div class=\"row\" style=\"min-height:9.375rem;\" id=\"milktea-intro\" >");
 			sb.append(initMilkTeaIntro());
 		sb.append("</div>");
 		
@@ -59,6 +60,11 @@ public class MilkTeaMainPage extends BoomMainPage {
 	
 	protected String initMilkTeaIntro() {
 		return "";
+	}
+	
+	protected String getSocketUrl(String params) {
+		int port = getContext().getRequest().getServerPort();
+		return "ws://" + BoomProperties.SERVICE_HOSTNAME + (port == 80 ? "" : ":" + port) + getContextPath() + "/socket/milktea" + params;
 	}
 	
 }

@@ -58,8 +58,51 @@ $(document).ready(function() {
 			$(this).addClass('bg-light');
 		}
 	});
+	if ($('span#milktea-token').length) {
+		var milkteaSocket = new BoomSocket($('span#milktea-token').text());
+		$('span#milktea-token').remove();
+		milkteaSocket.init({onmessage:onMessage});
+	}
+	
 });
+function onMessage(event) {
+	if (event.data) {
+		var obj = JSON.parse(event.data);
+		switch(obj.message_type) {
+		case 'update':
+			sendMilkTeaUpdateRequest(obj.data);
+			break;
+		default:
+			break;
+		}
+	}
+}
+function sendMilkTeaUpdateRequest(data) {
+	if (data === undefined || data === null) {
+		return;
+	}
+	$.ajax({
+		url: CONTEXT + "/milktea/milk_tea_detail_update.htm",
+		type:"POST",
+		data:data,
+		success:function(result) {
+			if (result) {
+				var retHtml = $(result);
+				if ($('#' + retHtml.attr('id')).length) {
+					$('#' + retHtml.attr('id')).html(retHtml.html());
+					initToolTip();
+					initEvent();
+				}
+			}
+		},
+		error:function() {
+			console.log("error!");
+		}
+	});
+}
+
 function initEvent() {
+	$('div[id^="delete-order-"]').unbind('mouseenter mouseleave');
 	$('div[id^="delete-order-"]').hover(function() {
 		if ($(this).hasClass('text-secondary')) {
 			$(this).removeClass('text-secondary');
@@ -145,7 +188,6 @@ function placeTheOrder(menuId,itemId) {
 				return;
 			}
 		}
-		console.log(params);
 		$.ajax({
 			url:CONTEXT + "/milktea/milk_tea_manage_order.htm",
 			type:"POST",
@@ -153,8 +195,8 @@ function placeTheOrder(menuId,itemId) {
 			success:function(result) {
 				if (result) {
 					placeOrderModal.modal('hide');
-					$('div#order-list').html(result);
-					initEvent();
+//					$('div#order-list').html(result);
+//					initEvent();
 				}
 			},
 			error:function() {
@@ -175,16 +217,17 @@ function deleteTheOrder(menuId,orderId) {
 	if (deleteOrderModal.length <= 0) {
 		return;
 	}
+	deleteOrderModal.detach();
 	$.ajax({
 		url: CONTEXT + "/milktea/milk_tea_manage_order.htm",
 		type:"POST",
 		data:"mode=2&menu_id=" + menuId + "&order_id=" + orderId,
 		success:function(result) {
 			if (result) {
-				deleteOrderModal.on('hide.bs.modal', function(e) {
-					$('div#order-list').html(result);
-					initEvent();
-				});
+//				deleteOrderModal.on('hide.bs.modal', function(e) {
+//					$('div#order-list').html(result);
+//					initEvent();
+//				});
 				deleteOrderModal.modal('hide');
 			}
 		},

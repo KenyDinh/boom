@@ -6,12 +6,13 @@ import java.util.List;
 import java.util.Map;
 
 import dev.boom.common.CommonMethod;
-import dev.boom.common.milktea.MilkTeaCommonFunc;
 import dev.boom.common.milktea.MilkTeaMenuStatus;
+import dev.boom.common.milktea.MilkTeaSocketMessage;
+import dev.boom.common.milktea.MilkTeaSocketType;
 import dev.boom.core.GameLog;
 import dev.boom.dao.core.DaoValue;
-import dev.boom.entity.info.MilkTeaUserInfo;
 import dev.boom.entity.info.MenuInfo;
+import dev.boom.entity.info.MilkTeaUserInfo;
 import dev.boom.entity.info.OrderInfo;
 import dev.boom.entity.info.ShopOptionInfo;
 import dev.boom.milktea.object.MenuItem;
@@ -19,6 +20,7 @@ import dev.boom.services.CommonDaoService;
 import dev.boom.services.MenuService;
 import dev.boom.services.OrderService;
 import dev.boom.services.ShopService;
+import dev.boom.socket.endpoint.MilkTeaEndPoint;
 
 public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 
@@ -267,9 +269,8 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 		if (error) {
 			return;
 		}
-		List<ShopOptionInfo> listShopOption = ShopService.getShopOptionListByShopId(menuInfo.getShop_id());
-		List<OrderInfo> listOrder = OrderService.getOrderInfoListByMenuId(menuInfo.getId());
-		addModel("result", MilkTeaCommonFunc.getHtmlListOrder(listOrder, menuInfo, userInfo, listShopOption, getHostURL() + getContextPath(), getMessages()));
+		addModel("result", "1");
+		MilkTeaEndPoint.sendSocketUpdate(MilkTeaSocketType.MENU_DETAIL, MilkTeaSocketMessage.UPDATE_ORDER_LIST);
 	}
 
 }

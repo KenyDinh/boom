@@ -1,4 +1,4 @@
-package dev.boom.socket.endpoint;
+package dev.boom.socket;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,7 +17,7 @@ import dev.boom.milktea.object.Menu;
 import dev.boom.milktea.object.MenuItem;
 import dev.boom.milktea.object.MenuItemOption;
 import dev.boom.services.CommonDaoService;
-import dev.boom.socket.SocketSessionBase;
+import dev.boom.socket.endpoint.FridayStaticData;
 
 public class FridaySocketSession extends SocketSessionBase {
 

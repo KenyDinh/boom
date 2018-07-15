@@ -6,11 +6,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 
 import dev.boom.common.CommonMethod;
 import dev.boom.common.milktea.MilkTeaCommonFunc;
 import dev.boom.common.milktea.MilkTeaMenuStatus;
+import dev.boom.common.milktea.MilkTeaSocketMessage;
+import dev.boom.common.milktea.MilkTeaSocketType;
 import dev.boom.core.GameLog;
 import dev.boom.dao.core.DaoValue;
 import dev.boom.entity.info.MenuInfo;
@@ -24,6 +27,7 @@ import dev.boom.services.MenuService;
 import dev.boom.services.MilkTeaUserService;
 import dev.boom.services.OrderService;
 import dev.boom.services.ShopService;
+import dev.boom.socket.endpoint.MilkTeaEndPoint;
 
 public class MilkTeaManageMenu extends ManagePageBase {
 
@@ -121,6 +125,8 @@ public class MilkTeaManageMenu extends ManagePageBase {
 				}
 				if (update) {
 					doUpdateMenu(menuInfo);
+					MilkTeaEndPoint.sendSocketUpdate(MilkTeaSocketType.MENU_LIST, MilkTeaSocketMessage.UPDATE_MENU_LIST);
+					MilkTeaEndPoint.sendSocketUpdate(MilkTeaSocketType.MENU_DETAIL, MilkTeaSocketMessage.UPDATE_MENU_DETAIL);
 					mode = 0;
 				}
 			}
@@ -204,7 +210,8 @@ public class MilkTeaManageMenu extends ManagePageBase {
 					table.append("<td>-</td>");
 				}
 				table.append("<td>").append(MilkTeaCommonFunc.getShowPriceWithUnit(menu.getShipping_fee(), "", getMessages())).append("</td>");
-				table.append("<td><div data-toggle=\"tooltip\" data-placement=\"bottom\" style=\"width:200px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;\" title=\"").append(menu.getDescription()).append("\">").append(menu.getDescription()).append("</div></td>");
+				String desc = StringEscapeUtils.escapeHtml(menu.getDescription());
+				table.append("<td><div data-toggle=\"tooltip\" data-placement=\"bottom\" style=\"width:200px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;\" title=\"").append(desc).append("\">").append(desc).append("</div></td>");
 				table.append("<td>").append(MilkTeaMenuStatus.valueOf(menu.getStatus()).name()).append("</td>");
 				table.append("<td>").append(CommonMethod.getFormatDateString(menu.getCreated())).append("</td>");
 				table.append("<td>").append(CommonMethod.getFormatDateString(menu.getUpdated())).append("</td>");

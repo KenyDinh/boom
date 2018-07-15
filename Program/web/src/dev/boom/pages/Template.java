@@ -25,6 +25,7 @@ public class Template extends PageBase {
 		headElements.add(new JsImport("/js/lib/popper-1.14.0.min.js"));
 		headElements.add(new JsImport("/js/lib/bootstrap.min.js"));
 		headElements.add(new JsImport("/js/common.js"));
+		headElements.add(new JsImport("/js/socket.js"));
 		
 		return headElements;
 	}
