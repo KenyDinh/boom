@@ -60,9 +60,8 @@ public class MilkTeaMenu extends MilkTeaMainPage {
 		if (menuInfo != null) {
 			List<MenuItem> listMenuItem = MenuService.getMenuItemListByShopId(menuInfo.getShop_id());
 			if (listMenuItem != null) {
-				boolean hasLogin = (boolean)(getUserInfo() != null);
 				List<ShopOptionInfo> listShopOption = ShopService.getShopOptionListByShopId(menuInfo.getShop_id());
-				addModel("dish_list", MilkTeaCommonFunc.getHtmlListMenuItem(menuInfo, listMenuItem, listShopOption, contextPath, hasLogin, messages));
+				addModel("dish_list", MilkTeaCommonFunc.getHtmlListMenuItem(menuInfo, listMenuItem, listShopOption, contextPath, getUserInfo(), messages));
 				addModel("dish_type", MilkTeaCommonFunc.getHtmlListMenuItemType(listMenuItem, contextPath));
 				List<OrderInfo> listOrder = OrderService.getOrderInfoListByMenuId(menuInfo.getId());
 				addModel("order_list", MilkTeaCommonFunc.getHtmlListOrder(listOrder, menuInfo, getUserInfo(), listShopOption, contextPath, messages));

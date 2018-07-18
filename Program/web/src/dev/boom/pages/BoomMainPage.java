@@ -1,6 +1,6 @@
 package dev.boom.pages;
 
-import dev.boom.common.CommonMethod;
+import dev.boom.common.CommonHtmlFunc;
 import dev.boom.common.enums.MainNavBarEnum;
 import dev.boom.common.enums.UserFlagEnum;
 import dev.boom.core.BoomSession;
@@ -88,8 +88,8 @@ public class BoomMainPage extends Template {
 						sb.append("<button style=\"width:80px;\" class=\"btn btn-info my-2 my-sm-0\" type=\"button\" data-toggle=\"modal\" data-target=\"#login-form-modal\">" + getMessage("MSG_GENERAL_LOGIN") + "</button>");
 						sb.append("<button style=\"width:80px;margin-left:1rem;\" class=\"btn btn-success my-2 my-sm-0\" type=\"button\" data-toggle=\"modal\" data-target=\"#regist-form-modal\">" + getMessage("MSG_GENERAL_SIGNUP") + "</button>");
 					sb.append("</form>");
-					addModel("login_modal", CommonMethod.getLoginFormModal(getHostURL() + getContextPath(), getMessages()));
-					addModel("register_modal", CommonMethod.getRegisterFormModal(getHostURL() + getContextPath(), getMessages()));
+					addModel("login_modal", CommonHtmlFunc.getLoginFormModal(getHostURL() + getContextPath(), getMessages()));
+					addModel("register_modal", CommonHtmlFunc.getRegisterFormModal(getHostURL() + getContextPath(), getMessages()));
 				}
 				
 			sb.append("</div>");

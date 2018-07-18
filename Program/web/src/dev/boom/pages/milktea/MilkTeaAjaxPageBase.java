@@ -37,6 +37,10 @@ public class MilkTeaAjaxPageBase extends PageBase {
 			GameLog.getInstance().error("[MilkTeaAjaxPageBase] user is null!");
 			return false;
 		}
+		if (UserFlagEnum.ACTIVE.isValid(userInfo.getFlag())) {
+			GameLog.getInstance().error("[MilkTeaAjaxPageBase] user is not active yet!");
+			return false;
+		}
 		if (UserFlagEnum.MILKTEA_BANNED.isValid(userInfo.getFlag())) {
 			GameLog.getInstance().error("[MilkTeaAjaxPageBase] user is banned!");
 			return false;
