@@ -1,17 +1,16 @@
 package dev.boom.pages.account;
 
-import dev.boom.common.enums.UserFlagEnum;
-import dev.boom.core.BoomSession;
-import dev.boom.entity.info.UserInfo;
-import dev.boom.pages.PageBase;
-import dev.boom.services.UserService;
-import dev.boom.socket.endpoint.FridayEndpoint;
+import org.apache.commons.lang.StringUtils;
 
-public class ChangePassword extends PageBase {
+import dev.boom.common.CommonMethod;
+import dev.boom.core.GameLog;
+import dev.boom.pages.JsonPageBase;
+import dev.boom.services.CommonDaoService;
+
+public class ChangePassword extends JsonPageBase {
 
 	private static final long serialVersionUID = 1L;
 	
-	private boolean error = false;
 	public ChangePassword() {
 	}
 	
@@ -26,6 +25,9 @@ public class ChangePassword extends PageBase {
 		if (!getContext().isPost()) {
 			return false;
 		}
+		if (!initUserInfo()) {
+			return false;
+		}
 		return true;
 	}
 
@@ -37,39 +39,28 @@ public class ChangePassword extends PageBase {
 	@Override
 	public void onPost() {
 		super.onPost();
-		BoomSession boomSession = getBoomSession();
-		if (boomSession != null) {
+		String cur_password = getContext().getRequestParameter("cur_password");
+		String new_password = getContext().getRequestParameter("new_password");
+		String re_new_password = getContext().getRequestParameter("re_new_password");
+		if (StringUtils.isBlank(cur_password) || StringUtils.isBlank(new_password) || StringUtils.isBlank(re_new_password)) {
+			putJsonData("error", getMessage("MSG_ACCOUNT_INCORRECT_VALUE"));
 			return;
 		}
-		String username = getContext().getRequestParameter("username");
-		String password = getContext().getRequestParameter("password");
-		if (username == null || password == null) {
-			error = true;
+		if (!userInfo.getPassword().equals(CommonMethod.getEncryptMD5(cur_password))) {
+			putJsonData("error", getMessage("MSG_ACCOUNT_CURRENT_PWD_INCORRECT"));
 			return;
 		}
-		if (username.isEmpty() || password.isEmpty()) {
-			error = true;
+		if (!new_password.equals(re_new_password)) {
+			putJsonData("error", getMessage("MSG_ACCOUNT_CONFIRM_PWD_INCORRECT"));
 			return;
 		}
-		UserInfo info = UserService.getUser(username, password);
-		if (info == null) {
-			error = true;
+		userInfo.setPassword(CommonMethod.getEncryptMD5(new_password));
+		if (!CommonDaoService.update(userInfo)) {
+			GameLog.getInstance().error("[ChangePassword] update failed!");
+			putJsonData("error", getMessage("MSG_GENERAL_ERROR"));
 			return;
 		}
-		storeBoomSession(info);
-		if (UserFlagEnum.ADMINISTRATOR.isValid(info.getFlag())) {
-			getContext().getSession().setMaxInactiveInterval(300);
-			FridayEndpoint.registerToken(info);
-		}
+		putJsonData("success", 1);
 	}
 
-	@Override
-	public void onRender() {
-		if (error) {
-			addModel("result", String.format("{\"error\":\"%s\"}", getMessage("MSG_LOGIN_INCORRECT")));
-			return;
-		}
-		addModel("result", "{\"success\":1}");
-	}
-	
 }

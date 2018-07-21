@@ -22,13 +22,13 @@ public class CommonDaoService {
 			IDaoFactory factory = getDaoFactory(dao);
 			if (factory == null) {
 				GameLog.getInstance().info("DaoFactory is null");
-				return 0;
+				return null;
 			}
 			return factory.insert(dao);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return 0;
+		return null;
 	}
 
 	public static boolean update(DaoValue dao) {

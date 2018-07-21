@@ -1,17 +1,20 @@
 package dev.boom.pages.account;
 
+import org.apache.commons.lang.StringUtils;
+
 import dev.boom.common.enums.UserFlagEnum;
 import dev.boom.core.BoomSession;
 import dev.boom.entity.info.UserInfo;
-import dev.boom.pages.PageBase;
+import dev.boom.pages.JsonPageBase;
 import dev.boom.services.UserService;
 import dev.boom.socket.endpoint.FridayEndpoint;
 
-public class Login extends PageBase {
+public class Login extends JsonPageBase {
 
 	private static final long serialVersionUID = 1L;
 	
-	private boolean error = false;
+	private String token = null;
+	
 	public Login() {
 	}
 	
@@ -43,33 +46,21 @@ public class Login extends PageBase {
 		}
 		String username = getContext().getRequestParameter("username");
 		String password = getContext().getRequestParameter("password");
-		if (username == null || password == null) {
-			error = true;
-			return;
-		}
-		if (username.isEmpty() || password.isEmpty()) {
-			error = true;
+		if (StringUtils.isBlank(username) || StringUtils.isBlank(password)) {
+			putJsonData("error", getMessage("MSG_ACCOUNT_INCORRECT_VALUE"));
 			return;
 		}
 		UserInfo info = UserService.getUser(username, password);
 		if (info == null) {
-			error = true;
+			putJsonData("error", getMessage("MSG_ACCOUNT_LOGIN_INCORRECT"));
 			return;
 		}
 		storeBoomSession(info);
 		if (UserFlagEnum.ADMINISTRATOR.isValid(info.getFlag())) {
-			getContext().getSession().setMaxInactiveInterval(300);
-			FridayEndpoint.registerToken(info);
+			token = FridayEndpoint.registerToken(info);
+			putJsonData("token", token);
 		}
+		putJsonData("success", 1);
 	}
 
-	@Override
-	public void onRender() {
-		if (error) {
-			addModel("result", String.format("{\"error\":\"%s\"}", getMessage("MSG_LOGIN_INCORRECT")));
-			return;
-		}
-		addModel("result", "{\"success\":1}");
-	}
-	
 }

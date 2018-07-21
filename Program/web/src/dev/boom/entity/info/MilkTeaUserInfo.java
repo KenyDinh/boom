@@ -12,6 +12,7 @@ public class MilkTeaUserInfo extends DaoValueInfo implements IDaoValue {
 
 	private long user_id;
 	private String username;
+	private long dish_count;
 	private long order_count;
 	private long total_money;
 	private long total_sugar;
@@ -22,6 +23,7 @@ public class MilkTeaUserInfo extends DaoValueInfo implements IDaoValue {
 	public MilkTeaUserInfo() {
 		this.user_id = 0;
 		this.username = "";
+		this.dish_count = 0;
 		this.order_count = 0;
 		this.total_money = 0;
 		this.total_sugar = 0;
@@ -45,6 +47,14 @@ public class MilkTeaUserInfo extends DaoValueInfo implements IDaoValue {
 
 	public void setUsername(String username) {
 		this.username = username;
+	}
+
+	public long getDish_count() {
+		return dish_count;
+	}
+
+	public void setDish_count(long dish_count) {
+		this.dish_count = dish_count;
 	}
 
 	public long getOrder_count() {

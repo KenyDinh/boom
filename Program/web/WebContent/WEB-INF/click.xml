@@ -31,6 +31,7 @@
   	<!-- Account -->
   	<page classname="account.Login" path="account/login.htm"/>
   	<page classname="account.Register" path="account/register.htm"/>
+  	<page classname="account.ChangePassword" path="account/change_password.htm"/>
   	<!-- Milk Tea -->
   	<page classname="milktea.MilkTeaMenu" path="milktea/milk_tea_menu.htm"/>
   	<page classname="milktea.MilkTeaListShop" path="milktea/milk_tea_list_shop.htm"/>

@@ -22,6 +22,17 @@ public class MilkTeaDetailUpdate extends MilkTeaAjaxPageBase {
 	}
 	
 	@Override
+	public String getContentType() {
+		String charset = getContext().getRequest().getCharacterEncoding();
+
+		if (charset == null) {
+			return "text/html";
+		} else {
+			return "text/html; charset=" + charset;
+		}
+	}
+	
+	@Override
 	public boolean onSecurityCheck() {
 		if (!super.onSecurityCheck()) {
 			return false;
@@ -57,7 +68,7 @@ public class MilkTeaDetailUpdate extends MilkTeaAjaxPageBase {
 			if (CommonMethod.isValidNumeric(strMenuId, 1, Long.MAX_VALUE)) {
 				MenuInfo menuInfo = MenuService.getMenuById(Long.parseLong(strMenuId));
 				if (msg == MilkTeaSocketMessage.UPDATE_MENU_DETAIL) {
-					addModel("result", MilkTeaCommonFunc.getHtmlMenuDetail(menuInfo, getHostURL() + getContextPath(), getMessages()));
+					addModel("result", MilkTeaCommonFunc.getHtmlMenuDetail(menuInfo, userInfo, getHostURL() + getContextPath(), getMessages()));
 				} else {
 					List<ShopOptionInfo> listShopOption = ShopService.getShopOptionListByShopId(menuInfo.getShop_id());
 					List<OrderInfo> listOrder = OrderService.getOrderInfoListByMenuId(menuInfo.getId());

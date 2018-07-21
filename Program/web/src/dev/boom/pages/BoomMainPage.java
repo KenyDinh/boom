@@ -34,11 +34,12 @@ public class BoomMainPage extends Template {
 	}
 
 	private void initMenuBar() {
+		String contextPath = getHostURL() + getContextPath();
 		StringBuffer sb = new StringBuffer();
 		sb.append("<nav id=\"main-nav-bar\" class=\"navbar navbar-expand-lg navbar-dark bg-primary fixed-top\" style=\"padding:0.625rem;\">");
 			sb.append("<div class=\"container\" style=\"max-width:113.75rem;\" >");
 			sb.append("<a class=\"navbar-brand\" href=\"#\">");
-			sb.append(String.format("<img src=\"%s\" style=\"width:75%%;\" alt=\"friday\" title=\"friday\" />", getHostURL() + getContextPath() + "/img/page/friday.png"));
+			sb.append(String.format("<img src=\"%s\" style=\"width:75%%;\" alt=\"friday\" title=\"friday\" />", contextPath + "/img/page/friday.png"));
 			sb.append("</a>");
 			
 			sb.append("<button class=\"navbar-toggler\" type=\"button\" data-toggle=\"collapse\" data-target=\"#navbarColor02\" aria-controls=\"navbarColor02\" aria-expanded=\"false\" aria-label=\"Toggle navigation\" style=\"\">");
@@ -53,7 +54,7 @@ public class BoomMainPage extends Template {
 						}
 						boolean current = (boolean) (bar.getIndex() == this.getMenuBarIndex());
 						sb.append(String.format("<li class=\"nav-item %s\">", (current ? "active" : "")));
-							sb.append(String.format("<a class=\"nav-link\" href=\"%s\" >", getHostURL() + getContextPath() + "/" + bar.getViewPage()));
+							sb.append(String.format("<a class=\"nav-link\" href=\"%s\" >", contextPath + "/" + bar.getViewPage()));
 							sb.append(getMessage(bar.getLabel()));
 							if (bar.getIndex() == this.getMenuBarIndex()) {
 								sb.append("<span class=\"sr-only\">(current)</span>");
@@ -68,11 +69,11 @@ public class BoomMainPage extends Template {
 							sb.append(userInfo.getUsername());
 						sb.append("</div>");
 						sb.append("<div class=\"my-2 my-sm-0 dropdown\" style=\"margin-left:1rem;\">");
-							sb.append(String.format("<img src=\"%s\" style=\"cursor:pointer;width:48px;\" data-toggle=\"dropdown\"/>", getHostURL() + getContextPath() + "/img/page/common-user.png"));
+							sb.append(String.format("<img src=\"%s\" style=\"cursor:pointer;width:48px;\" data-toggle=\"dropdown\"/>", contextPath + "/img/page/common-user.png"));
 							sb.append("<div class=\"dropdown-menu\" style=\"right:0;left:unset;\">");
 								sb.append("<a class=\"dropdown-item\" href=\"#\">" + getMessage("MSG_GENERAL_MY_PROFILE") + "</a>");
 								sb.append("<a class=\"dropdown-item\" href=\"#\">" + getMessage("MSG_GENERAL_MY_ACCOUNT") + "</a>");
-								//sb.append("<a class=\"dropdown-item\" href=\"#\" data-toggle=\"modal\" data-target=\"#change-password-modal\">" + getMessage("MSG_ACCOUNT_CHANGE_PASSWORD") + "</a>");
+								sb.append("<a class=\"dropdown-item\" href=\"#\" data-toggle=\"modal\" data-target=\"#change-password-modal\">" + getMessage("MSG_ACCOUNT_CHANGE_PASSWORD") + "</a>");
 								if (UserFlagEnum.ADMINISTRATOR.isValid(userInfo.getFlag())) {
 									sb.append("<div class=\"dropdown-divider\"></div>");
 									sb.append("<a class=\"dropdown-item\" href=\"" + getHostURL() + getPagePath(MilkTeaManageMenu.class) + "\">" + getMessage("MSG_GENERAL_ADMIN_PAGE") + "</a>");
@@ -82,14 +83,15 @@ public class BoomMainPage extends Template {
 							sb.append("</div>");
 						sb.append("</div>");
 					sb.append("</form>");
+					addModel("change_pwd_modal", CommonHtmlFunc.getChangePasswordFormModal(contextPath, getMessages()));
 					addModel("logoutForm", getLogoutForm());
 				} else {
 					sb.append("<form class=\"form-inline my-2 my-lg-0\">");
 						sb.append("<button style=\"width:80px;\" class=\"btn btn-info my-2 my-sm-0\" type=\"button\" data-toggle=\"modal\" data-target=\"#login-form-modal\">" + getMessage("MSG_GENERAL_LOGIN") + "</button>");
 						sb.append("<button style=\"width:80px;margin-left:1rem;\" class=\"btn btn-success my-2 my-sm-0\" type=\"button\" data-toggle=\"modal\" data-target=\"#regist-form-modal\">" + getMessage("MSG_GENERAL_SIGNUP") + "</button>");
 					sb.append("</form>");
-					addModel("login_modal", CommonHtmlFunc.getLoginFormModal(getHostURL() + getContextPath(), getMessages()));
-					addModel("register_modal", CommonHtmlFunc.getRegisterFormModal(getHostURL() + getContextPath(), getMessages()));
+					addModel("login_modal", CommonHtmlFunc.getLoginFormModal(contextPath, getMessages()));
+					addModel("register_modal", CommonHtmlFunc.getRegisterFormModal(contextPath, getMessages()));
 				}
 				
 			sb.append("</div>");

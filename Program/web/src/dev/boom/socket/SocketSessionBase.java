@@ -1,11 +1,13 @@
 package dev.boom.socket;
 
 import java.io.IOException;
+import java.util.Date;
 
 import javax.websocket.Session;
 
 import org.apache.click.service.ConsoleLogService;
 
+import dev.boom.common.CommonDefine;
 import dev.boom.core.GameLog;
 import net.arnx.jsonic.JSON;
 
@@ -20,11 +22,17 @@ public abstract class SocketSessionBase {
 	private String token;
 
 	private String endPointName;
+	
+	private Date start_date;
+	
+	private Date expire_date;
 
 	public SocketSessionBase(Session session, String endPointName, String token) {
 		this.session = session;
 		this.endPointName = endPointName;
 		this.token = token;
+		this.start_date = new Date();
+		this.expire_date = new Date(this.start_date.getTime() + CommonDefine.SOCKET_SESSION_INTERVAL);
 	}
 
 	public String getSessionId() {
@@ -61,6 +69,27 @@ public abstract class SocketSessionBase {
 
 	public void setEndPointName(String endPointName) {
 		this.endPointName = endPointName;
+	}
+
+	public Date getStart_date() {
+		return start_date;
+	}
+
+	public void setStart_date(Date start_date) {
+		this.start_date = start_date;
+	}
+
+	public Date getExpire_date() {
+		return expire_date;
+	}
+
+	public void setExpire_date(Date expire_date) {
+		this.expire_date = expire_date;
+	}
+	
+	public boolean isExpired() {
+		// not available now
+		return false;
 	}
 
 	public void sendMessage(String message) {

@@ -1,66 +1,66 @@
 const MAX_TOPPING = 3;
 
-$(document).ready(function() {
+$j(document).ready(function() {
 	initEvent();
-	var elem = $('div#on-scroll-dish-type');
-	var mainNav = $('#main-nav-bar');
+	var elem = $j('div#on-scroll-dish-type');
+	var mainNav = $j('#main-nav-bar');
 	if (elem.length) {
-		if ($(window).outerWidth() >= 992) {
-			scrollDishType(elem,mainNav,$(window));
-		} else if ($(window).outerWidth() <= 576) {
-			$('div#milktea-intro').css('max-height','');
+		if ($j(window).outerWidth() >= 992) {
+			scrollDishType(elem,mainNav,$j(window));
+		} else if ($j(window).outerWidth() <= 576) {
+			$j('div#milktea-intro').css('max-height','');
 		}
-		$(window).on('scroll resize', function() {
-			scrollDishType(elem,mainNav,$(this));
+		$j(window).on('scroll resize', function() {
+			scrollDishType(elem,mainNav,$j(this));
 		});
 	}
-	if ($('img.menu-pre-image').length) {
+	if ($j('img.menu-pre-image').length) {
 		resizePreimageMenu();
-		$(window).on('resize', function() {
+		$j(window).on('resize', function() {
 			resizePreimageMenu();
 		});
 	}
-	$('img.dish-image').hover(function() {
-		if($('div#dish-image-overlay').length == 0) {
-			var size = $(this).outerHeight();
+	$j('img.dish-image').hover(function() {
+		if($j('div#dish-image-overlay').length == 0) {
+			var size = $j(this).outerHeight();
 			var img_size = 360;
-			var top = $(this).offset().top - $(window).scrollTop();
+			var top = $j(this).offset().top - $j(window).scrollTop();
 			var realTop = top;
 			if (mainNav.length) {
 				realTop =  Math.max(0, top - mainNav.outerHeight());
 			}
-			var bottom = Math.max(0,$(window).outerHeight() - top - size);
+			var bottom = Math.max(0,$j(window).outerHeight() - top - size);
 			var overlayOffTop = top;
 			if (bottom < realTop && realTop > img_size) {
 				overlayOffTop = top - img_size + size;
 			}
-			var overlayOffLeft = $(this).offset().left + size;
-			$('body').append('<div id="dish-image-overlay" style="display:none;position:fixed;z-index:99;top:' + overlayOffTop + 'px;left:' + overlayOffLeft + 'px;"><img src="' + $(this).attr('src') + '" height="' + img_size + '" /></div>');
+			var overlayOffLeft = $j(this).offset().left + size;
+			$j('body').append('<div id="dish-image-overlay" style="display:none;position:fixed;z-index:99;top:' + overlayOffTop + 'px;left:' + overlayOffLeft + 'px;"><img src="' + $j(this).attr('src') + '" height="' + img_size + '" /></div>');
 		} 
-		$('div#dish-image-overlay').show();
+		$j('div#dish-image-overlay').show();
 	}, function() {
-		if($('div#dish-image-overlay').length) {
-			$('div#dish-image-overlay').remove();
+		if($j('div#dish-image-overlay').length) {
+			$j('div#dish-image-overlay').remove();
 		}
 	});
-	$('div.menu-item').hover(function(){
-		if ($(this).hasClass('bg-light')) {
-			$(this).removeClass('bg-light');
+	$j('div.menu-item').hover(function(){
+		if ($j(this).hasClass('bg-light')) {
+			$j(this).removeClass('bg-light');
 		}
-		if ($(this).hasClass('bg-secondary') == false) {
-			$(this).addClass('bg-secondary');
+		if ($j(this).hasClass('bg-secondary') == false) {
+			$j(this).addClass('bg-secondary');
 		}
 	},function(){
-		if ($(this).hasClass('bg-secondary')) {
-			$(this).removeClass('bg-secondary');
+		if ($j(this).hasClass('bg-secondary')) {
+			$j(this).removeClass('bg-secondary');
 		}
-		if ($(this).hasClass('bg-light') == false) {
-			$(this).addClass('bg-light');
+		if ($j(this).hasClass('bg-light') == false) {
+			$j(this).addClass('bg-light');
 		}
 	});
-	if ($('span#milktea-token').length) {
-		var milkteaSocket = new BoomSocket($('span#milktea-token').text());
-		$('span#milktea-token').remove();
+	if ($j('span#milktea-token').length) {
+		var milkteaSocket = new BoomSocket($j('span#milktea-token').text());
+		$j('span#milktea-token').remove();
 		milkteaSocket.init({onmessage:onMessage});
 	}
 	
@@ -81,15 +81,16 @@ function sendMilkTeaUpdateRequest(data) {
 	if (data === undefined || data === null) {
 		return;
 	}
-	$.ajax({
+	$j.ajax({
 		url: CONTEXT + "/milktea/milk_tea_detail_update.htm",
 		type:"POST",
 		data:data,
+		dataType:"html",
 		success:function(result) {
 			if (result) {
-				var retHtml = $(result);
-				if ($('#' + retHtml.attr('id')).length) {
-					$('#' + retHtml.attr('id')).html(retHtml.html());
+				var retHtml = $j(result);
+				if ($j('#' + retHtml.attr('id')).length) {
+					$j('#' + retHtml.attr('id')).html(retHtml.html());
 					initToolTip();
 					initEvent();
 				}
@@ -102,16 +103,16 @@ function sendMilkTeaUpdateRequest(data) {
 }
 
 function initEvent() {
-	$('div[id^="delete-order-"]').unbind('mouseenter mouseleave');
-	$('div[id^="delete-order-"]').hover(function() {
-		if ($(this).hasClass('text-secondary')) {
-			$(this).removeClass('text-secondary');
-			$(this).addClass('text-danger');
+	$j('div[id^="delete-order-"]').unbind('mouseenter mouseleave');
+	$j('div[id^="delete-order-"]').hover(function() {
+		if ($j(this).hasClass('text-secondary')) {
+			$j(this).removeClass('text-secondary');
+			$j(this).addClass('text-danger');
 		}
 	}, function() {
-		if ($(this).hasClass('text-danger')) {
-			$(this).removeClass('text-danger');
-			$(this).addClass('text-secondary');
+		if ($j(this).hasClass('text-danger')) {
+			$j(this).removeClass('text-danger');
+			$j(this).addClass('text-secondary');
 		}
 	});
 }
@@ -138,11 +139,11 @@ function placeTheOrder(menuId,itemId) {
 	if (itemId == undefined || itemId == null || itemId == 0) {
 		return;
 	}
-	var placeOrderModal = $('div#place-order-modal-' + itemId);
+	var placeOrderModal = $j('div#place-order-modal-' + itemId);
 	if (placeOrderModal.length == 0) {
 		return;
 	}
-	var form = $('form#place-order-form-' + itemId);
+	var form = $j('form#place-order-form-' + itemId);
 	if (form.length) {
 		var params = "menu_id=" + menuId + "&menu_item_id=" + itemId;
 		var quantity = 1;
@@ -188,19 +189,22 @@ function placeTheOrder(menuId,itemId) {
 				return;
 			}
 		}
-		$.ajax({
+		$j.ajax({
 			url:CONTEXT + "/milktea/milk_tea_manage_order.htm",
 			type:"POST",
 			data:params,
+			dataType:"json",
 			success:function(result) {
 				if (result) {
 					placeOrderModal.modal('hide');
-//					$('div#order-list').html(result);
+//					$j('div#order-list').html(result);
 //					initEvent();
+				} else {
+					window.location.reload();
 				}
 			},
 			error:function() {
-				console.log("error!");
+				window.location.reload();
 			}
 		});
 	}
@@ -213,26 +217,29 @@ function deleteTheOrder(menuId,orderId) {
 	if (orderId == undefined || orderId == null) {
 		return;
 	}
-	var deleteOrderModal = $('div#confirm-delete-order-' + orderId);
+	var deleteOrderModal = $j('div#confirm-delete-order-' + orderId);
 	if (deleteOrderModal.length <= 0) {
 		return;
 	}
 	deleteOrderModal.detach();
-	$.ajax({
+	$j.ajax({
 		url: CONTEXT + "/milktea/milk_tea_manage_order.htm",
 		type:"POST",
+		dataType:"json",
 		data:"mode=2&menu_id=" + menuId + "&order_id=" + orderId,
 		success:function(result) {
+			deleteOrderModal.modal('hide');
 			if (result) {
 //				deleteOrderModal.on('hide.bs.modal', function(e) {
-//					$('div#order-list').html(result);
+//					$j('div#order-list').html(result);
 //					initEvent();
 //				});
-				deleteOrderModal.modal('hide');
+			} else {
+				window.location.reload();
 			}
 		},
 		error:function() {
-			console.log("error!");
+			window.location.reload();
 		}
 	});
 }
@@ -241,18 +248,17 @@ function viewMenuItemGroup(groupId) {
 	if (groupId == undefined || groupId == null || groupId == 0) {
 		groupId = 1;
 	}
-	var item_group = $('#menu-item-group-' + groupId);
+	var item_group = $j('#menu-item-group-' + groupId);
 	if (item_group.length <= 0) {
 		return;
 	}
-	var top = item_group.offset().top - $('#menu-item-group-1').offset().top + $('#milktea-intro').outerHeight();
-	$(window).scrollTop(top);
+	var top = item_group.offset().top - $j('#menu-item-group-1').offset().top + $j('#milktea-intro').outerHeight();
+	$j(window).scrollTop(top);
 }
 
 function resizePreimageMenu() {
-	$('img.menu-pre-image').each(function() {
-		var width = parseInt($(this).css('width'));
-		$(this).css('height',(width * 458 / 800) + 'px');
+	$j('img.menu-pre-image').each(function() {
+		var width = parseInt($j(this).css('width'));
+		$j(this).css('height',(width * 458 / 800) + 'px');
 	});
 }
-

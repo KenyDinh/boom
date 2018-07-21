@@ -346,7 +346,7 @@ public class MilkTeaCommonFunc {
 		sb.append("<div style=\"text-align:center;\" class=\"text-success\">");
 		sb.append(messages.get("MSG_MILK_TEA_ORDER_LIST"));
 		sb.append("</div>");
-		sb.append(String.format("<table class=\"table %s\">", (isMenuOpening ? "table-striped table-hover" : (hasOrder ? "table-striped" : ""))));
+		sb.append(String.format("<table class=\"table table-responsive %s\">", (isMenuOpening ? "table-striped table-hover" : (hasOrder ? "table-striped" : ""))));
 			sb.append("<thead>");
 				sb.append("<tr>");
 					String thStyle = String.format("border-top:0.0625rem solid %s;border-bottom:0.125rem solid %s;", ORDER_BORDER_COLOR, ORDER_BORDER_COLOR);
@@ -627,7 +627,7 @@ public class MilkTeaCommonFunc {
 	}
 	
 	@SuppressWarnings("rawtypes")
-	public static String getHtmlMenuDetail(MenuInfo menuInfo, String contextPath, Map messages) {
+	public static String getHtmlMenuDetail(MenuInfo menuInfo, UserInfo userInfo, String contextPath, Map messages) {
 		StringBuilder sb = new StringBuilder();
 		ShopInfo shopInfo = ShopService.getShopById(menuInfo.getShop_id());
 		if (shopInfo != null) {
@@ -643,7 +643,13 @@ public class MilkTeaCommonFunc {
 			}
 			sb.append("</div>");
 			sb.append("<div class=\"col-lg-9 col-md-6\">");
-				sb.append("<h5 class=\"font-weight-bol text-info\" style=\"margin-top:1rem;\">").append(menuInfo.getName()).append("</h5>");
+				sb.append("<h5 class=\"font-weight-bol text-info\" style=\"margin-top:1rem;\">");
+				if (userInfo != null && UserFlagEnum.ADMINISTRATOR.isValid(userInfo.getFlag())) {
+					sb.append(String.format("<a class=\"text-info\" href=\"%s\" target=\"_blank\">", shopInfo.getUrl()));
+					sb.append(menuInfo.getName()).append("</a></h5>");
+				} else {
+					sb.append(menuInfo.getName()).append("</h5>");
+				}
 				sb.append("<div class=\"font-italic\" style=\"font-size:0.875rem;margin-bottom:0.5rem;\">").append(shopInfo.getAddress()).append("</div>");
 				sb.append("<div class=\"rating\">");
 					double rating = 0.0;
@@ -671,10 +677,15 @@ public class MilkTeaCommonFunc {
 					} else {
 						sb.append("<div class=\"text-success\" style=\"margin-bottom:0.5rem;font-size:0.875rem;\">").append((String)messages.get("MSG_MILK_TEA_SHOP_INFO_FIRST_TIME_OPEN")).append("</div>");
 					}
+				sb.append("</div>");
+				if (menuInfo.getMax_discount() > 0) {
+					sb.append("<div style=\"margin-bottom:0.25rem;\">");
+				} else {
 					sb.append("<div style=\"margin-bottom:0.5rem;\">");
-						sb.append("<span>");
-							sb.append(MessageFormat.format((String)messages.get("MSG_MILK_TEA_MENU_INFO_SALE_RATE"), menuInfo.getSale()));
-						sb.append("</span>");
+				}
+					sb.append("<span>");
+						sb.append(MessageFormat.format((String)messages.get("MSG_MILK_TEA_MENU_INFO_SALE_RATE"), menuInfo.getSale()));
+					sb.append("</span>");
 					if (menuInfo.getMax_discount() > 0) {
 						sb.append("<span style=\"margin-left:1rem;\">");
 						sb.append(MessageFormat.format((String)messages.get("MSG_MILK_TEA_MENU_INFO_SALE_MAX_DISCOUNT"), getShowPriceWithUnit(menuInfo.getMax_discount(), "", messages)));
@@ -685,9 +696,14 @@ public class MilkTeaCommonFunc {
 					} else {
 						sb.append("<span style=\"margin-left:1rem;\">");
 					}
-							sb.append(MessageFormat.format((String)messages.get("MSG_MILK_TEA_MENU_INFO_SHIPPING_FEE"), getShowPriceWithUnit(menuInfo.getShipping_fee(), "", messages)));
-						sb.append("</span>");
-					sb.append("</div>");
+						sb.append(MessageFormat.format((String)messages.get("MSG_MILK_TEA_MENU_INFO_SHIPPING_FEE"), getShowPriceWithUnit(menuInfo.getShipping_fee(), "", messages)));
+					sb.append("</span>");
+				sb.append("</div>");
+				sb.append("<div style=\"margin-bottom:0.5rem;\">");
+					MilkTeaMenuStatus status = MilkTeaMenuStatus.valueOf(menuInfo.getStatus());
+					sb.append("<span>");
+					sb.append(MessageFormat.format((String)messages.get("MSG_MILK_TEA_MENU_INFO_STATUS"), status.name().toLowerCase()));
+					sb.append("</span>");
 				sb.append("</div>");
 			sb.append("</div>");
 			sb.append("</div></div>");

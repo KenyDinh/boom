@@ -1,7 +1,6 @@
 package dev.boom.pages.game.json;
 
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,7 +11,6 @@ import dev.boom.entity.info.NihongoOwningInfo;
 import dev.boom.entity.info.NihongoProgressInfo;
 import dev.boom.entity.info.NihongoUserInfo;
 import dev.boom.entity.info.NihongoWordInfo;
-import dev.boom.entity.info.UserInfo;
 import dev.boom.pages.JsonPageBase;
 import dev.boom.services.CommonDaoService;
 import dev.boom.services.NihongoOwningService;
@@ -26,13 +24,18 @@ public class NihongoJson extends JsonPageBase {
 	private static final long serialVersionUID = 1L;
 
 	private static final long defaultPetID = 1;
-
+	
 	private NihongoUserInfo nihonUser = null;
 	@Override
 	public boolean onSecurityCheck() {
 		if (!super.onSecurityCheck()) {
 			return false;
 		}
+		
+		if (!initUserInfo()) {
+			return false;
+		}
+		
 		nihonUser = NihongoUserService.getNihongoUserInfo(userInfo.getId());
 		if (nihonUser == null) {
 			nihonUser = new NihongoUserInfo();
@@ -41,18 +44,12 @@ public class NihongoJson extends JsonPageBase {
 				return false;
 			}
 		}
-		Enumeration<String> headerNames = getContext().getRequest().getHeaderNames();
-		while (headerNames.hasMoreElements()) {
-			System.out.println(headerNames.nextElement());
-		}
 		return true;
 	}
 
 	@Override
 	public void onGet() {
 		super.onGet();
-
-		UserInfo currentUser = getCurrentUser();
 
 		List<NihongoWordInfo> allWordList = NihongoWordService.getWordList();
 		if (allWordList != null) {
@@ -68,29 +65,26 @@ public class NihongoJson extends JsonPageBase {
 			putJsonData("wordMap", wordMap);
 		}
 
-		List<NihongoProgressInfo> userProgressList = NihongoProgressService.getUserProgressList(currentUser.getId());
+		List<NihongoProgressInfo> userProgressList = NihongoProgressService.getUserProgressList(userInfo.getId());
 		if (userProgressList != null) {
 			Map<Integer, Integer> userProgressMap = new HashMap<Integer, Integer>();
 			for (NihongoProgressInfo progressInfo : userProgressList) {
 				userProgressMap.put(progressInfo.getTest_id(), progressInfo.getProgress());
 			}
-			
 			putJsonData("userProgress", userProgressMap);
 		}
 
-		List<NihongoOwningInfo> owningList = NihongoOwningService.getOwningList(currentUser.getId());
+		List<NihongoOwningInfo> owningList = NihongoOwningService.getOwningList(userInfo.getId());
 		if (owningList != null) {
-			owningList = NihongoOwningService.getOwningList(currentUser.getId());
 			List<Map<String, Object>> listMapOwning = new ArrayList<>();
 			for (NihongoOwningInfo owningInfo : owningList) {
 				Map<String, Object> mapOwning = owningInfo.toMapObject();
 				mapOwning.put("imageUrl", getHostURL() + getContextPath() + "/img/game/nihongo/pet/" + owningInfo.getPet_id() + "_0" + owningInfo.getCurrent_level() + ".gif");
 				listMapOwning.add(mapOwning);
 			}
-			
 			putJsonData("owningList", listMapOwning);
 		} else {
-			NihongoOwningService.insertOwning(defaultPetID, currentUser.getId());
+			NihongoOwningService.insertOwning(defaultPetID, userInfo.getId());
 		}
 		putJsonData("userStar", nihonUser.getStar());
 		putJsonData("petMap", NihongoPetService.getPetMapObject());
@@ -100,15 +94,13 @@ public class NihongoJson extends JsonPageBase {
 	public void onPost() {
 		super.onPost();
 
-		UserInfo currentUser = getCurrentUser();
-
 		String testId = getContext().getRequestParameter("testId");
 		String progress = getContext().getRequestParameter("progress");
 		boolean change = false;
 		if(StringUtils.isNotBlank(testId) && StringUtils.isNotBlank(progress) && StringUtils.isNumeric(testId) && StringUtils.isNumeric(progress)){
 			int intTestId = Integer.parseInt(testId);
 			int intProgress = Integer.parseInt(progress);
-			if (NihongoProgressService.updateProgress(intTestId, currentUser.getId(), intProgress)) {
+			if (NihongoProgressService.updateProgress(intTestId, userInfo.getId(), intProgress)) {
 				putJsonData("progressChanged", true);
 				change = true;
 			}
@@ -117,7 +109,7 @@ public class NihongoJson extends JsonPageBase {
 		String owningId = getContext().getRequestParameter("owningId");
 		if(StringUtils.isNotBlank(owningId) && StringUtils.isNumeric(owningId)){
 			int intOwningId = Integer.parseInt(owningId);
-			if(NihongoOwningService.levelUpOwning(intOwningId, currentUser.getId())){
+			if(NihongoOwningService.levelUpOwning(intOwningId, userInfo.getId())){
 				putJsonData("dataChanged", true);
 				change = true;
 			}
@@ -126,13 +118,13 @@ public class NihongoJson extends JsonPageBase {
 		String petId = getContext().getRequestParameter("petId");
 		if(StringUtils.isNotBlank(petId)&&StringUtils.isNumeric(petId)){
 			int intPetId = Integer.parseInt(petId);
-			if(NihongoOwningService.buyOwning(intPetId, currentUser.getId())){
+			if(NihongoOwningService.buyOwning(intPetId, userInfo.getId())){
 				putJsonData("dataChanged", true);
 				change = true;
 			}
 		}
 		if (change) {
-			List<NihongoOwningInfo> owningList = NihongoOwningService.getOwningList(currentUser.getId());
+			List<NihongoOwningInfo> owningList = NihongoOwningService.getOwningList(userInfo.getId());
 			if (owningList != null) {
 				List<Map<String, Object>> listMapOwning = new ArrayList<>();
 				for (NihongoOwningInfo owningInfo : owningList) {
@@ -142,7 +134,7 @@ public class NihongoJson extends JsonPageBase {
 				}
 				putJsonData("owningList", listMapOwning);
 			}
-			nihonUser = NihongoUserService.getNihongoUserInfo(currentUser.getId());
+			nihonUser = NihongoUserService.getNihongoUserInfo(userInfo.getId());
 			if (nihonUser != null) {
 				putJsonData("userStar", nihonUser.getStar());
 			}

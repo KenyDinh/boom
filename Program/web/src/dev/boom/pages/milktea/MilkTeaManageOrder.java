@@ -10,9 +10,7 @@ import dev.boom.common.milktea.MilkTeaMenuStatus;
 import dev.boom.common.milktea.MilkTeaSocketMessage;
 import dev.boom.common.milktea.MilkTeaSocketType;
 import dev.boom.core.GameLog;
-import dev.boom.dao.core.DaoValue;
 import dev.boom.entity.info.MenuInfo;
-import dev.boom.entity.info.MilkTeaUserInfo;
 import dev.boom.entity.info.OrderInfo;
 import dev.boom.entity.info.ShopOptionInfo;
 import dev.boom.milktea.object.MenuItem;
@@ -212,7 +210,6 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 			error = true;
 			return;
 		}
-		List<DaoValue> updates = new ArrayList<>();
 		OrderInfo orderInfo = new OrderInfo();
 		orderInfo.setUser_id(userInfo.getId());
 		orderInfo.setUsername(userInfo.getUsername());
@@ -224,14 +221,7 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 		orderInfo.setDish_code(menuItem.getName().hashCode());
 		orderInfo.setQuantity(quantity);
 		orderInfo.setOption_list(optionList);
-		updates.add(orderInfo);
-		if (milkteaUserInfo == null) {
-			milkteaUserInfo = new MilkTeaUserInfo();
-			milkteaUserInfo.setUser_id(userInfo.getId());
-			milkteaUserInfo.setUsername(userInfo.getUsername());
-			updates.add(milkteaUserInfo);
-		}
-		if (!CommonDaoService.update(updates)) {
+		if (CommonDaoService.insert(orderInfo) == null) {
 			GameLog.getInstance().error("[MilkTeaManageOrder] Create order failed!");
 			error = true;
 			return;
@@ -257,7 +247,7 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 			return;
 		}
 		if (!CommonDaoService.delete(orderInfo)) {
-			GameLog.getInstance().error("[MilkTeaManageOrder] Deleteo order failed!");
+			GameLog.getInstance().error("[MilkTeaManageOrder] Delete order failed!");
 			error = true;
 			return;
 		}
@@ -265,12 +255,12 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 
 	@Override
 	public void onRender() {
-		super.onRender();
 		if (error) {
 			return;
 		}
-		addModel("result", "1");
+		putJsonData("success", 1);
 		MilkTeaEndPoint.sendSocketUpdate(MilkTeaSocketType.MENU_DETAIL, MilkTeaSocketMessage.UPDATE_ORDER_LIST);
+		super.onRender();
 	}
 
 }

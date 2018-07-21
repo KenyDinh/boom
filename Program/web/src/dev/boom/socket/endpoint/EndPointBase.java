@@ -39,7 +39,11 @@ public abstract class EndPointBase {
 	public void onMessage(Session session, String message) {
 		SocketSessionBase socketSession = getStoredSocketSession(session);
 		if (socketSession != null) {
-			socketSession.process(message);
+			if (socketSession.isExpired()) {
+				socketSession.closeSession();
+			} else {
+				socketSession.process(message);
+			}
 		} else {
 			GameLog.getInstance().error("[EndPointBase] (onMessage) session not found!");
 			try {
@@ -84,4 +88,5 @@ public abstract class EndPointBase {
 		}
 		return null;
 	}
+	
 }

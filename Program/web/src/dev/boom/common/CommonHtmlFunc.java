@@ -65,7 +65,7 @@ public class CommonHtmlFunc {
 							sb.append("</div>");
 							sb.append("<div class=\"form-group\">");
 								sb.append("<label for=\"form-regist-password\">").append(messages.get("MSG_GENERAL_CONFIRM_PASSWORD") +":").append("</label>");
-								sb.append("<input type=\"password\" class=\"form-control\" id=\"form-regist-re-password\" name=\"form-regist-re-password\" required placeholder=\"re-enter your password\"/>");
+								sb.append("<input type=\"password\" class=\"form-control\" id=\"form-regist-re-password\" name=\"form-regist-re-password\" required placeholder=\"confirm your password\"/>");
 							sb.append("</div>");
 							sb.append("<div class=\"form-group\" id=\"regist-message\">");
 							sb.append("</div>");
@@ -89,8 +89,8 @@ public class CommonHtmlFunc {
 			sb.append("<div class=\"modal-dialog modal-dialog-centered modal-md\" >");
 				sb.append("<div class=\"modal-content\" >");
 					//header
-					sb.append("<div class=\"modal-header bg-success\">");
-						sb.append("<h4 class=\"modal-title\">").append(messages.get("MSG_GENERAL_SIGNUP")).append("</h4>");
+					sb.append("<div class=\"modal-header bg-info\">");
+						sb.append("<h4 class=\"modal-title\">").append(messages.get("MSG_ACCOUNT_CHANGE_PASSWORD")).append("</h4>");
 						sb.append("<button type=\"button\" class=\"close\" data-dismiss=\"modal\">&times;</button>");
 					sb.append("</div>");
 					//body
@@ -98,7 +98,7 @@ public class CommonHtmlFunc {
 						sb.append("<form id=\"change-password-form\">");
 							sb.append("<div class=\"form-group\">");
 								sb.append("<label for=\"form-cp-current-password\">").append(messages.get("MSG_GENERAL_CURRENT_PASSWORD") + ":").append("</label>");
-								sb.append("<input type=\"text\" class=\"form-control\" id=\"form-cp-current-password\" name=\"form-cp-current-password\" required placeholder=\"enter your current password\"/>");
+								sb.append("<input type=\"password\" class=\"form-control\" id=\"form-cp-current-password\" name=\"form-cp-current-password\" required placeholder=\"enter your current password\"/>");
 							sb.append("</div>");
 							sb.append("<div class=\"form-group\">");
 								sb.append("<label for=\"form-cp-new-password\">").append(messages.get("MSG_GENERAL_PASSWORD") +":").append("</label>");
@@ -106,11 +106,11 @@ public class CommonHtmlFunc {
 							sb.append("</div>");
 							sb.append("<div class=\"form-group\">");
 								sb.append("<label for=\"form-cp-re-new-password\">").append(messages.get("MSG_GENERAL_CONFIRM_PASSWORD") +":").append("</label>");
-								sb.append("<input type=\"password\" class=\"form-control\" id=\"form-cp-re-new-password\" name=\"form-cp-re-new-password\" required placeholder=\"re-enter your new password\"/>");
+								sb.append("<input type=\"password\" class=\"form-control\" id=\"form-cp-re-new-password\" name=\"form-cp-re-new-password\" required placeholder=\"confirm your new password\"/>");
 							sb.append("</div>");
-							sb.append("<div class=\"form-group\" id=\"regist-message\">");
+							sb.append("<div class=\"form-group\" id=\"change-pwd-message\">");
 							sb.append("</div>");
-							sb.append("<button type=\"submit\" class=\"btn btn-success\" onclick=\"onclickChangePassword();this.blur();return false;\">").append(messages.get("MSG_GENERAL_SUBMIT")).append("</button>");
+							sb.append("<button type=\"submit\" class=\"btn btn-info\" onclick=\"onclickChangePassword();this.blur();return false;\">").append(messages.get("MSG_GENERAL_SUBMIT")).append("</button>");
 						sb.append("</form>");
 					sb.append("</div>");
 					//footer

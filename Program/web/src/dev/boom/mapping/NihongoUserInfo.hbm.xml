@@ -8,7 +8,7 @@
 			<column name="user_id" not-null="true"/>
 		</id>
 		<property name="username" type="java.lang.String">
-			<column name="username" length="16" not-null="true" unique="true"/>
+			<column name="username" length="32" not-null="true" unique="true"/>
 		</property>
 		<property name="star" type="java.lang.Integer">
 			<column name="star" not-null="true" />

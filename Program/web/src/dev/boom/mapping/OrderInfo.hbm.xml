@@ -12,7 +12,7 @@
             <column name="user_id" not-null="true" />
         </property>
         <property name="username" type="java.lang.String">
-            <column name="username" length="16" not-null="true" />
+            <column name="username" length="32" not-null="true" />
         </property>
         <property name="menu_id" type="java.lang.Long">
             <column name="menu_id" not-null="true" />

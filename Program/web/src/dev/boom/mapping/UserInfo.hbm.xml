@@ -9,7 +9,7 @@
             <generator class="increment" />
         </id>
         <property name="username" type="java.lang.String">
-            <column name="username" length="16" not-null="true" unique="true" />
+            <column name="username" length="32" not-null="true" unique="true" />
         </property>
         <property name="password" type="java.lang.String">
             <column name="password" length="32" not-null="true" />

@@ -8,7 +8,10 @@
             <column name="user_id" />
         </id>
         <property name="username" type="java.lang.String">
-            <column name="username" length="16" not-null="true" unique="true" />
+            <column name="username" length="32" not-null="true" unique="true" />
+        </property>
+        <property name="dish_count" type="java.lang.Long">
+            <column name="dish_count" not-null="true" />
         </property>
         <property name="order_count" type="java.lang.Long">
             <column name="order_count" not-null="true" />

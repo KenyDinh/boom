@@ -13,6 +13,7 @@ import org.apache.click.util.HtmlStringBuffer;
 import dev.boom.core.BoomSession;
 import dev.boom.core.GameLog;
 import dev.boom.entity.info.UserInfo;
+import dev.boom.pages.account.ChangePassword;
 import dev.boom.pages.account.Login;
 import dev.boom.pages.account.Register;
 
@@ -54,7 +55,7 @@ public class PageBase extends Page {
 			Map<String, String[]> parameterMap = request.getParameterMap();
 			for (Iterator<String> it = parameterMap.keySet().iterator(); it.hasNext();) {
 				String _key = it.next();
-				if ((this.getClass() == Login.class || this.getClass() == Register.class) && _key.indexOf("password") >= 0 ) {
+				if ((this.getClass() == Login.class || this.getClass() == Register.class || this.getClass() == ChangePassword.class) && _key.indexOf("password") >= 0 ) {
 					continue;
 				}
 				String[] _value = parameterMap.get(_key);

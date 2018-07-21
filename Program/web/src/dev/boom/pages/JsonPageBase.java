@@ -18,9 +18,8 @@ public class JsonPageBase extends PageBase {
 
 	private Map<String, Object> jsondata = new HashMap<String, Object>();
 	private boolean prettyPrint = false;
-
 	protected UserInfo userInfo = null;
-
+	
 	@Override
 	public String getContentType() {
 		String charset = getContext().getRequest().getCharacterEncoding();
@@ -37,6 +36,20 @@ public class JsonPageBase extends PageBase {
 		if (!super.onSecurityCheck()) {
 			return false;
 		}
+		
+		return true;
+	}
+
+	@Override
+	public void onRender() {
+		super.onRender();
+
+		if (!jsondata.isEmpty()) {
+			addModel("jsondata", JSON.encode(jsondata, prettyPrint));
+		}
+	}
+	
+	protected boolean initUserInfo() {
 		BoomSession boomSession = getBoomSession();
 		if (boomSession == null) {
 			GameLog.getInstance().error("[JsonPageBase] session is null!");
@@ -47,21 +60,11 @@ public class JsonPageBase extends PageBase {
 			GameLog.getInstance().error("[JsonPageBase] user is null!");
 			return false;
 		}
-		
 		return true;
 	}
-
-	protected UserInfo getCurrentUser() {
+	
+	protected UserInfo getUserInfo() {
 		return userInfo;
-	}
-
-	@Override
-	public void onRender() {
-		super.onRender();
-
-		if (!jsondata.isEmpty()) {
-			addModel("jsondata", JSON.encode(jsondata, prettyPrint));
-		}
 	}
 
 	/**

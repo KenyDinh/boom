@@ -21,12 +21,14 @@ import dev.boom.entity.info.MilkTeaUserInfo;
 import dev.boom.entity.info.OrderInfo;
 import dev.boom.entity.info.ShopInfo;
 import dev.boom.entity.info.ShopOptionInfo;
+import dev.boom.entity.info.UserInfo;
 import dev.boom.pages.manage.ManagePageBase;
 import dev.boom.services.CommonDaoService;
 import dev.boom.services.MenuService;
 import dev.boom.services.MilkTeaUserService;
 import dev.boom.services.OrderService;
 import dev.boom.services.ShopService;
+import dev.boom.services.UserService;
 import dev.boom.socket.endpoint.MilkTeaEndPoint;
 
 public class MilkTeaManageMenu extends ManagePageBase {
@@ -250,13 +252,20 @@ public class MilkTeaManageMenu extends ManagePageBase {
 							mtUser = MilkTeaUserService.getFridayUserInfoByUserId(userId);
 						}
 						if (mtUser == null) {
-							GameLog.getInstance().error("user is null, user_id: " + userId + " in order_id: " + order.getId());
-							continue;
+							UserInfo userInfo = UserService.getUserById(userId);
+							if (userInfo == null) {
+								GameLog.getInstance().error("user is null, user_id: " + userId + " in order_id: " + order.getId());
+								return;
+							}
+							mtUser = new MilkTeaUserInfo();
+							mtUser.setUser_id(userInfo.getId());
+							mtUser.setUsername(userInfo.getUsername());
 						}
 						long finalCost = MilkTeaCommonFunc.getFinalCost(totalMoney, orderList.size(), menuInfo, order);
 						mtUser.setTotal_money(mtUser.getTotal_money() + finalCost);
-						mtUser.setOrder_count(mtUser.getOrder_count() + Math.max(1, order.getQuantity()));
-						mtUser.setLatest_order_id(order.getId());
+						mtUser.setDish_count(mtUser.getDish_count() + Math.max(1, order.getQuantity()));
+						mtUser.setOrder_count(mtUser.getOrder_count() + 1);
+						mtUser.setLatest_order_id(Math.max(order.getId(), mtUser.getLatest_order_id()));
 						List<Long> optionIds = new ArrayList<>();
 						String optionList = order.getOption_list();
 						if (optionList != null && !optionList.isEmpty()) {

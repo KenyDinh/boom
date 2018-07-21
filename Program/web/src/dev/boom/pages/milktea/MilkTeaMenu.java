@@ -86,7 +86,7 @@ public class MilkTeaMenu extends MilkTeaMainPage {
 	protected String initMilkTeaIntro() {
 		String intro = "";
 		if (menuInfo != null) {
-			intro = MilkTeaCommonFunc.getHtmlMenuDetail(menuInfo, getHostURL() + getContextPath(), getMessages());
+			intro = MilkTeaCommonFunc.getHtmlMenuDetail(menuInfo, userInfo, getHostURL() + getContextPath(), getMessages());
 		}
 		return intro;
 	}

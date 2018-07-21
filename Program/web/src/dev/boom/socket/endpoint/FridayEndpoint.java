@@ -42,8 +42,8 @@ public class FridayEndpoint extends EndPointBase{
 		return null;
 	}
 	
-	public static void registerToken(UserInfo accountInfo) {
-		SocketSessionPool.generateValidToken(ENDPOINT_NAME, accountInfo);
+	public static String registerToken(UserInfo accountInfo) {
+		return SocketSessionPool.generateValidToken(ENDPOINT_NAME, accountInfo);
 	}
 
 

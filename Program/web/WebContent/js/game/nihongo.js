@@ -51,7 +51,7 @@ app.controller('nihongoCtrl', function($scope, $http, $timeout) {
 			$scope.unitProgressList = [];
 
 			for ( var i = 0; i < $scope.unitList.length; i++) {
-				if (response.data.userProgress.hasOwnProperty($scope.unitList[i])) {
+				if (response.data.userProgress && response.data.userProgress.hasOwnProperty($scope.unitList[i])) {
 					$scope.unitProgressList.push(response.data.userProgress[$scope.unitList[i]]);
 				} else {
 					$scope.unitProgressList.push(0);

@@ -53,6 +53,15 @@ public class SocketSessionPool {
 		return ret;
 	}
 	
+	public static void removeSocketSession(long userId) {
+		List<SocketSessionBase> socketSessionList = getListSocketSessionByUserId(userId);
+		if (socketSessionList != null && socketSessionList.size() > 0) {
+			for (SocketSessionBase socketSession : socketSessionList) {
+				removeSocketSession(socketSession);
+			}
+		}
+	}
+	
 	public static void removeSocketSession(long userId, String endPointName) {
 		SocketSessionBase socketSession = null;
 		if (mapSocketSession.containsKey(endPointName)) {
@@ -69,6 +78,35 @@ public class SocketSessionPool {
 		} else {
 			GameLog.getInstance().error("[SocketSessionPool] (removeSocketSession) socket not found by user_id:" + userId);
 		}
+	}
+	
+	public static SocketSessionBase getStoredSocketSessionByUserId(long userId, String endPointName) {
+		if (mapSocketSession.containsKey(endPointName)) {
+			for (String key : mapSocketSession.get(endPointName).keySet()) {
+				SocketSessionBase ssb = mapSocketSession.get(endPointName).get(key);
+				if (ssb.getEndPointName().equals(endPointName) && ssb.getUserId() == userId) {
+					return ssb;
+				}
+			}
+		}
+		return null;
+	}
+	
+	public static List<SocketSessionBase> getListSocketSessionByUserId(long userId) {
+		List<SocketSessionBase> listSocketSession = null;
+		for (String endPointName : mapSocketSession.keySet()) {
+			for (String key : mapSocketSession.get(endPointName).keySet()) {
+				SocketSessionBase ssb = mapSocketSession.get(endPointName).get(key);
+				if (ssb.getEndPointName().equals(endPointName) && ssb.getUserId() == userId) {
+					if (listSocketSession == null) {
+						listSocketSession = new ArrayList<>();
+					}
+					listSocketSession.add(ssb);
+				}
+			}
+			
+		}
+		return listSocketSession;
 	}
 	
 	public static void removeSocketSession(SocketSessionBase socketSession) {

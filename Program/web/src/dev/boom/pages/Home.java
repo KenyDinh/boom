@@ -2,9 +2,7 @@ package dev.boom.pages;
 
 import dev.boom.common.CommonMethod;
 import dev.boom.common.enums.MainNavBarEnum;
-import dev.boom.common.enums.UserFlagEnum;
 import dev.boom.socket.SocketSessionPool;
-import dev.boom.socket.endpoint.FridayEndpoint;
 
 public class Home extends BoomMainPage {
 
@@ -28,9 +26,7 @@ public class Home extends BoomMainPage {
 		String strFormName = getContext().getRequestParameter("form_name");
 		if (strFormName != null && strFormName.equals("logout")) {
 			removeBoomSession();
-			if (UserFlagEnum.ADMINISTRATOR.isValid(userInfo.getFlag())) {
-				SocketSessionPool.removeSocketSession(userInfo.getId(), FridayEndpoint.ENDPOINT_NAME);
-			}
+			SocketSessionPool.removeSocketSession(userInfo.getId());
 			String redirect = "";
 			String strIndex = getContext().getRequestParameter("index");
 			if (CommonMethod.isValidNumeric(strIndex, 1, Integer.MAX_VALUE)) {
