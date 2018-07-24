@@ -162,6 +162,8 @@ public class MilkTeaCommonFunc {
 							// -------------------- //
 							sb.append(getGroupInputFormItemOption(item, ShopService.ITEM_OPTION_TYPE_TOPPING, item.getList_topping(), listShopOption, messages));
 							// -------------------- //
+							sb.append(getGroupInputFormItemOption(item, ShopService.ITEM_OPTION_TYPE_ADDITION, item.getList_addition(), listShopOption, messages));
+							// -------------------- //
 							sb.append("</div>");
 							sb.append("<div class=\"form-group\">");
 							sb.append(String.format("<label for=\"quantity-item-%d\" class=\"font-weight-bold\" style=\"font-size:1.125rem;\">", item.getId()));
@@ -224,6 +226,11 @@ public class MilkTeaCommonFunc {
 		case ShopService.ITEM_OPTION_TYPE_TOPPING:
 			inputName = "topping";
 			label = "MSG_MILK_TEA_OPTION_TOPPING";
+			inputType = "checkbox";
+			break;
+		case ShopService.ITEM_OPTION_TYPE_ADDITION:
+			inputName = "addition";
+			label = "MSG_MILK_TEA_OPTION_ADDITION";
 			inputType = "checkbox";
 			break;
 		default:
@@ -337,6 +344,11 @@ public class MilkTeaCommonFunc {
 	
 	@SuppressWarnings("rawtypes")
 	public static String getHtmlListOrder(List<OrderInfo> orderList, MenuInfo menuInfo, UserInfo userInfo, List<ShopOptionInfo> listShopOption, String contextPath, Map messages) {
+		return getHtmlListOrder(orderList, menuInfo, userInfo, listShopOption, contextPath, messages, false);
+	}
+	
+	@SuppressWarnings("rawtypes")
+	public static String getHtmlListOrder(List<OrderInfo> orderList, MenuInfo menuInfo, UserInfo userInfo, List<ShopOptionInfo> listShopOption, String contextPath, Map messages, boolean isManagement) {
 		long userId = (userInfo != null) ? userInfo.getId() : 0;
 		boolean isMenuOpening = (menuInfo.getStatus() == MilkTeaMenuStatus.OPENING.ordinal());
 		boolean hasOrder = (orderList != null && !orderList.isEmpty());
@@ -346,14 +358,26 @@ public class MilkTeaCommonFunc {
 		sb.append("<div style=\"text-align:center;\" class=\"text-success\">");
 		sb.append(messages.get("MSG_MILK_TEA_ORDER_LIST"));
 		sb.append("</div>");
-		sb.append(String.format("<table class=\"table table-responsive %s\">", (isMenuOpening ? "table-striped table-hover" : (hasOrder ? "table-striped" : ""))));
+		sb.append(String.format("<table class=\"table %s %s\">",(isManagement ? "" : "table-responsive"), (isMenuOpening ? "table-striped table-hover" : (hasOrder ? "table-striped" : ""))));
 			sb.append("<thead>");
 				sb.append("<tr>");
-					String thStyle = String.format("border-top:0.0625rem solid %s;border-bottom:0.125rem solid %s;", ORDER_BORDER_COLOR, ORDER_BORDER_COLOR);
+				String thStyle = String.format("border-top:0.0625rem solid %s;border-bottom:0.125rem solid %s;", ORDER_BORDER_COLOR, ORDER_BORDER_COLOR);
+				if (isManagement && userInfo != null && UserFlagEnum.ADMINISTRATOR.isValid(userInfo.getFlag()) && menuInfo.getStatus() == MilkTeaMenuStatus.DELIVERING.ordinal()) {
+					sb.append("<th scope=\"col\" style=\"width:5%;" + thStyle + "\">");
+//						sb.append("<div class=\"custom-control custom-checkbox\">");
+						sb.append("<input type=\"checkbox\" id=\"check-all-order\" />").append("</th>");
+//						sb.append("<label class=\"custom-control-label\"></label>");
+//						sb.append("</div>");
+					sb.append("<th scope=\"col\" style=\"width:22%;" + thStyle + "\">");
+						sb.append(messages.get("MSG_MILK_TEA_ORDER_COLUMN_ORDERNAME")).append("</th>");
+					sb.append("<th scope=\"col\" style=\"width:12%;" + thStyle + "\">");
+						sb.append(messages.get("MSG_MILK_TEA_ORDER_COLUMN_ORDERER")).append("</th>");
+				} else {
 					sb.append("<th scope=\"col\" style=\"width:24%;" + thStyle + "\">");
 						sb.append(messages.get("MSG_MILK_TEA_ORDER_COLUMN_ORDERNAME")).append("</th>");
 					sb.append("<th scope=\"col\" style=\"width:15%;" + thStyle + "\">");
 						sb.append(messages.get("MSG_MILK_TEA_ORDER_COLUMN_ORDERER")).append("</th>");
+				}
 					sb.append("<th scope=\"col\" style=\"width:8%;" + thStyle + "\">");
 						sb.append(messages.get("MSG_MILK_TEA_OPTION_SUGAR")).append("</th>");
 					sb.append("<th scope=\"col\" style=\"width:8%;" + thStyle + "\">");
@@ -376,7 +400,19 @@ public class MilkTeaCommonFunc {
 			long dishcount = 0;
 			for (OrderInfo order : orderList) {
 				Map<Short, String> mapOptions = getMapOptionNameByOrder(order, listShopOption);
-				sb.append(String.format("<tr %s>", (userId == order.getUser_id() ? "class=\"bg-primary text-success\"" : "style=\"color:#C5C5C5;\"")));
+				sb.append(String.format("<tr %s>", ((userId == order.getUser_id() && !isManagement) ? "class=\"bg-primary text-success\"" : "style=\"color:#C5C5C5;\"")));
+				if (isManagement && userInfo != null && UserFlagEnum.ADMINISTRATOR.isValid(userInfo.getFlag()) && menuInfo.getStatus() == MilkTeaMenuStatus.DELIVERING.ordinal()) {
+					sb.append(tdStyle);
+					if (MilkTeaOrderFlag.PLACED.isValidFlag(order.getFlag())) {
+						sb.append("<i class=\"fas fa-check-square text-success\"></i>");
+					} else {
+//						sb.append("<div class=\"custom-control custom-checkbox\">");
+						sb.append(String.format("<input type=\"checkbox\" class=\"checkbox-order\" value=\"%d\"/>", order.getId()));
+//						sb.append("<label class=\"custom-control-label\"></label>");
+//						sb.append("</div>");
+					}
+					sb.append("</td>");
+				}
 					sb.append(tdStyle);
 						sb.append(order.getDish_name());
 						if (mapOptions != null && mapOptions.containsKey(ShopService.ITEM_OPTION_TYPE_SIZE)) {
@@ -404,6 +440,8 @@ public class MilkTeaCommonFunc {
 					sb.append(tdStyle);
 						if (mapOptions != null && mapOptions.containsKey(ShopService.ITEM_OPTION_TYPE_TOPPING)) {
 							sb.append(mapOptions.get(ShopService.ITEM_OPTION_TYPE_TOPPING));
+						} else if (mapOptions != null && mapOptions.containsKey(ShopService.ITEM_OPTION_TYPE_ADDITION)) {
+							sb.append(mapOptions.get(ShopService.ITEM_OPTION_TYPE_ADDITION));
 						}
 					sb.append("</td>");
 					sb.append(tdStyle);
@@ -413,7 +451,13 @@ public class MilkTeaCommonFunc {
 						sb.append(getShowPriceWithUnit(orderCost, "", messages));
 						sb.append("</div>");
 					sb.append("</td>");
-					if (isMenuOpening && userId == order.getUser_id()) { 
+					if (isManagement && userInfo != null && UserFlagEnum.ADMINISTRATOR.isValid(userInfo.getFlag())) {
+						if (menuInfo.getStatus() < MilkTeaMenuStatus.COMPLETED.ordinal()) {
+							sb.append(tdStyle);
+							sb.append(String.format("<a href=\"%s\">%s</a>", contextPath + "/manage/milktea/milk_tea_manage_order.htm?menu_id=" + menuInfo.getId() + "&order_id=" + order.getId(), messages.get("MSG_GENERAL_EDIT")));
+							sb.append("</td>");
+						}
+					} else if (isMenuOpening && userId == order.getUser_id()) { 
 						sb.append(String.format("<td style=\"border-top:0.0625rem solid %s;\">", ORDER_BORDER_COLOR));
 							sb.append(String.format("<div id=\"delete-order-%d\" class=\"text-secondary\" data-toggle=\"tooltip\" data-placement=\"bottom\" title=\"Delete This Order\" style=\"cursor:pointer;\" >", order.getId()));
 								sb.append(String.format("<i class=\"fas fa-trash\" data-toggle=\"modal\" data-target=\"#confirm-delete-order-%d\"></i>", order.getId()));
@@ -451,7 +495,7 @@ public class MilkTeaCommonFunc {
 			}
 			if (userInfo != null && UserFlagEnum.ADMINISTRATOR.isValid(userInfo.getFlag())) {
 				sb.append("<tr>");
-				sb.append(String.format("<td style=\"border-top:0.0625rem solid %s;\" colspan=\"6\">", ORDER_BORDER_COLOR));
+				sb.append(String.format("<td style=\"border-top:0.0625rem solid %s;\" colspan=\"%d\">", ORDER_BORDER_COLOR, (isManagement && menuInfo.getStatus() == MilkTeaMenuStatus.DELIVERING.ordinal()) ? 7 : 6));
 					sb.append("<div class=\"text-center text-danger font-weight-bold\">");
 						sb.append("Total: " + dishcount + " dishs / " + orderList.size() + " orders");
 					sb.append("</div>");

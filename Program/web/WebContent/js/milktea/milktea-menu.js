@@ -156,8 +156,9 @@ function placeTheOrder(menuId,itemId) {
 		var listIce = form.find('input[name="item-option-size"]');
 		var listSugar = form.find('input[name="item-option-sugar"]');
 		var listTopping = form.find('input[name="item-option-topping"]');
+		var listAddition = form.find('input[name="item-option-addition"]');
 		if (listCheckedOption.length > 0) {
-			var countSize = 0, countIce = 0, countSugar = 0, countTopping = 0;
+			var countSize = 0, countIce = 0, countSugar = 0, countTopping = 0, countAddition = 0;
 			for (var i = 0; i < listCheckedOption.length; i++) {
 				var name = listCheckedOption.eq(i).attr('name');
 				var value = listCheckedOption.eq(i).attr('id').replace("item-option-" + itemId + "-", "");
@@ -169,6 +170,8 @@ function placeTheOrder(menuId,itemId) {
 					countSugar++;
 				} else if (name == 'item-option-topping') {
 					countTopping++;
+				} else if (name == 'item-option-addition') {
+					countAddition++;
 				}
 				params += "&menu_item_option=" + value;
 			} 
@@ -186,6 +189,10 @@ function placeTheOrder(menuId,itemId) {
 //			}
 			if (countTopping > listTopping.length || countTopping > MAX_TOPPING) {
 				console.log("count topping: " + countTopping);
+				return;
+			}
+			if (countAddition > listAddition.length || countAddition > MAX_TOPPING) {
+				console.log("count addition: " + countAddition);
 				return;
 			}
 		}

@@ -1,12 +1,15 @@
 package dev.boom.pages;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.click.Context;
 import org.apache.click.Page;
+import org.apache.click.element.CssImport;
+import org.apache.click.element.JsImport;
 import org.apache.click.util.ClickUtils;
 import org.apache.click.util.HtmlStringBuffer;
 
@@ -144,5 +147,22 @@ public class PageBase extends Page {
 				GameLog.getInstance().debug("[PAGE] REDIRECT : " + redirect + " => " + getRedirect());
 			}
 		}
+	}
+	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Override
+	public List getHeadElements() {
+		if (headElements == null) {
+			headElements = super.getHeadElements();
+		}
+		headElements.add(new CssImport("/css/lib/bootstrap-darkly.min.css"));
+//		headElements.add(new CssImport("/css/lib/fontawesome.css"));
+//		headElements.add(new CssImport("/css/lib/solid.css"));
+		headElements.add(new JsImport("/js/lib/jquery-3.3.1.min.js"));
+		headElements.add(new JsImport("/js/lib/popper-1.14.0.min.js"));
+		headElements.add(new JsImport("/js/lib/bootstrap.min.js"));
+		headElements.add(new JsImport("/js/socket.js"));
+		
+		return headElements;
 	}
 }

@@ -16,6 +16,8 @@ public class MenuItem {
 	private MenuItemOption[] list_topping;
 	private MenuItemOption[] list_sugar;
 	private MenuItemOption[] list_ice;
+	private MenuItemOption[] list_addition;
+	private MenuItemSelectionLimit limit_select;
 
 	private String detail;
 	private long id;
@@ -108,6 +110,25 @@ public class MenuItem {
 	public void setList_ice(MenuItemOption[] list_ice) {
 		this.list_ice = list_ice;
 	}
+	
+	public MenuItemOption[] getList_addition() {
+		if (list_addition != null && list_addition.length > 0) {
+			return list_addition;
+		}
+		return null;
+	}
+
+	public void setList_addition(MenuItemOption[] list_addition) {
+		this.list_addition = list_addition;
+	}
+
+	public MenuItemSelectionLimit getLimit_select() {
+		return limit_select;
+	}
+
+	public void setLimit_select(MenuItemSelectionLimit limit_select) {
+		this.limit_select = limit_select;
+	}
 
 	public String getDetail() {
 		return detail;
@@ -156,6 +177,12 @@ public class MenuItem {
 		if (list_topping != null && list_topping.length > 0) {
 			for (MenuItemOption option : list_topping) {
 				option.setType(ShopService.ITEM_OPTION_TYPE_TOPPING);
+				listOptions.add(option);
+			}
+		}
+		if (list_addition != null && list_addition.length > 0) {
+			for (MenuItemOption option : list_addition) {
+				option.setType(ShopService.ITEM_OPTION_TYPE_ADDITION);
 				listOptions.add(option);
 			}
 		}

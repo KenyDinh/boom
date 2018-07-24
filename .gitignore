@@ -4,3 +4,7 @@ Program/web/build/*
 Program/web/.classpath
 Program/web/.project
 Tools/Click-IDE/*
+fetch_menu/.project
+fetch_menu/.settings/.jsdtscope
+fetch_menu/.settings/org.eclipse.wst.jsdt.ui.superType.container
+fetch_menu/.settings/org.eclipse.wst.jsdt.ui.superType.name

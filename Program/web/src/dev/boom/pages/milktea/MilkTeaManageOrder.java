@@ -210,6 +210,11 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 			error = true;
 			return;
 		}
+		if (mapCountOption.containsKey(ShopService.ITEM_OPTION_TYPE_ADDITION) && mapCountOption.get(ShopService.ITEM_OPTION_TYPE_ADDITION) > MAX_TOPPING_COUNT) {
+			GameLog.getInstance().error("[MilkTeaManageOrder] Number of addition is exceed max : " + mapCountOption.get(ShopService.ITEM_OPTION_TYPE_ADDITION) + " > " + MAX_TOPPING_COUNT);
+			error = true;
+			return;
+		}
 		OrderInfo orderInfo = new OrderInfo();
 		orderInfo.setUser_id(userInfo.getId());
 		orderInfo.setUsername(userInfo.getUsername());

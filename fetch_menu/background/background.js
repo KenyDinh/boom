@@ -27,6 +27,42 @@ function retrieve_menu(menu) {
 	}
 }
 
+function placeOrderTest() {
+	CommonMethod.getTabId('www.now.vn', function (tab) {
+		if (CommonMethod.isValidData(tab)) {
+			Log.info("Start placing order.");
+			var order_list = [
+				{
+					name:"Trà Alisan Cheese Milkfoam",
+					price:35000,
+					options:[{name:"Size M"},{name:"70% đường"},{name:"50% đá"},{name:"Nha Đam"}]
+				},
+				{
+					name:"Trà Bí Đao Cheese Milkfoam",
+					price:35000,
+					options:[{name:"Size L"},{name:"70% đường"},{name:"50% đá"},{name:"Trân Châu Trắng"}]
+				},
+				{
+					name:"Trà Bí Đao Cheese Milkfoam",
+					price:35000,
+					options:[{name:"Size L"},{name:"70% đường"},{name:"50% đá"},{name:"Trân Châu Trắng"}]
+				}
+			];
+			chrome.tabs.sendMessage(tab.id, {type:'place_order', order_list:order_list}, function (response) {
+//				if (response && response.success) {
+//					chrome.tabs.executeScript(tab.id, {
+//						file: "content/inject.js"
+//					});
+//				} else {
+//					console.log("failed!");
+//				}
+			});
+		} else {
+			Log.error("Can not find the tab's id");
+		}
+	});
+}
+
 function reInitSocket() {
 	if (isSocketOpened()) {
 		return;
@@ -44,6 +80,9 @@ chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
 				flag = request.flag;
 				looking_for_menu();
 			}
+			break;
+		case 'place_order_test':
+			placeOrderTest();
 			break;
 		case 'init_socket':
 			reInitSocket();

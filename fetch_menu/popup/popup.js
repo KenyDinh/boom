@@ -6,18 +6,19 @@ $(document).ready(function() {
 	$('#looking-for-menu').click(function() {
 		looking_for_menu();
 	});
+	$('#placeOrderTest').click(function() {
+		placeOrderTest();
+	});
 });
 
+function placeOrderTest() {
+	sendMessToBackground({type:'place_order_test'});
+}
+
 function looking_for_menu() {
-	var flag = 0;
-	if ($('input#new-shop').is(':checked')) {
-		flag |= $('input#new-shop').val();
-	}
+	var flag = 5;
 	if ($('input#new-menu').is(':checked')) {
 		flag |= $('input#new-menu').val();
-	}
-	if ($('input#update-detail').is(':checked')) {
-		flag |= $('input#update-detail').val();
 	}
 	if (flag == 0) {
 		alert("Flag is not set!");

@@ -18,6 +18,30 @@ public class OrderService {
 		
 		return (OrderInfo) list.get(0);
 	}
+	
+	public static List<OrderInfo> getOrderList(List<Long> ids) {
+		if (ids == null || ids.isEmpty()) {
+			return null;
+		}
+		String soption = "";
+		for (Long id : ids) {
+			if (soption.length() > 0) {
+				soption += ",";
+			}
+			soption += id;
+		}
+		OrderInfo orderInfo = new OrderInfo();
+		orderInfo.setSelectOption("WHERE id IN (" + soption + ")");
+		List<DaoValue> list = CommonDaoService.select(orderInfo);
+		if (list == null || list.isEmpty()) {
+			return null;
+		}
+		List<OrderInfo> ret = new ArrayList<>();
+		for (DaoValue dao : list) {
+			ret.add((OrderInfo) dao);
+		}
+		return ret;
+	}
 
 	public static List<OrderInfo> getOrderInfoListByMenuId(long menu_id) {
 		OrderInfo orderInfo = new OrderInfo();

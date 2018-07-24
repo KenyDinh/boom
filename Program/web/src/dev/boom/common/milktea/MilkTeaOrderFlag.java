@@ -2,7 +2,8 @@ package dev.boom.common.milktea;
 
 public enum MilkTeaOrderFlag {
 	
-	PAY,
+	PLACED,
+	PAID,
 	VOTE,
 	;
 	

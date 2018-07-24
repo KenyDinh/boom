@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Management!</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/solid.css" integrity="sha384-Rw5qeepMFvJVEZdSo1nDQD5B6wX0m7c5Z/pLNvjkB14W6Yki1hKbSEQaX9ffUbWe" crossorigin="anonymous">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/fontawesome.css" integrity="sha384-GVa9GOgVQgOk+TNYXu7S/InPTfSDTtBalSgkgqQ7sCik56N9ztlkoTr2f/T44oKV" crossorigin="anonymous">
+$!{headElements}
+</head>
+<body>
+	<div id="content" class="container" style="max-width:113.75rem;margin-top:80px;">
+		<h3 class="text-info">Management Site</h3>
+		<div class="row" id="manage-bar">
+			<div class="col-lg-12">
+				<ul class="nav nav-tabs bg-light" role="tablist">
+					<li class="nav-item dropdown">
+						<a class="nav-link dropdown-toggle bg-info" data-toggle="dropdown" href="#">Milk Tea</a>
+						<div class="dropdown-menu">
+							<a class="dropdown-item" href="${context}/manage/milktea/milk_tea_manage_menu.htm">Manage Menu</a>
+						</div>
+					</li>
+				</ul>
+			</div>
+		</div>
+		<div>$!{home}</div>
+		#parse(${path})
+	</div>
+	<script type="text/javascript">
+	//<![CDATA[
+	#if(${context})
+		var CONTEXT = '${context}';
+	#end
+	//]]>
+	</script>
+	$!{jsElements}
+</body>
+</html>

@@ -162,4 +162,7 @@ public abstract class SocketSessionBase {
 	public void logError(String message) {
 		log(ConsoleLogService.ERROR_LEVEL, message);
 	}
+	public void logWarning(String message) {
+		log(ConsoleLogService.WARN_LEVEL, message);
+	}
 }

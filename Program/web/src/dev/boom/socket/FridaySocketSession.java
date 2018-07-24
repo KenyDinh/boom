@@ -18,6 +18,7 @@ import dev.boom.milktea.object.MenuItem;
 import dev.boom.milktea.object.MenuItemOption;
 import dev.boom.services.CommonDaoService;
 import dev.boom.socket.endpoint.FridayStaticData;
+import net.arnx.jsonic.JSON;
 
 public class FridaySocketSession extends SocketSessionBase {
 
@@ -38,7 +39,10 @@ public class FridaySocketSession extends SocketSessionBase {
 			Menu menu = (Menu) parseMessage(source, Menu.class);
 			if (menu != null) {
 				FridayStaticData.setMenu(menu);
-				sendMessage("continue");
+				Map<String, Object> mapData = new HashMap<>();
+				mapData.put("type", "load_menu");
+				mapData.put("step", "continue");
+				sendMessage(JSON.encode(mapData));
 			} else {
 				logError("[FridaySocketSession] (process) Menu is null!");
 			}
@@ -48,7 +52,10 @@ public class FridaySocketSession extends SocketSessionBase {
 			if (menuItem != null) {
 				menuItem.setDetail(source);
 				FridayStaticData.addMenuItem(menuItem);
-				sendMessage("continue");
+				Map<String, Object> mapData = new HashMap<>();
+				mapData.put("type", "load_menu");
+				mapData.put("step", "continue");
+				sendMessage(JSON.encode(mapData));
 			} else {
 				logError("[FridaySocketSession] (process) MenuItem is null!");
 			}

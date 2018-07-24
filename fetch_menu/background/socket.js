@@ -37,24 +37,25 @@ function initWebSocket() {
 	}
 	
 }
-
 function isSocketOpened() {
 	if (socket != null && socket.readyState == WebSocket.OPEN) {
 		return true;
 	}
 	return false;
 }
-var index = 0;
-var list_object = [];
-var flag = 0;
 function onMessageSocket(msg) {
-	console.log("receive message: " + msg);
-	if (msg == 'continue') {
-		index ++;
-		loopSendingMessage();
+	var msg_object = JSON.parse(msg);
+	switch (msg_object.type) {
+	case "load_menu":
+		doLoadMenu(msg_object.step);
+		break;
+	case "milktea_order":
+		doMilkteaOrder(msg_object);
+		break;
+	default:
+		break;
 	}
 }
-
 function sendMessageSocket(msg) {
 	if (socket != null && socket.readyState == WebSocket.OPEN) {
 		socket.send(msg);
@@ -62,6 +63,36 @@ function sendMessageSocket(msg) {
 		console.log("Socket is not open yet!");
 	}
 }
+
+//=============================================//
+
+function doMilkteaOrder(obj) {
+	console.log(obj.step);
+	switch (obj.step) {
+	case "prepare":
+		console.log(obj.url);
+		break;
+		
+	default:
+		break;
+	}
+}
+
+//=============================================//
+var index = 0;
+var list_object = [];
+var flag = 0;
+function doLoadMenu(step) {
+	switch (step) {
+	case "continue":
+		index ++;
+		loopSendingMessage();
+		break;
+	default:
+		break;
+	}
+}
+
 function registSendMenu(menu) {
 	index = 0;
 	list_object = [];
@@ -82,3 +113,4 @@ function loopSendingMessage() {
 		sendMessageSocket('finish_update' + flag);
 	}
 }
+//=============================================//

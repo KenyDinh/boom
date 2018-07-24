@@ -1,0 +1,27 @@
+
+#if (${error})
+	${error}
+	<p style="margin-top:1.5rem;">
+		<a href="${backLink}">Back</a>
+	</p>
+#else ##if (${error})
+	#if (${menuInfo})
+	<div class="row">
+		<div class="col-lg-12 text-center">
+			<h4 class="text-info">${menuInfo.getName()}</h4>
+		</div>
+		#if (${orderList})
+			<div class="col-lg-12">
+				${orderList}
+				<p style="margin:1rem 0;">
+					<a href="${context}/manage/milktea/milk_tea_manage_menu.htm">Back</a>
+				</p>
+			</div>
+		#end ##if (${orderList})
+	</div>
+	#end ##if (${menuInfo})
+	#if (${socket_url})
+		<input type="button" id="socket_test" value="SocketTest"/>
+		<span style="display:none;" id="socket_url">${socket_url}</span>
+	#end
+#end ##if (${error})

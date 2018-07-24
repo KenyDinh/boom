@@ -1,14 +1,15 @@
 package dev.boom.pages.manage;
 
 import dev.boom.common.enums.UserFlagEnum;
+import dev.boom.core.BoomProperties;
 import dev.boom.core.BoomSession;
 import dev.boom.core.GameLog;
 import dev.boom.entity.info.UserInfo;
 import dev.boom.pages.Home;
-import dev.boom.pages.Template;
 import dev.boom.services.UserService;
+import dev.boom.socket.endpoint.ManageMilkTeaEndPoint;
 
-public class ManagePageBase extends Template {
+public class ManagePageBase extends ManageTemplate {
 
 	private static final long serialVersionUID = 1L;
 
@@ -49,11 +50,22 @@ public class ManagePageBase extends Template {
 	@Override
 	public void onRender() {
 		super.onRender();
+	}
+	
+	protected void addHomeBackLink() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("<p style=\"margin-top:1rem;\">");
 		sb.append("<a href=\"").append(getPagePath(Home.class)).append("\">").append(getMessage("MSG_MAIN_NAV_BAR_HOME")).append("</a>");
 		sb.append("</p>");
 		addModel("home", sb.toString());
+	}
+	
+	protected String getSocketUrl(String params) {
+		if (!params.startsWith("?")) {
+			params = "?" + params;
+		}
+		int port = getContext().getRequest().getServerPort();
+		return "ws://" + BoomProperties.SERVICE_HOSTNAME + (port == 80 ? "" : ":" + port) + getContextPath() + ManageMilkTeaEndPoint.SOCKET_PATH + params;
 	}
 	
 }

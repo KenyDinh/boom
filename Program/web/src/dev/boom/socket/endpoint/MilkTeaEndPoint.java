@@ -20,6 +20,7 @@ import dev.boom.socket.SocketSessionPool;
 public class MilkTeaEndPoint extends EndPointBase{
 
 	public static final String ENDPOINT_NAME = MilkTeaEndPoint.class.getSimpleName();
+	public static final String SOCKET_PATH = "/socket/milktea";
 	public static final String VALIDATION_KEY = "milktea_token";
 	
 	@Override

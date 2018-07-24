@@ -2,12 +2,12 @@
 #if (${error})
 	${error}
 	<p style="margin-top:1.5rem;">
-		<a href="${backLink}">Back</a>
+		<a href="${context}/manage/milktea/milk_tea_manage_menu.htm">Back</a>
 	</p>
 #else ##if (${error})
 	#if (${menuInfo}) 
-		<div class="col-lg-4 col-md-6 col-sm-12">
-			<form method="post" action="${backLink}">
+		<div class="col-lg-4 col-md-6 col-sm-12" style="margin-top:1rem;">
+			<form method="post" action="${context}/manage/milktea/milk_tea_manage_menu.htm">
 				<input type="hidden" name="mode" value="1"/>
 				<div class="form-group">
 				  <fieldset>
@@ -60,11 +60,10 @@
 				<button type="submit" class="btn btn-primary">Submit</button>
 			</form>
 			<p style="margin-top:2rem;">
-				<a href="${backLink}">Back</a>
+				<a href="${context}/manage/milktea/milk_tea_manage_menu.htm">Back</a>
 			</p>
 		</div>
 	#elseif (${table}) ##if (${menuInfo}) 
-		<div>$!{home}</div>
 		<h5 class="text-center font-weight-bold text-info">List Available Menu</h5>
 		<div>
 			${table}

@@ -6,12 +6,18 @@ import java.util.List;
 import dev.boom.core.GameLog;
 import dev.boom.milktea.object.Menu;
 import dev.boom.milktea.object.MenuItem;
+import dev.boom.milktea.object.MenuOrder;
 
 public class FridayStaticData {
+	
+	private static boolean isPlacingOrder = false;
+	private static Object __lockOrder = new Object();
 	
 	// ---------- Data ---------- //
 	private static Menu menu = null;
 	private static List<MenuItem> listItems = null;
+	private static List<MenuOrder> listOrder = null;
+	
 	
 	public static void setMenu(Menu menu) {
 		FridayStaticData.menu = menu;
@@ -35,5 +41,31 @@ public class FridayStaticData {
 	
 	public static List<MenuItem> getMenuItemList() {
 		return listItems;
+	}
+	
+	public static void setMenuOrderList(List<MenuOrder> orderList) {
+		if (!isPlacingOrder && listOrder == null) {
+			synchronized (__lockOrder) {
+				if (!isPlacingOrder && listOrder == null) {
+					isPlacingOrder = true;
+					listOrder = orderList;
+				}
+			}
+		}
+	}
+	
+	public static List<MenuOrder> getMenuOrderList() {
+		return listOrder;
+	}
+	
+	public static void resetPlacingOrderState() {
+		if (isPlacingOrder && listOrder != null) {
+			synchronized (__lockOrder) {
+				if (isPlacingOrder && listOrder != null) {
+					isPlacingOrder = false;
+					listOrder = null;
+				}
+			}
+		}
 	}
 }

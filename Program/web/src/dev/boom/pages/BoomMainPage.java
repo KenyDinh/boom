@@ -5,7 +5,7 @@ import dev.boom.common.enums.MainNavBarEnum;
 import dev.boom.common.enums.UserFlagEnum;
 import dev.boom.core.BoomSession;
 import dev.boom.entity.info.UserInfo;
-import dev.boom.pages.manage.milktea.MilkTeaManageMenu;
+import dev.boom.pages.manage.Index;
 import dev.boom.services.UserService;
 
 public class BoomMainPage extends Template {
@@ -76,7 +76,7 @@ public class BoomMainPage extends Template {
 								sb.append("<a class=\"dropdown-item\" href=\"#\" data-toggle=\"modal\" data-target=\"#change-password-modal\">" + getMessage("MSG_ACCOUNT_CHANGE_PASSWORD") + "</a>");
 								if (UserFlagEnum.ADMINISTRATOR.isValid(userInfo.getFlag())) {
 									sb.append("<div class=\"dropdown-divider\"></div>");
-									sb.append("<a class=\"dropdown-item\" href=\"" + getHostURL() + getPagePath(MilkTeaManageMenu.class) + "\">" + getMessage("MSG_GENERAL_ADMIN_PAGE") + "</a>");
+									sb.append("<a class=\"dropdown-item\" href=\"" + getHostURL() + getPagePath(Index.class) + "\">" + getMessage("MSG_GENERAL_ADMIN_PAGE") + "</a>");
 								}
 								sb.append("<div class=\"dropdown-divider\"></div>");
 								sb.append("<a class=\"dropdown-item\" href=\"#\" id=\"logout\">" + getMessage("MSG_GENERAL_LOGOUT") + "</a>");

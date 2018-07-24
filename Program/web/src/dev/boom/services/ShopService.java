@@ -15,6 +15,7 @@ public class ShopService {
 	public static final short ITEM_OPTION_TYPE_SIZE 	= 2;
 	public static final short ITEM_OPTION_TYPE_SUGAR 	= 3;
 	public static final short ITEM_OPTION_TYPE_TOPPING 	= 4;
+	public static final short ITEM_OPTION_TYPE_ADDITION = 5;
 	
 	public static List<ShopInfo> getShopList() {
 		ShopInfo shopInfo = new ShopInfo();

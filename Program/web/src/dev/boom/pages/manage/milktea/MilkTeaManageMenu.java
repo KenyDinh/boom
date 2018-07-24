@@ -158,7 +158,6 @@ public class MilkTeaManageMenu extends ManagePageBase {
 					return;
 				}
 				addModel("menuInfo", menuInfo);
-				addModel("backLink", getPagePath(this.getClass()));
 				StringBuilder sb = new StringBuilder();
 				sb.append("<select id=\"status\" class=\"form-control\" name=\"status\">");
 				for (MilkTeaMenuStatus status : MilkTeaMenuStatus.values()) {
@@ -202,7 +201,7 @@ public class MilkTeaManageMenu extends ManagePageBase {
 		} else {
 			for (MenuInfo menu : menuList) {
 				table.append("<tr>");
-				table.append("<td>").append(menu.getId()).append("</td>");
+				table.append("<td>").append(String.format("<a href=\"%s\">%d</a>", getHostURL() + getContextPath() + "/manage/milktea/milk_tea_manage_order.htm?menu_id=" + menu.getId(), menu.getId())).append("</td>");
 				table.append("<td>").append(menu.getName()).append("</td>");
 				table.append("<td>").append(menu.getSale() > 0 ? (menu.getSale() + "%") : "0").append("</td>");
 				table.append("<td>").append(menu.getCode()).append("</td>");
@@ -228,6 +227,7 @@ public class MilkTeaManageMenu extends ManagePageBase {
 		table.append("</tbody>");
 		table.append("</table>");
 		addModel("table", table.toString());
+		addHomeBackLink();
 	}
 
 	private void doUpdateMenu(MenuInfo menuInfo) {
@@ -287,7 +287,7 @@ public class MilkTeaManageMenu extends ManagePageBase {
 							List<ShopOptionInfo> shopOptionList = ShopService.getShopOptionListByIds(optionIds);
 							if (shopOptionList != null && !shopOptionList.isEmpty()) {
 								for (ShopOptionInfo optionInfo : shopOptionList) {
-									if (optionInfo.getType() == ShopService.ITEM_OPTION_TYPE_TOPPING) {
+									if (optionInfo.getType() == ShopService.ITEM_OPTION_TYPE_TOPPING || optionInfo.getType() == ShopService.ITEM_OPTION_TYPE_ADDITION) {
 										mtUser.setTotal_topping(mtUser.getTotal_topping() + 1);
 									} else if (optionInfo.getType() == ShopService.ITEM_OPTION_TYPE_ICE) {
 										countIce++;
@@ -295,7 +295,7 @@ public class MilkTeaManageMenu extends ManagePageBase {
 									} else if (optionInfo.getType() == ShopService.ITEM_OPTION_TYPE_SUGAR) {
 										countSugar++;
 										mtUser.setTotal_sugar(mtUser.getTotal_sugar() + MilkTeaCommonFunc.calcOptionAmount(optionInfo.getName()));
-									}
+									} 
 								}
 							}
 						}

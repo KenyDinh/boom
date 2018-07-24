@@ -55,6 +55,8 @@ var MenuItem = function() {
 	this.list_topping = [];
 	this.list_sugar = [];
 	this.list_ice = [];
+	this.list_addition = [];
+	this.limit_select = {};
 
 	this.add_size = function(size) {
 		this.list_size.push(size);
@@ -68,6 +70,9 @@ var MenuItem = function() {
 	}
 	this.add_ice = function(ice) {
 		this.list_ice.push(ice);
+	}
+	this.add_addition = function(addition) {
+		this.list_addition.push(addition);
 	}
 }
 
