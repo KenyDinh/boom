@@ -5,6 +5,7 @@ public class MenuOrder {
 	private long id;
 	private String name;
 	private long price;
+	private boolean sent;
 	private MenuOrderOption[] options;
 	
 	public MenuOrder() {
@@ -33,6 +34,14 @@ public class MenuOrder {
 
 	public void setPrice(long price) {
 		this.price = price;
+	}
+
+	public boolean isSent() {
+		return sent;
+	}
+
+	public void setSent(boolean sent) {
+		this.sent = sent;
 	}
 
 	public MenuOrderOption[] getOptions() {

@@ -57,6 +57,7 @@ function placeOrder() {
 				origin_item_list.push(menuData.DishType[i].Dishes[j]);
 			}
 		}
+		var real_order_list = [];
 		for (var k = 0; k < order_list.length; k++) {
 			var item = null;
 			for (var m = 0; m < origin_item_list.length; m++) {
@@ -66,7 +67,7 @@ function placeOrder() {
 				if (order_list[k].price != origin_item_list[m].Price) {
 					continue;
 				}
-				item = Object.assign({},origin_item_list[m]);
+				item = jQuery.extend(true, {}, origin_item_list[m]);
 				break;
 			}
 			if (item === null) {
@@ -84,8 +85,60 @@ function placeOrder() {
 					}
 				}
 			}
-			controller.actionDish = item;
-			controller.insertShoppingCartItemInCludeAttribute();
+			item.back_id = order_list[k].id;
+			real_order_list.push(item);
 		}
+		var loop_order = function(list, index) {
+			if (index >= list.length) {
+				document.getElementById('success-order-count').classList.add('order-done');
+				return;
+			}
+			controller.actionDish = list[index];
+			controller.insertShoppingCartItemInCludeAttribute();
+			let ids = document.getElementById('success-order-count').innerHTML;
+			if (ids.length > 0) {
+				ids += ",";
+			}
+			ids += list[index].back_id;
+			document.getElementById('success-order-count').innerHTML = ids;
+			window.setTimeout(function() {
+				loop_order(list, index + 1);
+			}, 200);
+		}
+		loop_order(real_order_list, 0);
 	}
+}
+
+function clone(obj) {
+    var copy;
+
+    // Handle the 3 simple types, and null or undefined
+    if (null == obj || "object" != typeof obj) return obj;
+
+    // Handle Date
+    if (obj instanceof Date) {
+        copy = new Date();
+        copy.setTime(obj.getTime());
+        return copy;
+    }
+
+    // Handle Array
+    if (obj instanceof Array) {
+        copy = [];
+        for (var i = 0, len = obj.length; i < len; i++) {
+            copy[i] = clone(obj[i]);
+        }
+        return copy;
+    }
+
+    // Handle Object
+    if (obj instanceof Object) {
+        copy = {};
+        for (var attr in obj) {
+            if (obj.hasOwnProperty(attr)) copy[attr] = clone(obj[attr]);
+        }
+        return copy;
+    }
+
+    throw new Error("Unable to copy obj! Its type isn't supported.");
 }

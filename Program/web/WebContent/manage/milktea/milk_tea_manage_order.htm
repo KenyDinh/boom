@@ -13,6 +13,7 @@
 		#if (${orderList})
 			<div class="col-lg-12">
 				${orderList}
+				<button class="btn btn-primary" id="place_order">PlaceOrder</button>
 				<p style="margin:1rem 0;">
 					<a href="${context}/manage/milktea/milk_tea_manage_menu.htm">Back</a>
 				</p>
@@ -21,7 +22,17 @@
 	</div>
 	#end ##if (${menuInfo})
 	#if (${socket_url})
-		<input type="button" id="socket_test" value="SocketTest"/>
+		##<input type="button" id="socket_test" value="SocketTest"/>
 		<span style="display:none;" id="socket_url">${socket_url}</span>
 	#end
+	<div class="modal fade" id="waiting-order-modal" role="dialog">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+   		<div class="alert alert-primary" style="margin:0;">
+   			<span id="notify" class="font-weight-bold">Please hold on, your orders will be done soon!</span>
+   			<button id="close-modal" style="display:none;" class="close" data-dismiss="modal">&times;</button>
+   		</div>
+      </div>
+    </div>
+  </div>
 #end ##if (${error})

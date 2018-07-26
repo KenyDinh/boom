@@ -54,8 +54,17 @@ public class FridayStaticData {
 		}
 	}
 	
+	public static boolean isInPlacingState() {
+		return isPlacingOrder;
+	}
+	
 	public static List<MenuOrder> getMenuOrderList() {
 		return listOrder;
+	}
+	
+	public static void forceResetmoveState() {
+		isPlacingOrder = false;
+		listOrder = null;
 	}
 	
 	public static void resetPlacingOrderState() {

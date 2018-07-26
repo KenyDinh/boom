@@ -1,5 +1,8 @@
 package dev.boom.core;
 
+import javax.servlet.http.HttpSession;
+
+import org.apache.click.Context;
 import org.apache.click.service.ConsoleLogService;
 import org.apache.click.util.HtmlStringBuffer;
 
@@ -29,8 +32,23 @@ public class GameLog extends ConsoleLogService {
         buffer.append("[");
         buffer.append(name);
         buffer.append("]");
-
+        
         buffer.append(LEVELS[level + 1]);
+        
+        if (Context.hasThreadLocalContext()) {
+        	Context context = Context.getThreadLocalContext();
+        	BoomSession boomSession = null;
+        	
+        	HttpSession session = context.getSession();
+        	if (session != null) {
+        		boomSession = (BoomSession) session.getAttribute("boom_session");
+        	}
+        	
+        	if (boomSession != null) {
+        		message = String.format("[BOOM:%d] ", boomSession.getId()) + message;
+        	}
+        }
+        
         buffer.append(message);
 
         if (error != null) {

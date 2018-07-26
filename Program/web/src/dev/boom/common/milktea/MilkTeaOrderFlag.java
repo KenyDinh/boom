@@ -14,4 +14,8 @@ public enum MilkTeaOrderFlag {
 	public int setValidFlag(int flag) {
 		return (flag | (1 << this.ordinal()));
 	}
+	
+	public int getBitMask() {
+		return (1 << this.ordinal());
+	}
 }

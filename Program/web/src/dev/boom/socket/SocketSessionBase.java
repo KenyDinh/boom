@@ -26,7 +26,7 @@ public abstract class SocketSessionBase {
 	private Date start_date;
 	
 	private Date expire_date;
-
+	
 	public SocketSessionBase(Session session, String endPointName, String token) {
 		this.session = session;
 		this.endPointName = endPointName;

@@ -65,14 +65,22 @@ function sendMessageSocket(msg) {
 }
 
 //=============================================//
-
+var milktea_order;
 function doMilkteaOrder(obj) {
-	console.log(obj.step);
 	switch (obj.step) {
 	case "prepare":
-		console.log(obj.url);
+		milktea_order = {};
+		milktea_order.url = obj.url;
+		milktea_order.order_list = [];
+		sendMessageSocket("ORDER_DETAIL");
 		break;
-		
+	case "detail":
+		milktea_order.order_list.push(obj.order);
+		sendMessageSocket("ORDER_DETAIL");
+		break;
+	case "order":
+		placeOrder();
+		break;
 	default:
 		break;
 	}

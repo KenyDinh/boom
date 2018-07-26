@@ -27,40 +27,48 @@ function retrieve_menu(menu) {
 	}
 }
 
-function placeOrderTest() {
-	CommonMethod.getTabId('www.now.vn', function (tab) {
-		if (CommonMethod.isValidData(tab)) {
-			Log.info("Start placing order.");
-			var order_list = [
-				{
-					name:"Trà Alisan Cheese Milkfoam",
-					price:35000,
-					options:[{name:"Size M"},{name:"70% đường"},{name:"50% đá"},{name:"Nha Đam"}]
-				},
-				{
-					name:"Trà Bí Đao Cheese Milkfoam",
-					price:35000,
-					options:[{name:"Size L"},{name:"70% đường"},{name:"50% đá"},{name:"Trân Châu Trắng"}]
-				},
-				{
-					name:"Trà Bí Đao Cheese Milkfoam",
-					price:35000,
-					options:[{name:"Size L"},{name:"70% đường"},{name:"50% đá"},{name:"Trân Châu Trắng"}]
-				}
-			];
-			chrome.tabs.sendMessage(tab.id, {type:'place_order', order_list:order_list}, function (response) {
-//				if (response && response.success) {
-//					chrome.tabs.executeScript(tab.id, {
-//						file: "content/inject.js"
-//					});
-//				} else {
-//					console.log("failed!");
-//				}
+function feedBackOrder(ids) {
+	sendMessageSocket("ORDER_FEED_BACK:" + ids);
+}
+
+function placeOrder() {
+	if (CommonMethod.isValidData(milktea_order)) {
+		if (CommonMethod.isValidData(milktea_order.url)) {
+			chrome.tabs.create({
+				url:milktea_order.url,
+				active:false,
+				selected:false
+			}, function(tab) {
+				milktea_order.is_placing = true;
 			});
-		} else {
-			Log.error("Can not find the tab's id");
 		}
-	});
+	}
+}
+
+function placeOrderTest() {
+	var order_list = [
+		{
+			name:"Trà Alisan Cheese Milkfoam",
+			price:35000,
+			options:[{name:"Size M"},{name:"70% đường"},{name:"50% đá"},{name:"Nha Đam"}]
+		},
+		{
+			name:"Trà Bí Đao Cheese Milkfoam",
+			price:35000,
+			options:[{name:"Size L"},{name:"70% đường"},{name:"50% đá"},{name:"Trân Châu Trắng"}]
+		},
+		{
+			name:"Trà Bí Đao Cheese Milkfoam",
+			price:35000,
+			options:[{name:"Size L"},{name:"70% đường"},{name:"50% đá"},{name:"Trân Châu Trắng"}]
+		}
+	];
+	milktea_order = {
+		url:"https://www.now.vn/ha-noi/tra-sua-gong-cha-giang-vo",
+		order_list:order_list
+	};
+	placeOrder();
+
 }
 
 function reInitSocket() {
@@ -69,6 +77,19 @@ function reInitSocket() {
 	}
 	initWebSocket();
 }
+
+//page update
+chrome.tabs.onUpdated.addListener(function(tabId,changeInfo,tab){
+	if(tab.status === 'complete'){
+		if (CommonMethod.isValidData(milktea_order)) {
+			if (tab.url == milktea_order.url && milktea_order.is_placing) {
+				chrome.tabs.sendMessage(tab.id, {type:'place_order',order_list:milktea_order.order_list}, function (response) {
+					//
+				});
+			}
+		}
+	}
+});
 
 //receive message from ex page.
 chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
@@ -83,6 +104,9 @@ chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
 			break;
 		case 'place_order_test':
 			placeOrderTest();
+			break;
+		case 'order_feed_back':
+			feedBackOrder(request.ids);
 			break;
 		case 'init_socket':
 			reInitSocket();

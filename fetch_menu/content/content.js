@@ -115,37 +115,49 @@ function placeOrder(request, sender, sendResponse) {
 		var order_list = request.order_list;
 		if (order_list.length == 0) {
 			console.log("Order list is empty!");
+			sendMessToBackground({type:"order_feed_back",ids:""});
 			return;
 		}
-		//injectMenuData()
-		// inject order list
 		if (document.cookie.includes('DELIVERY.AUTH.UDID') == false) {
 			console.log("Please login first!");
+			sendMessToBackground({type:"order_feed_back",ids:""});
 			return;
 		}
-		if ($('div#order-list-inject-content').length > 0) {
-			$('div#order-list-inject-content').remove();
-		}
-		if ($('#order-list-inject-script').length > 0) {
-			$('#order-list-inject-script').remove();
-		}
-		$('body').append("<div id='order-list-inject-content' style='display:none;'></div>");
-		$('body').append("<script id='order-list-inject-script' >document.getElementById('order-list-inject-content').innerHTML = '" + JSON.stringify(order_list) + "';</script>");
+//		if ($('div#order-list-inject-content').length > 0) {
+//			$('div#order-list-inject-content').remove();
+//		}
+//		if ($('#order-list-inject-script').length > 0) {
+//			$('#order-list-inject-script').remove();
+//		}
+		//$('body').append("<div id='order-list-inject-content' style='display:none;'></div>");
+		//$('body').append("<script id='order-list-inject-script' >document.getElementById('order-list-inject-content').innerHTML = '" + JSON.stringify(order_list) + "';</script>");
 		// inject javascript
-		$('body').append("<script>" + getPlaceOrderInjectCode() + "</script>");
-		
+		$('body').append("<span id='success-order-count' style='display:none;'></span>");
+		$('body').append("<script>" + getPlaceOrderInjectCode(order_list) + "</script>");
+		var countdown = 100;
+		var t = window.setInterval(function() {
+			if ($('#success-order-count').hasClass('order-done') || countdown < 0) {
+				let ids = $('#success-order-count').text();
+				if (t != null) {
+					clearInterval(t);
+					sendMessToBackground({type:"order_feed_back",ids:ids});
+				}
+				console.log(ids);
+			}
+			countdown--;
+		}, 200);
 	} else {
 		console.log("No order found!");
 	}
-	
 }
 
-function getPlaceOrderInjectCode() {
+
+function getPlaceOrderInjectCode(order_list) {
 	var code = "";
-	code += "var order_list = JSON.parse($('div#order-list-inject-content').text());";
+	code += "var order_list = " + JSON.stringify(order_list) + ";";
 	code += "var controller = angular.element(document.querySelector('#detail-page')).scope().detailCtrl;";
 	code += "var origin_item_list = [];";
-	code += "if (controller.cart.length > 0) {console.log('Please reset cart first!');} else {";
+	code += "if (controller.cart.length > 0) {console.log('Please reset cart first!');document.getElementById('success-order-count').classList.add('order-done');} else {";
 	code += "for (var i in menuData.DishType) {";
 	code += "if (menuData.DishType.hasOwnProperty(i) == false) {continue;}";
 	code += "for (var j in menuData.DishType[i].Dishes) {";
@@ -153,12 +165,13 @@ function getPlaceOrderInjectCode() {
 	code += "if (menuData.DishType[i].Dishes[j].IsDayOff || menuData.DishType[i].Dishes[j].OutOfStock) {continue;}";
 	code += "origin_item_list.push(menuData.DishType[i].Dishes[j]);}";
 	code += "}";
+	code += "var real_order_list = [];";
 	code += "for (var k = 0; k < order_list.length; k++) {";
-	code += "var item = null;";
+	code += "let item = null;";
 	code += "for (var m = 0; m < origin_item_list.length; m++) {";
 	code += "if (order_list[k].name != origin_item_list[m].Name) {continue;}";
 	code += "if (order_list[k].price != origin_item_list[m].Price) {continue;}";
-	code += "item = Object.assign({},origin_item_list[m]);break;}";
+	code += "item = jQuery.extend(true, {}, origin_item_list[m]);break;}";
 	code += "if (item === null) {console.log('Invalid order: ' + JSON.stringify(order_list[k]));continue;}";
 	//code += "console.log('Do add item here!');";
 	code += "for (var n = 0; n < item.Attributes.length; n++) {";
@@ -167,9 +180,21 @@ function getPlaceOrderInjectCode() {
 	code += "if (item.Attributes[n].Values[p].ValueName == order_list[k].options[q].name) {";
 	code += "item.Attributes[n].Values[p].checked = true;break;}";
 	code += "}}}";
-	code += "controller.actionDish = item;";
-	code += "controller.insertShoppingCartItemInCludeAttribute();";
-	code += "}}";
+	code += "item.back_id = order_list[k].id;";
+	code += "real_order_list.push(item);}";
+	code += "var loop_order = function(list, index) {\n";
+	code += "if (index >= list.length) {";
+	code += "document.getElementById('success-order-count').classList.add('order-done');return;}\n";
+	code += "controller.actionDish = list[index];\n";
+	code += "controller.insertShoppingCartItemInCludeAttribute();\n";
+	code += "let ids = document.getElementById('success-order-count').innerHTML;\n";
+	code += "if (ids.length > 0) {ids += ',';}\n";
+	code += "ids += list[index].back_id;\n";
+	code += "document.getElementById('success-order-count').innerHTML = ids;\n";
+	code += "window.setTimeout(function() {loop_order(list, index + 1);},200);\n";
+	code += "}\n";
+	code += "loop_order(real_order_list, 0);\n";
+	code += "}\n";
 	return code;
 }
 

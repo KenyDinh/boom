@@ -18,6 +18,7 @@ import dev.boom.milktea.object.MenuItem;
 import dev.boom.milktea.object.MenuItemOption;
 import dev.boom.services.CommonDaoService;
 import dev.boom.socket.endpoint.FridayStaticData;
+import dev.boom.socket.endpoint.ManageMilkTeaEndPoint;
 import net.arnx.jsonic.JSON;
 
 public class FridaySocketSession extends SocketSessionBase {
@@ -33,7 +34,7 @@ public class FridaySocketSession extends SocketSessionBase {
 
 	@Override
 	public void process(String message) {
-		System.out.println(message);
+		logInfo(message);
 		if (message.startsWith("MENU_OBJECT")) {
 			String source = message.replace("MENU_OBJECT", "");
 			Menu menu = (Menu) parseMessage(source, Menu.class);
@@ -64,7 +65,22 @@ public class FridaySocketSession extends SocketSessionBase {
 			if (CommonMethod.isValidNumeric(strFlag, 1, 15)) {
 				update(Integer.parseInt(strFlag));
 			}
-		} else {
+		} else if (message.startsWith("ORDER_DETAIL")) {
+			SocketSessionBase manageMilkTeaSS = SocketSessionPool.getStoredSocketSessionByUserId(getUserId(), ManageMilkTeaEndPoint.ENDPOINT_NAME);
+			if (manageMilkTeaSS == null) {
+				logError("[FridaySocketSession] (process) ManageMilkteaSocket not found!");
+				return;
+			}
+			manageMilkTeaSS.process("PLACING_ORDER");
+		} else if (message.startsWith("ORDER_FEED_BACK:")) {
+			SocketSessionBase manageMilkTeaSS = SocketSessionPool.getStoredSocketSessionByUserId(getUserId(), ManageMilkTeaEndPoint.ENDPOINT_NAME);
+			if (manageMilkTeaSS == null) {
+				logError("[FridaySocketSession] (process) ManageMilkteaSocket not found!");
+				return;
+			}
+			manageMilkTeaSS.process(message);
+		}
+		else {
 			logError("[FridaySocketSession] (process) invalid message!");
 		}
 	}
