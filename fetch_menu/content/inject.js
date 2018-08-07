@@ -64,9 +64,9 @@ function placeOrder() {
 				if (order_list[k].name != origin_item_list[m].Name) {
 					continue;
 				}
-				if (order_list[k].price != origin_item_list[m].Price) {
-					continue;
-				}
+//				if (order_list[k].price != origin_item_list[m].Price) {
+//					continue;
+//				}
 				item = jQuery.extend(true, {}, origin_item_list[m]);
 				break;
 			}
@@ -75,17 +75,21 @@ function placeOrder() {
 				continue;
 			}
 			console.log("Do add item here!");
+			let extraPrice = 0;
 			for (var n = 0; n < item.Attributes.length; n++) {
 				for (var p = 0; p < item.Attributes[n].Values.length; p++) {
 					for (var q = 0; q < order_list[k].options.length; q++) {
 						if (item.Attributes[n].Values[p].ValueName == order_list[k].options[q].name) {
 							item.Attributes[n].Values[p].checked = true;
+							item.Attributes[n].Values[p].NumberChoosed = 1;
+							extraPrice += item.Attributes[n].Values[p].Price;
 							break;
 						}
 					}
 				}
 			}
 			item.back_id = order_list[k].id;
+			item.extra_price = extraPrice;
 			real_order_list.push(item);
 		}
 		var loop_order = function(list, index) {
@@ -94,6 +98,7 @@ function placeOrder() {
 				return;
 			}
 			controller.actionDish = list[index];
+			controller.totalAttributePrice = list[index].extra_price;
 			controller.insertShoppingCartItemInCludeAttribute();
 			let ids = document.getElementById('success-order-count').innerHTML;
 			if (ids.length > 0) {
