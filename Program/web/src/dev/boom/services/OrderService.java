@@ -4,19 +4,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 import dev.boom.dao.core.DaoValue;
-import dev.boom.entity.info.OrderInfo;
+import dev.boom.tbl.info.TblOrderInfo;
 
 public class OrderService {
 	
-	public static OrderInfo getOrderInfoById(long id) {
-		OrderInfo orderInfo = new OrderInfo();
+	public static TblOrderInfo getOrderInfoById(long id) {
+		TblOrderInfo orderInfo = new TblOrderInfo();
 		orderInfo.setId(id);
 		List<DaoValue> list = CommonDaoService.select(orderInfo);
 		if (list == null || list.size() != 1) {
 			return null;
 		}
 		
-		return (OrderInfo) list.get(0);
+		return (TblOrderInfo) list.get(0);
 	}
 	
 	public static List<OrderInfo> getOrderList(List<Long> ids) {
@@ -30,7 +30,7 @@ public class OrderService {
 			}
 			soption += id;
 		}
-		OrderInfo orderInfo = new OrderInfo();
+		TblOrderInfo orderInfo = new TblOrderInfo();
 		orderInfo.setSelectOption("WHERE id IN (" + soption + ")");
 		List<DaoValue> list = CommonDaoService.select(orderInfo);
 		if (list == null || list.isEmpty()) {
@@ -38,13 +38,13 @@ public class OrderService {
 		}
 		List<OrderInfo> ret = new ArrayList<>();
 		for (DaoValue dao : list) {
-			ret.add((OrderInfo) dao);
+			ret.add(new OrderInfo((TblOrderInfo) dao));
 		}
 		return ret;
 	}
 
 	public static List<OrderInfo> getOrderInfoListByMenuId(long menu_id) {
-		OrderInfo orderInfo = new OrderInfo();
+		TblOrderInfo orderInfo = new TblOrderInfo();
 		orderInfo.setMenu_id(menu_id);
 		orderInfo.setSelectOption("ORDER BY created DESC");
 		List<DaoValue> list = CommonDaoService.select(orderInfo);
@@ -53,22 +53,22 @@ public class OrderService {
 		}
 		List<OrderInfo> ret = new ArrayList<>();
 		for (DaoValue dao : list) {
-			ret.add((OrderInfo) dao);
+			ret.add(new OrderInfo((TblOrderInfo) dao));
 		}
 
 		return ret;
 	}
 
-	public static List<OrderInfo> getOrderInfoListByShopId(long shop_id) {
-		OrderInfo orderInfo = new OrderInfo();
+	public static List<TblOrderInfo> getOrderInfoListByShopId(long shop_id) {
+		TblOrderInfo orderInfo = new TblOrderInfo();
 		orderInfo.setShop_id(shop_id);
 		List<DaoValue> list = CommonDaoService.select(orderInfo);
 		if (list == null || list.isEmpty()) {
 			return null;
 		}
-		List<OrderInfo> ret = new ArrayList<>();
+		List<TblOrderInfo> ret = new ArrayList<>();
 		for (DaoValue dao : list) {
-			ret.add((OrderInfo) dao);
+			ret.add((TblOrderInfo) dao);
 		}
 
 		return ret;

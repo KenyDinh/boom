@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<class name="dev.boom.tbl.info.TblNihongoPetInfo" table="nihongo_pet_info" catalog="boom">
+		<id name="id" type="java.lang.Long">
+			<column name="id" />
+			<generator class="increment" />
+		</id>
+		<property name="pet_name" type="java.lang.String">
+			 <column name="pet_name" length="125" not-null="true" unique="true" />
+		</property>
+		<property name="max_level" type="java.lang.Integer">
+			<column name="max_level" not-null="true" />
+		</property>
+		<property name="created" type="java.util.Date">
+			<column name="created" not-null="true" />
+		</property>
+		<property name="updated" type="java.util.Date">
+			<column name="updated" not-null="true" />
+		</property>
+	</class>
+</hibernate-mapping>

@@ -9,7 +9,7 @@ import java.util.Set;
 
 import dev.boom.common.CommonMethod;
 import dev.boom.core.GameLog;
-import dev.boom.entity.info.UserInfo;
+import dev.boom.tbl.info.TblUserInfo;
 
 public class SocketSessionPool {
 
@@ -139,7 +139,7 @@ public class SocketSessionPool {
 		return listValidToken.contains(key);
 	}
 	
-	public static String generateValidToken(String endpoint, UserInfo userInfo) {
+	public static String generateValidToken(String endpoint, TblUserInfo userInfo) {
 		String key = getPlayerKey(endpoint, userInfo);
 		listValidToken.add(key);
 		mapTokenUserId.put(key, userInfo.getId());
@@ -158,7 +158,7 @@ public class SocketSessionPool {
 		return key;
 	}
 	
-	private static String getPlayerKey(String endpoint, UserInfo userInfo) {
+	private static String getPlayerKey(String endpoint, TblUserInfo userInfo) {
 		String base = endpoint + userInfo.getId();
 		String key = CommonMethod.getEncryptMD5(base);
 		return key;

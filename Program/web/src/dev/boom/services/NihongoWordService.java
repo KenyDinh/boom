@@ -4,21 +4,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 import dev.boom.dao.core.DaoValue;
-import dev.boom.entity.info.NihongoWordInfo;
+import dev.boom.tbl.info.TblNihongoWordInfo;
 
 public class NihongoWordService {
 
-	public static List<NihongoWordInfo> getWordList() {
-		NihongoWordInfo info = new NihongoWordInfo();
+	public static List<TblNihongoWordInfo> getWordList() {
+		TblNihongoWordInfo info = new TblNihongoWordInfo();
 
 		List<DaoValue> list = CommonDaoService.select(info);
 		if (list == null || list.isEmpty()) {
 			return null;
 		}
 
-		List<NihongoWordInfo> ret = new ArrayList<>();
+		List<TblNihongoWordInfo> ret = new ArrayList<>();
 		for (DaoValue dao : list) {
-			ret.add((NihongoWordInfo)dao);
+			ret.add((TblNihongoWordInfo)dao);
 		}
 		
 		return ret;

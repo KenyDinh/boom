@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="dev.boom.tbl.info.TblMilkTeaUserInfo" table="milktea_user_info" catalog="boom">
+        <id name="user_id" type="java.lang.Long">
+            <column name="user_id" />
+        </id>
+        <property name="username" type="java.lang.String">
+            <column name="username" length="32" not-null="true" unique="true" />
+        </property>
+        <property name="dish_count" type="java.lang.Long">
+            <column name="dish_count" not-null="true" />
+        </property>
+        <property name="order_count" type="java.lang.Long">
+            <column name="order_count" not-null="true" />
+        </property>
+        <property name="total_money" type="java.lang.Long">
+            <column name="total_money" not-null="true" />
+        </property>
+        <property name="total_sugar" type="java.lang.Long">
+            <column name="total_sugar" not-null="true" />
+        </property>
+        <property name="total_ice" type="java.lang.Long">
+            <column name="total_ice" not-null="true" />
+        </property>
+        <property name="total_topping" type="java.lang.Long">
+            <column name="total_topping" not-null="true" />
+        </property>
+        <property name="latest_order_id" type="java.lang.Long">
+            <column name="latest_order_id" not-null="true" />
+        </property>
+    </class>
+</hibernate-mapping>

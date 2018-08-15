@@ -4,16 +4,16 @@ import dev.boom.common.enums.UserFlagEnum;
 import dev.boom.core.BoomProperties;
 import dev.boom.core.BoomSession;
 import dev.boom.core.GameLog;
-import dev.boom.entity.info.UserInfo;
 import dev.boom.pages.Home;
 import dev.boom.services.UserService;
 import dev.boom.socket.endpoint.ManageMilkTeaEndPoint;
+import dev.boom.tbl.info.TblUserInfo;
 
 public class ManagePageBase extends ManageTemplate {
 
 	private static final long serialVersionUID = 1L;
 
-	protected UserInfo userInfo = null;
+	protected TblUserInfo userInfo = null;
 	
 	@Override
 	public boolean onSecurityCheck() {

@@ -97,10 +97,7 @@ chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
 	if (request) {
 		switch (request.type) {
 		case 'looking_for_menu':
-			if (request.flag) {
-				flag = request.flag;
-				looking_for_menu();
-			}
+			looking_for_menu();
 			break;
 		case 'place_order_test':
 			placeOrderTest();

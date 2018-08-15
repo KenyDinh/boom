@@ -1,9 +1,12 @@
 package dev.boom.common;
 
+import java.util.List;
 import java.util.Map;
 
 public class CommonHtmlFunc {
 
+	public static final int GRID_LAYOUT_MAX_COL = 12;
+	
 	@SuppressWarnings("rawtypes")
 	public static String getLoginFormModal(String contextPath, Map messages) {
 		StringBuilder sb = new StringBuilder();
@@ -135,6 +138,75 @@ public class CommonHtmlFunc {
 				sb.append("</div>");
 			sb.append("</div>");
 		sb.append("</div>");
+		return sb.toString();
+	}
+	
+	public static String getGridLayoutElement(List<String> elements, int colNumPerElem, int maxElemPerRow) {
+		if (elements == null || elements.isEmpty()) {
+			return "";
+		}
+		maxElemPerRow = Math.min(GRID_LAYOUT_MAX_COL, maxElemPerRow);
+		colNumPerElem = Math.min((GRID_LAYOUT_MAX_COL/maxElemPerRow), colNumPerElem);
+		int size = elements.size();
+		int rowNum = (size - 1) / maxElemPerRow + 1;
+		String colStyle = "<div class=\"col-lg-" + colNumPerElem + "\" style=\"position:relative;padding:0.5rem;display:inline-block;float:none;margin-right:-0.25rem;text-align:left;\">";
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < rowNum; i++) {
+			int col = 0;
+			if (size - i * maxElemPerRow < maxElemPerRow) {
+				col = size - i * maxElemPerRow;
+			} else {
+				col = maxElemPerRow;
+			}
+			sb.append("<div class=\"row\" style=\"display:block;text-align:center;\">");
+			for (int j = 0; j < col; j++) {
+				sb.append(colStyle).append(elements.get(i * maxElemPerRow + j));
+				sb.append("</div>");
+			}
+			sb.append("</div>");
+		}
+		return sb.toString();
+	}
+	
+	public static String getGridLayoutElement(List<String> elements, int maxElemPerRow) {
+		if (elements == null || elements.isEmpty()) {
+			return "";
+		}
+		maxElemPerRow = Math.min(GRID_LAYOUT_MAX_COL/2, maxElemPerRow);
+		int size = elements.size();
+		int rowNum = (size - 1) / maxElemPerRow + 1;
+		int left = 0;
+		int rest = 0;
+		int col;
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < rowNum; i++) {
+			left = size - i * maxElemPerRow;
+			if (left < maxElemPerRow) {
+				rest = (12 - left * 2) / 2;
+				col = left;
+			} else {
+				rest = (12 - maxElemPerRow * 2) / 2;
+				col = maxElemPerRow;
+			}
+			sb.append("<div class=\"row\">");
+			if (rest > 0) {
+				sb.append(String.format("<div class=\"col-sm-%d\"></div>", rest));
+			}
+			for (int j = 0; j < col; j++) {
+				sb.append("<div class=\"col-sm-2\" style=\"position:relative;padding:0.5rem;\">");
+				sb.append(elements.get(i * maxElemPerRow + j));
+				sb.append("</div>");
+			}
+			if ((rest + col) * 2 < 12) {
+				for (int k = 0; k < 12 - 2 * (rest + col); k++) {
+					sb.append("<div class=\"col-sm-1\"></div>");
+				}
+			}
+			if (rest > 0) {
+				sb.append(String.format("<div class=\"col-sm-%d\"></div>", rest));
+			}
+			sb.append("</div>");
+		}
 		return sb.toString();
 	}
 }

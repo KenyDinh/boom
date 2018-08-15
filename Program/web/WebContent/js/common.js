@@ -30,7 +30,7 @@ function onclickLogin() {
 				type:"POST",
 				url:CONTEXT + "/account/login.htm",
 				dataType:"json",
-				data:"username=" + username.value + "&password=" + password.value,
+				data:"username=" + encodeURIComponent(username.value) + "&password=" + encodeURIComponent(password.value),
 				success:function(result) {
 					if (result) {
 						if (result.success == 1) {
@@ -44,7 +44,7 @@ function onclickLogin() {
 					}
 				},
 				error:function() {
-					console.log("login error!");
+					window.location.reload();
 				}
 			});
 		} else {
@@ -66,10 +66,13 @@ function onclickRegist() {
 				type:"POST",
 				url:CONTEXT + "/account/register.htm",
 				dataType:"json",
-				data:"username=" + username.value + "&password=" + password.value + "&re_password=" + re_password.value,
+				data:"username=" + encodeURIComponent(username.value) + "&password=" + encodeURIComponent(password.value) + "&re_password=" + encodeURIComponent(re_password.value),
 				success:function(result) {
 					if (result) {
 						if (result.success == 1) {
+							$j('div#regist-form-modal').on('hide.bs.modal', function(e) {
+								$j('div#login-form-modal').modal('show');
+							});
 							$j('div#regist-form-modal').modal('hide');
 						} else if (result.error) {
 							$j('div#regist-message').html(result.error);
@@ -79,7 +82,7 @@ function onclickRegist() {
 					}
 				},
 				error:function() {
-					console.log("regist failed!");
+					window.location.reload();
 				}
 			});
 		} else {
@@ -102,7 +105,7 @@ function onclickChangePassword() {
 				type:"POST",
 				url:CONTEXT + "/account/change_password.htm",
 				dataType:"json",
-				data:"cur_password=" + cur_pwd.value + "&new_password=" + new_pwd.value + "&re_new_password=" + re_new_pwd.value,
+				data:"cur_password=" + encodeURIComponent(cur_pwd.value) + "&new_password=" + encodeURIComponent(new_pwd.value) + "&re_new_password=" + encodeURIComponent(re_new_pwd.value),
 				success:function(result) {
 					if (result) {
 						if (result.success == 1) {
@@ -115,7 +118,7 @@ function onclickChangePassword() {
 					}
 				},
 				error:function() {
-					console.log("change password failed!");
+					window.location.reload();
 				}
 			});
 		} else {

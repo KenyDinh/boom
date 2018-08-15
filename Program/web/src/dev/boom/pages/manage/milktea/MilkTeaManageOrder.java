@@ -6,13 +6,11 @@ import org.apache.click.element.JsImport;
 
 import dev.boom.common.CommonMethod;
 import dev.boom.common.milktea.MilkTeaCommonFunc;
-import dev.boom.entity.info.MenuInfo;
-import dev.boom.entity.info.OrderInfo;
-import dev.boom.entity.info.ShopOptionInfo;
 import dev.boom.pages.manage.ManagePageBase;
+import dev.boom.services.MenuInfo;
 import dev.boom.services.MenuService;
+import dev.boom.services.OrderInfo;
 import dev.boom.services.OrderService;
-import dev.boom.services.ShopService;
 import dev.boom.socket.SocketSessionPool;
 import dev.boom.socket.endpoint.ManageMilkTeaEndPoint;
 
@@ -53,9 +51,8 @@ public class MilkTeaManageOrder extends ManagePageBase {
 			return;
 		}
 		orderList = OrderService.getOrderInfoListByMenuId(menuInfo.getId());
-		List<ShopOptionInfo> listShopOption = ShopService.getShopOptionListByShopId(menuInfo.getShop_id());
 		addModel("menuInfo", menuInfo);
-		addModel("orderList", MilkTeaCommonFunc.getHtmlListOrder(orderList, menuInfo, userInfo, listShopOption, getHostURL() + getContextPath(), getMessages(), true));
+		addModel("orderList", MilkTeaCommonFunc.getHtmlListOrder(orderList, menuInfo, userInfo, getHostURL() + getContextPath(), getMessages(), true));
 		String token = SocketSessionPool.generateValidToken(ManageMilkTeaEndPoint.ENDPOINT_NAME, userInfo);
 		String params = "?" + ManageMilkTeaEndPoint.VALIDATION_KEY + "=" + token;
 		addModel("socket_url", getSocketUrl(params));

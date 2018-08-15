@@ -10,15 +10,14 @@ import javax.websocket.Session;
 import dev.boom.common.CommonMethod;
 import dev.boom.common.milktea.MilkTeaOrderFlag;
 import dev.boom.dao.core.DaoValue;
-import dev.boom.entity.info.MenuInfo;
-import dev.boom.entity.info.OrderInfo;
-import dev.boom.entity.info.ShopInfo;
-import dev.boom.entity.info.ShopOptionInfo;
 import dev.boom.milktea.object.MenuOrder;
 import dev.boom.milktea.object.MenuOrderOption;
 import dev.boom.services.CommonDaoService;
+import dev.boom.services.MenuInfo;
 import dev.boom.services.MenuService;
+import dev.boom.services.OrderInfo;
 import dev.boom.services.OrderService;
+import dev.boom.services.ShopInfo;
 import dev.boom.services.ShopService;
 import dev.boom.socket.endpoint.FridayEndpoint;
 import dev.boom.socket.endpoint.FridayStaticData;
@@ -61,8 +60,8 @@ public class ManageMilkTeaSocketSession extends SocketSessionBase {
 			if (orderList.size() != ids.size()) {
 				logWarning("[ManageMilkTeaSocketSession] (process) order_list'size: " + orderList.size() + " is different from id_list's size: " + ids.size());
 			}
-			long menuId = orderList.get(0).getMenu_id();
-			long shopId = orderList.get(0).getShop_id();
+			long menuId = orderList.get(0).getMenuId();
+			long shopId = orderList.get(0).getShopId();
 			MenuInfo menuInfo = MenuService.getMenuById(menuId);
 			if (menuInfo == null) {
 				logError("[ManageMilkTeaSocketSession] menu not found, menu_id:" + menuId);
@@ -73,26 +72,22 @@ public class ManageMilkTeaSocketSession extends SocketSessionBase {
 				logError("[ManageMilkTeaSocketSession] shop not found, shop_id:" + shopId);
 				return;
 			}
-			Map<Long, ShopOptionInfo> mapOptions = new HashMap<>();
-			for (OrderInfo orderInfo : orderList) {
-				initListOrderOption(orderInfo, mapOptions);
-			}
 			List<MenuOrder> menuOrderList = new ArrayList<>();
 			for (OrderInfo orderInfo : orderList) {
-				if (orderInfo.getMenu_id() != menuId) {
+				if (orderInfo.getMenuId() != menuId) {
 					logError("[ManageMilkTeaSocketSession] menu id is invalid, menu_id:" + menuId + ", order_id:" + orderInfo.getId());
 					return;
 				}
-				if (orderInfo.getShop_id() != shopId) {
+				if (orderInfo.getShopId() != shopId) {
 					logError("[ManageMilkTeaSocketSession] menu id is invalid, menu_id:" + menuId + ", order_id:" + orderInfo.getId());
-					return;
-				}
-				MenuOrder menuOrder = fromOrderInfoToMenuOrder(orderInfo, mapOptions);
-				if (menuOrder == null) {
-					logError("[ManageMilkTeaSocketSession] menuOrder is null!");
 					return;
 				}
 				for (int i = 0; i < orderInfo.getQuantity(); i++) {
+					MenuOrder menuOrder = fromOrderInfoToMenuOrder(orderInfo);
+					if (menuOrder == null) {
+						logError("[ManageMilkTeaSocketSession] menuOrder is null!");
+						return;
+					}
 					menuOrderList.add(menuOrder);
 				}
 			}
@@ -167,7 +162,7 @@ public class ManageMilkTeaSocketSession extends SocketSessionBase {
 					List<DaoValue> updates = new ArrayList<>();
 					for (OrderInfo order : orderList) {
 						order.setFlag(order.getFlag() | MilkTeaOrderFlag.PLACED.getBitMask());
-						updates.add(order);
+						updates.add(order.getTblInfo());
 					}
 					if (!CommonDaoService.update(updates)) {
 						logError("[ManageMilkTeaSocketSession] (process) update order flag failed!");
@@ -179,70 +174,29 @@ public class ManageMilkTeaSocketSession extends SocketSessionBase {
 			FridayStaticData.forceResetmoveState();
 		}
 	}
-	
-	private void initListOrderOption(OrderInfo orderInfo, Map<Long, ShopOptionInfo> mapOptions) {
-		String optionList = orderInfo.getOption_list();
-		if (optionList == null || optionList.isEmpty() || !optionList.matches("[0-9]+(,[0-9]+)*")) {
-			return;
-		}
-		List<Long> shopOptionIds = new ArrayList<>();
-		for (String strId : optionList.split(",")) {
-			if (CommonMethod.isValidNumeric(strId, 1, Long.MAX_VALUE)) {
-				Long id = Long.parseLong(strId);
-				if (mapOptions.containsKey(id)) {
-					continue;
-				}
-				shopOptionIds.add(id);
-			} else {
-				logError("[initListOrderOption] invalid id:" + strId);
-			}
-		}
-		if (shopOptionIds.isEmpty()) {
-			return;
-		}
-		List<ShopOptionInfo> shopOptionInfo = ShopService.getShopOptionListByIds(shopOptionIds);
-		if (shopOptionInfo != null && !shopOptionInfo.isEmpty()) {
-			for (ShopOptionInfo info : shopOptionInfo) {
-				mapOptions.put(info.getId(), info);
-			}
-		}
-	}
 
-	private MenuOrder fromOrderInfoToMenuOrder(OrderInfo orderInfo, Map<Long, ShopOptionInfo> mapOptions) {
+	private MenuOrder fromOrderInfoToMenuOrder(OrderInfo orderInfo) {
 		if (orderInfo == null) {
 			throw new NullPointerException("(fromOrderInfoToMenuOrder) order null!");
 		}
 		MenuOrder menuOrder = new MenuOrder();
 		menuOrder.setId(orderInfo.getId());
-		menuOrder.setName(orderInfo.getDish_name());
-		menuOrder.setPrice(orderInfo.getDish_price());
+		menuOrder.setName(orderInfo.getDishName());
+		menuOrder.setPrice(orderInfo.getDishPrice()); // ? attr price
 		menuOrder.setSent(false);
-		String optionList = orderInfo.getOption_list();
-		if (optionList == null || optionList.isEmpty() || !optionList.matches("[0-9]+(,[0-9]+)*")) {
+		List<String> options = orderInfo.getAllOptionList();
+		if (options.isEmpty()) {
 			menuOrder.setOptions(new MenuOrderOption[0]);
 		} else {
-			String[] idList = optionList.split(",");
-			MenuOrderOption[] options = new MenuOrderOption[idList.length];
+			MenuOrderOption[] menuOrderOptions = new MenuOrderOption[options.size()];
 			int index = 0;
-			for (String strId : idList) {
-				if (!CommonMethod.isValidNumeric(strId, 1, Long.MAX_VALUE)) {
-					logError("[fromOrderInfoToMenuOrder] invalid id:" + strId);
-					return null;
-				}
-				Long id = Long.parseLong(strId);
-				if (!mapOptions.containsKey(id)) {
-					logError("[fromOrderInfoToMenuOrder] option not found, id:" + id);
-					return null;
-				}
-				ShopOptionInfo shopOption = mapOptions.get(id);
+			for (String name : options) {
 				MenuOrderOption menuOrderOption = new MenuOrderOption();
-				menuOrderOption.setName(shopOption.getName());
-				menuOrderOption.setPrice(shopOption.getPrice());
-				options[index++] = menuOrderOption;
+				menuOrderOption.setName(name);
+				menuOrderOptions[index++] = menuOrderOption;
 			}
-			menuOrder.setOptions(options);
+			menuOrder.setOptions(menuOrderOptions);
 		}
-		
 		return menuOrder;
 	}
 }

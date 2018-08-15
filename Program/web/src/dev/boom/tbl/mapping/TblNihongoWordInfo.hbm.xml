@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<class name="dev.boom.tbl.info.TblNihongoWordInfo" table="nihongo_word_info" catalog="boom">
+		<id name="id" type="java.lang.Long">
+			<column name="id" />
+			<generator class="increment" />
+		</id>
+		<property name="word" type="java.lang.String">
+			<column name="word" length="125" not-null="true" />
+		</property>
+		<property name="sideword" type="java.lang.String">
+			<column name="sideword" length="125" not-null="true" />
+		</property>
+		<property name="wordtype" type="java.lang.Integer">
+			<column name="wordtype" not-null="true" />
+		</property>
+		<property name="meaning" type="java.lang.String">
+			<column name="meaning" not-null="true" />
+		</property>
+		<property name="description" type="java.lang.String">
+			<column name="description" not-null="true" />
+		</property>
+		<property name="reference" type="java.lang.Integer">
+			<column name="reference" not-null="true" />
+		</property>
+		<property name="created" type="java.util.Date">
+			<column name="created" not-null="true" />
+		</property>
+		<property name="updated" type="java.util.Date">
+			<column name="updated" not-null="true" />
+		</property>
+	</class>
+</hibernate-mapping>

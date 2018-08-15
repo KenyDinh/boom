@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="dev.boom.tbl.info.TblWorldInfo" table="world_info" catalog="boom">
+        <id name="id" type="java.lang.Long">
+            <column name="id" />
+            <generator class="increment" />
+        </id>
+        <property name="event_flag" type="java.lang.Integer">
+            <column name="event_flag" not-null="true" />
+        </property>
+    </class>
+</hibernate-mapping>

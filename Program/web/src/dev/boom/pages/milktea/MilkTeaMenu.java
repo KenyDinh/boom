@@ -10,13 +10,11 @@ import dev.boom.common.CommonMethod;
 import dev.boom.common.milktea.MilkTeaCommonFunc;
 import dev.boom.common.milktea.MilkTeaSocketType;
 import dev.boom.common.milktea.MilkTeaTabEnum;
-import dev.boom.entity.info.MenuInfo;
-import dev.boom.entity.info.OrderInfo;
-import dev.boom.entity.info.ShopOptionInfo;
 import dev.boom.milktea.object.MenuItem;
+import dev.boom.services.MenuInfo;
 import dev.boom.services.MenuService;
+import dev.boom.services.OrderInfo;
 import dev.boom.services.OrderService;
-import dev.boom.services.ShopService;
 import dev.boom.socket.SocketSessionPool;
 import dev.boom.socket.endpoint.MilkTeaEndPoint;
 
@@ -58,14 +56,13 @@ public class MilkTeaMenu extends MilkTeaMainPage {
 		super.onRender();
 		String contextPath = getHostURL() + getContextPath();
 		if (menuInfo != null) {
-			List<MenuItem> listMenuItem = MenuService.getMenuItemListByShopId(menuInfo.getShop_id());
+			List<MenuItem> listMenuItem = MenuService.getMenuItemListByShopId(menuInfo.getShopId());
 			if (listMenuItem != null) {
-				List<ShopOptionInfo> listShopOption = ShopService.getShopOptionListByShopId(menuInfo.getShop_id());
-				addModel("dish_list", MilkTeaCommonFunc.getHtmlListMenuItem(menuInfo, listMenuItem, listShopOption, contextPath, getUserInfo(), messages));
+				addModel("dish_list", MilkTeaCommonFunc.getHtmlListMenuItem(menuInfo, listMenuItem, contextPath, getUserInfo(), messages));
 				addModel("dish_type", MilkTeaCommonFunc.getHtmlListMenuItemType(listMenuItem, contextPath));
-				List<OrderInfo> listOrder = OrderService.getOrderInfoListByMenuId(menuInfo.getId());
-				addModel("order_list", MilkTeaCommonFunc.getHtmlListOrder(listOrder, menuInfo, getUserInfo(), listShopOption, contextPath, messages));
 			}
+			List<OrderInfo> listOrder = OrderService.getOrderInfoListByMenuId(menuInfo.getId());
+			addModel("order_list", MilkTeaCommonFunc.getHtmlListOrder(listOrder, menuInfo, getUserInfo(), contextPath, messages));
 			addModel("menuInfo", menuInfo);
 		} else {
 			addModel("menuList", MilkTeaCommonFunc.getHtmlListMenu(contextPath, getMessages()));

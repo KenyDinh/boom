@@ -3,7 +3,7 @@ package dev.boom.milktea.object;
 import java.util.ArrayList;
 import java.util.List;
 
-import dev.boom.services.ShopService;
+import dev.boom.common.milktea.MilkTeaItemOptionType;
 
 public class MenuItem {
 
@@ -158,31 +158,31 @@ public class MenuItem {
 		List<MenuItemOption> listOptions = new ArrayList<>();
 		if (list_ice != null && list_ice.length > 0) {
 			for (MenuItemOption option : list_ice) {
-				option.setType(ShopService.ITEM_OPTION_TYPE_ICE);
+				option.setType(MilkTeaItemOptionType.ICE.getType());
 				listOptions.add(option);
 			}
 		}
 		if (list_size != null && list_size.length > 0) {
 			for (MenuItemOption option : list_size) {
-				option.setType(ShopService.ITEM_OPTION_TYPE_SIZE);
+				option.setType(MilkTeaItemOptionType.SIZE.getType());
 				listOptions.add(option);
 			}
 		}
 		if (list_sugar != null && list_sugar.length > 0) {
 			for (MenuItemOption option : list_sugar) {
-				option.setType(ShopService.ITEM_OPTION_TYPE_SUGAR);
+				option.setType(MilkTeaItemOptionType.SUGAR.getType());
 				listOptions.add(option);
 			}
 		}
 		if (list_topping != null && list_topping.length > 0) {
 			for (MenuItemOption option : list_topping) {
-				option.setType(ShopService.ITEM_OPTION_TYPE_TOPPING);
+				option.setType(MilkTeaItemOptionType.TOPPING.getType());
 				listOptions.add(option);
 			}
 		}
 		if (list_addition != null && list_addition.length > 0) {
 			for (MenuItemOption option : list_addition) {
-				option.setType(ShopService.ITEM_OPTION_TYPE_ADDITION);
+				option.setType(MilkTeaItemOptionType.ADDITION.getType());
 				listOptions.add(option);
 			}
 		}

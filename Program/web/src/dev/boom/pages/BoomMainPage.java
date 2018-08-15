@@ -1,19 +1,27 @@
 package dev.boom.pages;
 
 import dev.boom.common.CommonHtmlFunc;
+import dev.boom.common.enums.EventFlagEnum;
 import dev.boom.common.enums.MainNavBarEnum;
 import dev.boom.common.enums.UserFlagEnum;
 import dev.boom.core.BoomSession;
-import dev.boom.entity.info.UserInfo;
 import dev.boom.pages.manage.Index;
 import dev.boom.services.UserService;
+import dev.boom.tbl.info.TblUserInfo;
 
 public class BoomMainPage extends Template {
 
 	private static final long serialVersionUID = 1L;
+	protected TblUserInfo userInfo = null;
 	
-	protected UserInfo userInfo = null;
-	
+	@Override
+	public boolean onSecurityCheck() {
+		if (!super.onSecurityCheck()) {
+			return false;
+		}
+		return true;
+	}
+
 	@Override
 	public void onInit() {
 		super.onInit();
@@ -29,7 +37,7 @@ public class BoomMainPage extends Template {
 		initMenuBar();
 	}
 	
-	protected UserInfo getUserInfo() {
+	protected TblUserInfo getUserInfo() {
 		return userInfo;
 	}
 
@@ -88,10 +96,12 @@ public class BoomMainPage extends Template {
 				} else {
 					sb.append("<form class=\"form-inline my-2 my-lg-0\">");
 						sb.append("<button style=\"width:80px;\" class=\"btn btn-info my-2 my-sm-0\" type=\"button\" data-toggle=\"modal\" data-target=\"#login-form-modal\">" + getMessage("MSG_GENERAL_LOGIN") + "</button>");
-						sb.append("<button style=\"width:80px;margin-left:1rem;\" class=\"btn btn-success my-2 my-sm-0\" type=\"button\" data-toggle=\"modal\" data-target=\"#regist-form-modal\">" + getMessage("MSG_GENERAL_SIGNUP") + "</button>");
+						if (worldInfo != null && worldInfo.isActiveEvent(EventFlagEnum.REGISTER)) {
+							sb.append("<button style=\"width:80px;margin-left:1rem;\" class=\"btn btn-success my-2 my-sm-0\" type=\"button\" data-toggle=\"modal\" data-target=\"#regist-form-modal\">" + getMessage("MSG_GENERAL_SIGNUP") + "</button>");
+							addModel("register_modal", CommonHtmlFunc.getRegisterFormModal(contextPath, getMessages()));
+						}
 					sb.append("</form>");
 					addModel("login_modal", CommonHtmlFunc.getLoginFormModal(contextPath, getMessages()));
-					addModel("register_modal", CommonHtmlFunc.getRegisterFormModal(contextPath, getMessages()));
 				}
 				
 			sb.append("</div>");

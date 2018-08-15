@@ -15,19 +15,19 @@
         <property name="show_sql">false</property>
         
         <!-- mapping resources here-->
-        <mapping resource="dev/boom/mapping/UserInfo.hbm.xml"></mapping>
-        <mapping resource="dev/boom/mapping/MilkTeaUserInfo.hbm.xml"></mapping>
-        <mapping resource="dev/boom/mapping/ShopInfo.hbm.xml"></mapping>
-        <mapping resource="dev/boom/mapping/DishInfo.hbm.xml"></mapping>
-        <mapping resource="dev/boom/mapping/ShopOptionInfo.hbm.xml"></mapping>
-        <mapping resource="dev/boom/mapping/MenuInfo.hbm.xml"></mapping>
-        <mapping resource="dev/boom/mapping/OrderInfo.hbm.xml"></mapping>
+        <mapping resource="dev/boom/tbl/mapping/TblUserInfo.hbm.xml"></mapping>
+        <mapping resource="dev/boom/tbl/mapping/TblMilkTeaUserInfo.hbm.xml"></mapping>
+        <mapping resource="dev/boom/tbl/mapping/TblShopInfo.hbm.xml"></mapping>
+        <mapping resource="dev/boom/tbl/mapping/TblDishInfo.hbm.xml"></mapping>
+        <mapping resource="dev/boom/tbl/mapping/TblMenuInfo.hbm.xml"></mapping>
+        <mapping resource="dev/boom/tbl/mapping/TblOrderInfo.hbm.xml"></mapping>
+        <mapping resource="dev/boom/tbl/mapping/TblWorldInfo.hbm.xml"></mapping>
         
-        <mapping resource="dev/boom/mapping/NihongoOwningInfo.hbm.xml"></mapping>
-        <mapping resource="dev/boom/mapping/NihongoPetInfo.hbm.xml"></mapping>
-        <mapping resource="dev/boom/mapping/NihongoProgressInfo.hbm.xml"></mapping>
-        <mapping resource="dev/boom/mapping/NihongoUserInfo.hbm.xml"></mapping>
-        <mapping resource="dev/boom/mapping/NihongoWordInfo.hbm.xml"></mapping>
+        <mapping resource="dev/boom/tbl/mapping/TblNihongoOwningInfo.hbm.xml"></mapping>
+        <mapping resource="dev/boom/tbl/mapping/TblNihongoPetInfo.hbm.xml"></mapping>
+        <mapping resource="dev/boom/tbl/mapping/TblNihongoProgressInfo.hbm.xml"></mapping>
+        <mapping resource="dev/boom/tbl/mapping/TblNihongoUserInfo.hbm.xml"></mapping>
+        <mapping resource="dev/boom/tbl/mapping/TblNihongoWordInfo.hbm.xml"></mapping>
         
     </session-factory>
 </hibernate-configuration>

@@ -88,11 +88,20 @@ function sendMilkTeaUpdateRequest(data) {
 		dataType:"html",
 		success:function(result) {
 			if (result) {
-				var retHtml = $j(result);
-				if ($j('#' + retHtml.attr('id')).length) {
-					$j('#' + retHtml.attr('id')).html(retHtml.html());
-					initToolTip();
-					initEvent();
+				let retHtml = $j(result);
+				if (retHtml.length) {
+					let change = false;
+					for (let i = 0; i < retHtml.length; i++) {
+						let elem = retHtml.eq(i);
+						if ($j('#' + elem.attr('id')).length) {
+							$j('#' + elem.attr('id')).html(elem.html());
+							change = true;
+						}
+					}
+					if (change) {
+						initToolTip();
+						initEvent();
+					}
 				}
 			}
 		},
@@ -108,11 +117,13 @@ function initEvent() {
 		if ($j(this).hasClass('text-secondary')) {
 			$j(this).removeClass('text-secondary');
 			$j(this).addClass('text-danger');
+			$j(this).tooltip('show');
 		}
 	}, function() {
 		if ($j(this).hasClass('text-danger')) {
 			$j(this).removeClass('text-danger');
 			$j(this).addClass('text-secondary');
+			$j(this).tooltip('hide');
 		}
 	});
 }
@@ -161,19 +172,23 @@ function placeTheOrder(menuId,itemId) {
 			var countSize = 0, countIce = 0, countSugar = 0, countTopping = 0, countAddition = 0;
 			for (var i = 0; i < listCheckedOption.length; i++) {
 				var name = listCheckedOption.eq(i).attr('name');
-				var value = listCheckedOption.eq(i).attr('id').replace("item-option-" + itemId + "-", "");
+				var value = listCheckedOption.eq(i).attr('value');
 				if (name == 'item-option-size') {
+					params += "&menu_item_option_2=" + encodeURIComponent(value);
 					countSize++;
 				} else if (name == 'item-option-ice') {
+					params += "&menu_item_option_1=" + encodeURIComponent(value);
 					countIce++;
 				} else if (name == 'item-option-sugar') {
+					params += "&menu_item_option_3=" + encodeURIComponent(value);
 					countSugar++;
 				} else if (name == 'item-option-topping') {
+					params += "&menu_item_option_4=" + encodeURIComponent(value);
 					countTopping++;
 				} else if (name == 'item-option-addition') {
+					params += "&menu_item_option_5=" + encodeURIComponent(value);
 					countAddition++;
 				}
-				params += "&menu_item_option=" + value;
 			} 
 //			if (countSize == 0 && listSize.length > 0) {
 //				console.log("count size: " + countSize);

@@ -52,6 +52,7 @@ function placeOrder() {
 					continue;
 				}
 				if (menuData.DishType[i].Dishes[j].IsDayOff || menuData.DishType[i].Dishes[j].OutOfStock) {
+					console.log('item is now not available!');
 					continue;
 				}
 				origin_item_list.push(menuData.DishType[i].Dishes[j]);

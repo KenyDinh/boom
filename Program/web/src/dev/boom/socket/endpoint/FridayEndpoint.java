@@ -6,10 +6,10 @@ import java.util.Map;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-import dev.boom.entity.info.UserInfo;
 import dev.boom.socket.FridaySocketSession;
 import dev.boom.socket.SocketSessionBase;
 import dev.boom.socket.SocketSessionPool;
+import dev.boom.tbl.info.TblUserInfo;
 
 @ServerEndpoint(value = "/socket/friday")
 public class FridayEndpoint extends EndPointBase{
@@ -42,7 +42,7 @@ public class FridayEndpoint extends EndPointBase{
 		return null;
 	}
 	
-	public static String registerToken(UserInfo accountInfo) {
+	public static String registerToken(TblUserInfo accountInfo) {
 		return SocketSessionPool.generateValidToken(ENDPOINT_NAME, accountInfo);
 	}
 

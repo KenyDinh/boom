@@ -5,12 +5,10 @@ import java.util.List;
 import dev.boom.common.CommonMethod;
 import dev.boom.common.milktea.MilkTeaCommonFunc;
 import dev.boom.common.milktea.MilkTeaSocketMessage;
-import dev.boom.entity.info.MenuInfo;
-import dev.boom.entity.info.OrderInfo;
-import dev.boom.entity.info.ShopOptionInfo;
+import dev.boom.services.MenuInfo;
 import dev.boom.services.MenuService;
+import dev.boom.services.OrderInfo;
 import dev.boom.services.OrderService;
-import dev.boom.services.ShopService;
 
 public class MilkTeaDetailUpdate extends MilkTeaAjaxPageBase {
 
@@ -67,13 +65,13 @@ public class MilkTeaDetailUpdate extends MilkTeaAjaxPageBase {
 			String strMenuId = getContext().getRequestParameter("menu_id");
 			if (CommonMethod.isValidNumeric(strMenuId, 1, Long.MAX_VALUE)) {
 				MenuInfo menuInfo = MenuService.getMenuById(Long.parseLong(strMenuId));
+				StringBuilder sb = new StringBuilder();
 				if (msg == MilkTeaSocketMessage.UPDATE_MENU_DETAIL) {
-					addModel("result", MilkTeaCommonFunc.getHtmlMenuDetail(menuInfo, userInfo, getHostURL() + getContextPath(), getMessages()));
-				} else {
-					List<ShopOptionInfo> listShopOption = ShopService.getShopOptionListByShopId(menuInfo.getShop_id());
-					List<OrderInfo> listOrder = OrderService.getOrderInfoListByMenuId(menuInfo.getId());
-					addModel("result", MilkTeaCommonFunc.getHtmlListOrder(listOrder, menuInfo, userInfo, listShopOption, getHostURL() + getContextPath(), getMessages()));
+					sb.append(MilkTeaCommonFunc.getHtmlMenuDetail(menuInfo, userInfo, getHostURL() + getContextPath(), getMessages()));
 				}
+				List<OrderInfo> listOrder = OrderService.getOrderInfoListByMenuId(menuInfo.getId());
+				sb.append(MilkTeaCommonFunc.getHtmlListOrder(listOrder, menuInfo, userInfo, getHostURL() + getContextPath(), getMessages()));
+				addModel("result", sb.toString());
 			}
 			break;
 		default:

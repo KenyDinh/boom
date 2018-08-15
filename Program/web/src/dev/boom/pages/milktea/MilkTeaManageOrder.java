@@ -6,24 +6,24 @@ import java.util.List;
 import java.util.Map;
 
 import dev.boom.common.CommonMethod;
-import dev.boom.common.milktea.MilkTeaMenuStatus;
+import dev.boom.common.milktea.MilkTeaItemOptionType;
 import dev.boom.common.milktea.MilkTeaSocketMessage;
 import dev.boom.common.milktea.MilkTeaSocketType;
 import dev.boom.core.GameLog;
-import dev.boom.entity.info.MenuInfo;
-import dev.boom.entity.info.OrderInfo;
-import dev.boom.entity.info.ShopOptionInfo;
 import dev.boom.milktea.object.MenuItem;
+import dev.boom.milktea.object.MenuItemOption;
+import dev.boom.milktea.object.MenuItemSelectionLimit;
 import dev.boom.services.CommonDaoService;
+import dev.boom.services.MenuInfo;
 import dev.boom.services.MenuService;
+import dev.boom.services.OrderInfo;
 import dev.boom.services.OrderService;
-import dev.boom.services.ShopService;
 import dev.boom.socket.endpoint.MilkTeaEndPoint;
+import dev.boom.tbl.info.TblOrderInfo;
 
 public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 
 	private static final long serialVersionUID = 1L;
-	private static final int MAX_TOPPING_COUNT = 3;
 
 	private static final int MODE_INSERT = 1;
 	private static final int MODE_DELETE = 2;
@@ -74,7 +74,7 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 			error = true;
 			return;
 		}
-		if ((int) menuInfo.getStatus() != MilkTeaMenuStatus.OPENING.ordinal()) {
+		if (!menuInfo.isOpening()) {
 			GameLog.getInstance().error("[MilkTeaManageOrder] Menu is no longer open!, id:" + menuId);
 			error = true;
 			return;
@@ -107,7 +107,7 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 			return;
 		}
 		long menuItemId = 0;
-		List<Long> listOptionId = null;
+		List<MenuItemOption> listItemOptions = null;
 		int quantity = 1;
 		for (String key : mapParams.keySet()) {
 			String[] values = mapParams.get(key);
@@ -122,15 +122,24 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 					error = true;
 					return;
 				}
-			} else if (key.equals("menu_item_option")) {
+			} else if (key.startsWith("menu_item_option_")) {
 				if (values != null && values.length > 0) {
-					for (String optId : values) {
-						if (CommonMethod.isValidNumeric(optId, 1, Long.MAX_VALUE)) {
-							if (listOptionId == null) {
-								listOptionId = new ArrayList<>();
-							}
-							listOptionId.add(Long.parseLong(optId));
+					for (String strName : values) {
+						String strType = key.replace("menu_item_option_", "");
+						if (!CommonMethod.isValidNumeric(strType, 1, MilkTeaItemOptionType.MAX_TYPE)) {
+							continue;
 						}
+						MilkTeaItemOptionType type = MilkTeaItemOptionType.valueOf(Short.parseShort(strType));
+						if (type == MilkTeaItemOptionType.NONE) {
+							continue;
+						}
+						MenuItemOption itemOption = new MenuItemOption();
+						itemOption.setName(strName);
+						itemOption.setType(type.getType());
+						if (listItemOptions == null) {
+							listItemOptions = new ArrayList<>();
+						}
+						listItemOptions.add(itemOption);
 					}
 				}
 			} else if (key.equals("quantity")) {
@@ -147,86 +156,98 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 			error = true;
 			return;
 		}
-		if (menuItem.getShop_id() != menuInfo.getShop_id()) {
+		if (menuItem.getShop_id() != menuInfo.getShopId()) {
 			GameLog.getInstance().error("[MilkTeaManageOrder] MenuItem is invalid, shop id is different from the menu!");
 			error = true;
 			return;
 		}
-		String optionList = "";
 		long plusPrice = 0;
-		Map<Short, Integer> mapCountOption = new HashMap<>();
-		if (listOptionId != null && !listOptionId.isEmpty()) {
-			List<ShopOptionInfo> listOptions = ShopService.getShopOptionListByIds(listOptionId);
-			if (listOptions == null || listOptions.isEmpty()) {
-				GameLog.getInstance().error("[MilkTeaManageOrder] Option list is null!");
-				error = true;
-				return;
-			}
-			for (ShopOptionInfo option : listOptions) {
-				int c = 1;
-				if (mapCountOption.containsKey(option.getType())) {
-					c += mapCountOption.get(option.getType());
+		Map<Short, List<String>> mapOption = new HashMap<>();
+		if (listItemOptions != null && !listItemOptions.isEmpty()) {
+			List<MenuItemOption> listOriginalItemOption = menuItem.getListOptions();
+			for (MenuItemOption itemOption : listItemOptions) {
+				for (MenuItemOption originalOption : listOriginalItemOption) {
+					if (itemOption.getType() == originalOption.getType() && 
+						itemOption.getName().equals(originalOption.getName())) {
+						if (!mapOption.containsKey(itemOption.getType())) {
+							mapOption.put(itemOption.getType(), new ArrayList<>());
+						}
+						mapOption.get(itemOption.getType()).add(originalOption.getName());
+						plusPrice += originalOption.getPrice();
+						listOriginalItemOption.remove(originalOption);
+						break;
+					}
 				}
-				mapCountOption.put(option.getType(), c);
-				plusPrice += option.getPrice();
-				if (optionList.length() > 0) {
-					optionList += ",";
-				}
-				optionList += option.getId();
 			}
 		}
-//		if (menuItem.getList_size() != null && !mapCountOption.containsKey(ShopService.ITEM_OPTION_TYPE_SIZE)) {
-//			GameLog.getInstance().error("[MilkTeaManageOrder] No type of size was chosen!");
-//			error = true;
-//			return;
-//		}
-		if (mapCountOption.containsKey(ShopService.ITEM_OPTION_TYPE_SIZE) && mapCountOption.get(ShopService.ITEM_OPTION_TYPE_SIZE) > 1) {
-			GameLog.getInstance().error("[MilkTeaManageOrder] Only one type of size can be chosen!");
-			error = true;
-			return;
-		}
-//		if (menuItem.getList_ice() != null && !mapCountOption.containsKey(ShopService.ITEM_OPTION_TYPE_ICE)) {
-//			GameLog.getInstance().error("[MilkTeaManageOrder] No type of ice was chosen!");
-//			error = true;
-//			return;
-//		}
-		if (mapCountOption.containsKey(ShopService.ITEM_OPTION_TYPE_ICE) && mapCountOption.get(ShopService.ITEM_OPTION_TYPE_ICE) > 1) {
-			GameLog.getInstance().error("[MilkTeaManageOrder] Only one type of ice can be chosen!");
-			error = true;
-			return;
-		}
-//		if (menuItem.getList_sugar() != null && !mapCountOption.containsKey(ShopService.ITEM_OPTION_TYPE_SUGAR)) {
-//			GameLog.getInstance().error("[MilkTeaManageOrder] No type of sugar was chosen!");
-//			error = true;
-//			return;
-//		}
-		if (mapCountOption.containsKey(ShopService.ITEM_OPTION_TYPE_SUGAR) && mapCountOption.get(ShopService.ITEM_OPTION_TYPE_SUGAR) > 1) {
-			GameLog.getInstance().error("[MilkTeaManageOrder] Only one type of ice can be chosen!");
-			error = true;
-			return;
-		}
-		if (mapCountOption.containsKey(ShopService.ITEM_OPTION_TYPE_TOPPING) && mapCountOption.get(ShopService.ITEM_OPTION_TYPE_TOPPING) > MAX_TOPPING_COUNT) {
-			GameLog.getInstance().error("[MilkTeaManageOrder] Number of topping is exceed max : " + mapCountOption.get(ShopService.ITEM_OPTION_TYPE_TOPPING) + " > " + MAX_TOPPING_COUNT);
-			error = true;
-			return;
-		}
-		if (mapCountOption.containsKey(ShopService.ITEM_OPTION_TYPE_ADDITION) && mapCountOption.get(ShopService.ITEM_OPTION_TYPE_ADDITION) > MAX_TOPPING_COUNT) {
-			GameLog.getInstance().error("[MilkTeaManageOrder] Number of addition is exceed max : " + mapCountOption.get(ShopService.ITEM_OPTION_TYPE_ADDITION) + " > " + MAX_TOPPING_COUNT);
-			error = true;
-			return;
+		MenuItemSelectionLimit limitSelectOption = menuItem.getLimit_select();
+		if (limitSelectOption == null) {
+			limitSelectOption = new MenuItemSelectionLimit();
 		}
 		OrderInfo orderInfo = new OrderInfo();
-		orderInfo.setUser_id(userInfo.getId());
+		for (MilkTeaItemOptionType optionType : MilkTeaItemOptionType.values()) {
+			if (optionType == MilkTeaItemOptionType.NONE) {
+				continue;
+			}
+			int minselect = limitSelectOption.getMinSelect(optionType);
+			int maxselect = limitSelectOption.getMaxSelect(optionType);
+			if (maxselect <= 0) {
+				GameLog.getInstance().warn("[MilkTeaManageOrder] Option " + getMessage(optionType.getLabel()) + " is not able to select");
+				continue;
+			}
+			if (minselect > 0) {
+				if (!mapOption.containsKey(optionType.getType()) || mapOption.get(optionType.getType()).size() < minselect) {
+					GameLog.getInstance().error("[MilkTeaManageOrder] Option " + getMessage(optionType.getLabel()) + " is required:" + minselect);
+					error = true;
+					return;
+				}
+			}
+			if (maxselect > 0 && mapOption.containsKey(optionType.getType())) {
+				if (mapOption.get(optionType.getType()).size() > maxselect) {
+					GameLog.getInstance().error("[MilkTeaManageOrder] Option " + getMessage(optionType.getLabel()) + " is excees max:" + mapOption.get(optionType.getType()).size() + "/" + maxselect);
+					error = true;
+					return;
+				}
+			}
+			if (!mapOption.containsKey(optionType.getType())) {
+				continue;
+			}
+			String strOption = "";
+			for (String name : mapOption.get(optionType.getType())) {
+				if (strOption.length() > 0) {
+					strOption += ",";
+				}
+				strOption += name;
+			}
+			switch (optionType) {
+			case ICE:
+				orderInfo.setIce(strOption);
+				break;
+			case SIZE:
+				orderInfo.setSize(strOption);
+				break;
+			case SUGAR:
+				orderInfo.setSugar(strOption);
+				break;
+			case TOPPING:
+			case ADDITION:
+				orderInfo.setOptionList(strOption);
+				break;
+			default:
+				break;
+			}
+		}
+		orderInfo.setUserId(userInfo.getId());
 		orderInfo.setUsername(userInfo.getUsername());
-		orderInfo.setMenu_id(menuInfo.getId());
-		orderInfo.setShop_id(menuInfo.getShop_id());
-		orderInfo.setDish_name(menuItem.getName());
-		orderInfo.setDish_type(menuItem.getType());
-		orderInfo.setDish_price(menuItem.getPrice() + plusPrice);
-		orderInfo.setDish_code(menuItem.getName().hashCode());
+		orderInfo.setMenuId(menuInfo.getId());
+		orderInfo.setShopId(menuInfo.getShopId());
+		orderInfo.setDishName(menuItem.getName());
+		orderInfo.setDishType(menuItem.getType());
+		orderInfo.setDishPrice(menuItem.getPrice());
+		orderInfo.setAttrPrice(plusPrice);
+		orderInfo.setDishCode(menuItem.getName().hashCode());
 		orderInfo.setQuantity(quantity);
-		orderInfo.setOption_list(optionList);
-		if (CommonDaoService.insert(orderInfo) == null) {
+		if (CommonDaoService.insert(orderInfo.getTblInfo()) == null) {
 			GameLog.getInstance().error("[MilkTeaManageOrder] Create order failed!");
 			error = true;
 			return;
@@ -240,7 +261,7 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 			error = true;
 			return;
 		}
-		OrderInfo orderInfo = OrderService.getOrderInfoById(Long.parseLong(strOrderId));
+		TblOrderInfo orderInfo = OrderService.getOrderInfoById(Long.parseLong(strOrderId));
 		if (orderInfo == null) {
 			GameLog.getInstance().error("[MilkTeaManageOrder] Order is null!");
 			error = true;
@@ -264,7 +285,7 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 			return;
 		}
 		putJsonData("success", 1);
-		MilkTeaEndPoint.sendSocketUpdate(MilkTeaSocketType.MENU_DETAIL, MilkTeaSocketMessage.UPDATE_ORDER_LIST);
+		MilkTeaEndPoint.sendSocketUpdate(menuInfo.getId(), MilkTeaSocketType.MENU_DETAIL, MilkTeaSocketMessage.UPDATE_ORDER_LIST);
 		super.onRender();
 	}
 

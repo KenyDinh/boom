@@ -4,22 +4,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 import dev.boom.dao.core.DaoValue;
-import dev.boom.entity.info.MilkTeaUserInfo;
+import dev.boom.tbl.info.TblMilkTeaUserInfo;
 
 public class MilkTeaUserService {
 
-	public static MilkTeaUserInfo getFridayUserInfoByUserId(long user_id) {
-		MilkTeaUserInfo info = new MilkTeaUserInfo();
+	public static MilkTeaUserInfo getMilkTeaUserInfoById(long user_id) {
+		TblMilkTeaUserInfo info = new TblMilkTeaUserInfo();
 		info.setUser_id(user_id);
 		List<DaoValue> list = CommonDaoService.select(info);
 		if (list == null || list.size() != 1) {
 			return null;
 		}
-		return (MilkTeaUserInfo) list.get(0);
+		return new MilkTeaUserInfo((TblMilkTeaUserInfo) list.get(0));
 	}
 	
-	public static List<MilkTeaUserInfo> getFridayUserInfoByIdList(List<Long> ids) {
-		MilkTeaUserInfo info = new MilkTeaUserInfo();
+	public static List<MilkTeaUserInfo> getMilkTeaUserInfoById(List<Long> ids) {
+		TblMilkTeaUserInfo info = new TblMilkTeaUserInfo();
 		String option = "";
 		if (ids != null) {
 			for (Long id : ids) {
@@ -38,7 +38,7 @@ public class MilkTeaUserService {
 		}
 		List<MilkTeaUserInfo> ret = new ArrayList<>();
 		for (DaoValue dao : list) {
-			ret.add((MilkTeaUserInfo) dao);
+			ret.add(new MilkTeaUserInfo((TblMilkTeaUserInfo) dao));
 		}
 		return ret;
 	}

@@ -15,16 +15,19 @@ import org.apache.click.util.HtmlStringBuffer;
 
 import dev.boom.core.BoomSession;
 import dev.boom.core.GameLog;
-import dev.boom.entity.info.UserInfo;
 import dev.boom.pages.account.ChangePassword;
 import dev.boom.pages.account.Login;
 import dev.boom.pages.account.Register;
+import dev.boom.services.WorldInfo;
+import dev.boom.services.WorldService;
+import dev.boom.tbl.info.TblUserInfo;
 
 public class PageBase extends Page {
 
 	private static final long serialVersionUID = 1L;
+	protected WorldInfo worldInfo = null;
 
-	protected void storeBoomSession(UserInfo info) {
+	protected void storeBoomSession(TblUserInfo info) {
 		BoomSession boomSession = new BoomSession(info.getId());
 		getContext().getSession().setAttribute("boom_session", boomSession);
 	}
@@ -44,10 +47,29 @@ public class PageBase extends Page {
 	protected String getContextPath() {
 		return getContext().getRequest().getContextPath();
 	}
-
+	
+	protected WorldInfo getWorldInfo() {
+		if (worldInfo == null) {
+			worldInfo = WorldService.getWorldInfo();
+		}
+		return worldInfo;
+	}
+	
 	public PageBase() {
 		logPageParameters();
 		getMessages();
+	}
+	
+	@Override
+	public boolean onSecurityCheck() {
+		if (!super.onSecurityCheck()) {
+			return false;
+		}
+		if (getWorldInfo() == null) {
+			GameLog.getInstance().error("[BoomMainPage] World is null!");
+			return false;
+		}
+		return true;
 	}
 
 	protected void logPageParameters() {

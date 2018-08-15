@@ -82,7 +82,7 @@ public class MilkTeaEndPoint extends EndPointBase{
 	 * @param type
 	 * @param message
 	 */
-	public static void sendSocketUpdate(MilkTeaSocketType type, MilkTeaSocketMessage msg) {
+	public static void sendSocketUpdate(long menuId, MilkTeaSocketType type, MilkTeaSocketMessage msg) {
 		if (type == MilkTeaSocketType.INVALID) {
 			return;
 		}
@@ -90,11 +90,12 @@ public class MilkTeaEndPoint extends EndPointBase{
 		if (listSocket == null || listSocket.isEmpty()) {
 			return;
 		}
+		String match = "menu_id=" + menuId;
 		String data = "msg_id=" + msg.getId();
 		for (SocketSessionBase socket : listSocket) {
 			MilkTeaSocketSession milkteaSocket = (MilkTeaSocketSession) socket;
 			if (type == MilkTeaSocketType.ALL || milkteaSocket.getType() == type.getType()) {
-				if (milkteaSocket.getData() != null) {
+				if (milkteaSocket.getData() != null && milkteaSocket.getData().equals(match)) {
 					data += "&" + milkteaSocket.getData();
 				}
 				socket.sendMessage(String.format("{\"message_type\":\"update\",\"data\":\"%s\"}",data));

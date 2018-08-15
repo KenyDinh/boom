@@ -4,54 +4,45 @@ import java.util.ArrayList;
 import java.util.List;
 
 import dev.boom.dao.core.DaoValue;
-import dev.boom.entity.info.ShopInfo;
-import dev.boom.entity.info.ShopOptionInfo;
+import dev.boom.tbl.info.TblShopInfo;
 
 public class ShopService {
 	
-	// ---------- MenuItemOption Type ---------- //
-	public static final short ITEM_OPTION_TYPE_NONE 	= 0;
-	public static final short ITEM_OPTION_TYPE_ICE 		= 1;
-	public static final short ITEM_OPTION_TYPE_SIZE 	= 2;
-	public static final short ITEM_OPTION_TYPE_SUGAR 	= 3;
-	public static final short ITEM_OPTION_TYPE_TOPPING 	= 4;
-	public static final short ITEM_OPTION_TYPE_ADDITION = 5;
-	
 	public static List<ShopInfo> getShopList() {
-		ShopInfo shopInfo = new ShopInfo();
+		TblShopInfo shopInfo = new TblShopInfo();
 		List<DaoValue> list = CommonDaoService.select(shopInfo);
 		if (list == null || list.isEmpty()) {
 			return null;
 		}
 		List<ShopInfo> ret = new ArrayList<>();
 		for (DaoValue dao : list) {
-			ret.add((ShopInfo) dao);
+			ret.add(new ShopInfo((TblShopInfo) dao));
 		}
 		return ret;
 	}
 	
 	public static ShopInfo getShopById(long id) {
-		ShopInfo shopInfo = new ShopInfo();
+		TblShopInfo shopInfo = new TblShopInfo();
 		shopInfo.setId(id);
 		List<DaoValue> list = CommonDaoService.select(shopInfo);
 		if (list == null || list.size() != 1) {
 			return null;
 		}
-		return (ShopInfo) list.get(0);
+		return new ShopInfo((TblShopInfo) list.get(0));
 	}
 	
 	public static ShopInfo getShopByUrl(String url) {
-		ShopInfo shopInfo = new ShopInfo();
+		TblShopInfo shopInfo = new TblShopInfo();
 		shopInfo.setUrl(url);
 		List<DaoValue> list = CommonDaoService.select(shopInfo);
 		if (list == null || list.size() != 1) {
 			return null;
 		}
-		return (ShopInfo) list.get(0);
+		return new ShopInfo((TblShopInfo) list.get(0));
 	}
 	
 	public static List<ShopInfo> getShopListByUrl(String name) {
-		ShopInfo shopInfo = new ShopInfo();
+		TblShopInfo shopInfo = new TblShopInfo();
 		shopInfo.setName(name);
 		List<DaoValue> list = CommonDaoService.select(shopInfo);
 		if (list == null || list.isEmpty()) {
@@ -59,12 +50,12 @@ public class ShopService {
 		}
 		List<ShopInfo> ret = new ArrayList<>();
 		for (DaoValue dao : list) {
-			ret.add((ShopInfo) dao);
+			ret.add(new ShopInfo((TblShopInfo) dao));
 		}
 		return ret;
 	}
 	
-	public static List<ShopOptionInfo> getShopOptionListByIds(List<Long> ids) {
+	public static List<ShopInfo> getShopListById(List<Long> ids) {
 		if (ids == null || ids.isEmpty()) {
 			return null;
 		}
@@ -75,32 +66,17 @@ public class ShopService {
 			}
 			soption += id;
 		}
-		ShopOptionInfo info = new ShopOptionInfo();
-		info.setSelectOption("WHERE id IN (" + soption + ")");
-		List<DaoValue> list = CommonDaoService.select(info);
+		TblShopInfo shopInfo = new TblShopInfo();
+		shopInfo.setSelectOption("WHERE id IN (" + soption + ")");
+		List<DaoValue> list = CommonDaoService.select(shopInfo);
 		if (list == null || list.isEmpty()) {
 			return null;
 		}
-		List<ShopOptionInfo> ret = new ArrayList<>();
+		List<ShopInfo> ret = new ArrayList<>();
 		for (DaoValue dao : list) {
-			ret.add((ShopOptionInfo) dao);
+			ret.add(new ShopInfo((TblShopInfo) dao));
 		}
-		
 		return ret;
 	}
 	
-	public static List<ShopOptionInfo> getShopOptionListByShopId(long shop_id) {
-		ShopOptionInfo info = new ShopOptionInfo();
-		info.setShop_id(shop_id);
-		List<DaoValue> list = CommonDaoService.select(info);
-		if (list == null || list.isEmpty()) {
-			return null;
-		}
-		List<ShopOptionInfo> ret = new ArrayList<>();
-		for (DaoValue dao : list) {
-			ret.add((ShopOptionInfo) dao);
-		}
-		
-		return ret;
-	}
 }

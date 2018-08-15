@@ -36,19 +36,25 @@
 				<div class="form-group">
 				  <fieldset>
 				    <label class="control-label" for="max_discount">Max Discount</label>
-				    <input class="form-control" id="max_discount" type="number" min="0" step="1000" name="max_discount" value="${menuInfo.getMax_discount()}">
+				    <input class="form-control" id="max_discount" type="number" min="0" step="1000" name="max_discount" value="${menuInfo.getMaxDiscount()}">
 				  </fieldset>
 				</div>
 				<div class="form-group">
 				  <fieldset>
 				    <label class="control-label" for="shipping_fee">Shipping Fee</label>
-				    <input class="form-control" id="shipping_fee" type="number" min="0" step="1000" name="shipping_fee" value="${menuInfo.getShipping_fee()}">
+				    <input class="form-control" id="shipping_fee" type="number" min="0" step="1000" name="shipping_fee" value="${menuInfo.getShippingFee()}">
 				  </fieldset>
 				</div>
 				<div class="form-group">
 				  <fieldset>
 				    <label class="control-label" for="description">Description</label>
 				    <textarea class="form-control" id="description" name="description">${menuInfo.getDescription()}</textarea>
+				  </fieldset>
+				</div>
+				<div class="form-group">
+				  <fieldset>
+				    <label class="control-label" for="expired">Expiration date</label>
+				    <input type="text" class="form-control" id="expired" name="expired" value="${menuInfo.getStrExpired()}"/>
 				  </fieldset>
 				</div>
 				<div class="form-group">

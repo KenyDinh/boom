@@ -7,10 +7,6 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 
-import dev.boom.entity.info.NihongoOwningInfo;
-import dev.boom.entity.info.NihongoProgressInfo;
-import dev.boom.entity.info.NihongoUserInfo;
-import dev.boom.entity.info.NihongoWordInfo;
 import dev.boom.pages.JsonPageBase;
 import dev.boom.services.CommonDaoService;
 import dev.boom.services.NihongoOwningService;
@@ -18,6 +14,10 @@ import dev.boom.services.NihongoPetService;
 import dev.boom.services.NihongoProgressService;
 import dev.boom.services.NihongoUserService;
 import dev.boom.services.NihongoWordService;
+import dev.boom.tbl.info.TblNihongoOwningInfo;
+import dev.boom.tbl.info.TblNihongoProgressInfo;
+import dev.boom.tbl.info.TblNihongoUserInfo;
+import dev.boom.tbl.info.TblNihongoWordInfo;
 
 public class NihongoJson extends JsonPageBase {
 
@@ -25,7 +25,7 @@ public class NihongoJson extends JsonPageBase {
 
 	private static final long defaultPetID = 1;
 	
-	private NihongoUserInfo nihonUser = null;
+	private TblNihongoUserInfo nihonUser = null;
 	@Override
 	public boolean onSecurityCheck() {
 		if (!super.onSecurityCheck()) {
@@ -38,8 +38,9 @@ public class NihongoJson extends JsonPageBase {
 		
 		nihonUser = NihongoUserService.getNihongoUserInfo(userInfo.getId());
 		if (nihonUser == null) {
-			nihonUser = new NihongoUserInfo();
+			nihonUser = new TblNihongoUserInfo();
 			nihonUser.setUser_id(userInfo.getId());
+			nihonUser.setUsername(userInfo.getUsername());
 			if (CommonDaoService.insert(nihonUser) == null) {
 				return false;
 			}
@@ -51,10 +52,10 @@ public class NihongoJson extends JsonPageBase {
 	public void onGet() {
 		super.onGet();
 
-		List<NihongoWordInfo> allWordList = NihongoWordService.getWordList();
+		List<TblNihongoWordInfo> allWordList = NihongoWordService.getWordList();
 		if (allWordList != null) {
 			Map<Integer, List<Map<String, Object>>> wordMap = new HashMap<>();
-			for (NihongoWordInfo wordInfo : allWordList) {
+			for (TblNihongoWordInfo wordInfo : allWordList) {
 				int ref = wordInfo.getReference();
 				Map<String, Object> map = wordInfo.toMapObject();
 				if(!wordMap.containsKey(ref)){
@@ -65,19 +66,19 @@ public class NihongoJson extends JsonPageBase {
 			putJsonData("wordMap", wordMap);
 		}
 
-		List<NihongoProgressInfo> userProgressList = NihongoProgressService.getUserProgressList(userInfo.getId());
+		List<TblNihongoProgressInfo> userProgressList = NihongoProgressService.getUserProgressList(userInfo.getId());
 		if (userProgressList != null) {
 			Map<Integer, Integer> userProgressMap = new HashMap<Integer, Integer>();
-			for (NihongoProgressInfo progressInfo : userProgressList) {
+			for (TblNihongoProgressInfo progressInfo : userProgressList) {
 				userProgressMap.put(progressInfo.getTest_id(), progressInfo.getProgress());
 			}
 			putJsonData("userProgress", userProgressMap);
 		}
 
-		List<NihongoOwningInfo> owningList = NihongoOwningService.getOwningList(userInfo.getId());
+		List<TblNihongoOwningInfo> owningList = NihongoOwningService.getOwningList(userInfo.getId());
 		if (owningList != null) {
 			List<Map<String, Object>> listMapOwning = new ArrayList<>();
-			for (NihongoOwningInfo owningInfo : owningList) {
+			for (TblNihongoOwningInfo owningInfo : owningList) {
 				Map<String, Object> mapOwning = owningInfo.toMapObject();
 				mapOwning.put("imageUrl", getHostURL() + getContextPath() + "/img/game/nihongo/pet/" + owningInfo.getPet_id() + "_0" + owningInfo.getCurrent_level() + ".gif");
 				listMapOwning.add(mapOwning);
@@ -124,10 +125,10 @@ public class NihongoJson extends JsonPageBase {
 			}
 		}
 		if (change) {
-			List<NihongoOwningInfo> owningList = NihongoOwningService.getOwningList(userInfo.getId());
+			List<TblNihongoOwningInfo> owningList = NihongoOwningService.getOwningList(userInfo.getId());
 			if (owningList != null) {
 				List<Map<String, Object>> listMapOwning = new ArrayList<>();
-				for (NihongoOwningInfo owningInfo : owningList) {
+				for (TblNihongoOwningInfo owningInfo : owningList) {
 					Map<String, Object> mapOwning = owningInfo.toMapObject();
 					mapOwning.put("imageUrl", getHostURL() + getContextPath() + "/img/game/nihongo/pet/" + owningInfo.getPet_id() + "_0" + owningInfo.getCurrent_level() + ".gif");
 					listMapOwning.add(mapOwning);

@@ -6,14 +6,14 @@ import java.util.List;
 import java.util.Map;
 
 import dev.boom.dao.core.DaoValue;
-import dev.boom.entity.info.NihongoOwningInfo;
-import dev.boom.entity.info.NihongoPetInfo;
-import dev.boom.entity.info.NihongoUserInfo;
+import dev.boom.tbl.info.TblNihongoOwningInfo;
+import dev.boom.tbl.info.TblNihongoPetInfo;
+import dev.boom.tbl.info.TblNihongoUserInfo;
 
 public class NihongoOwningService {
 
 	public static boolean levelUpOwning(long id, long user_id) {
-		NihongoOwningInfo owningInfo = getNihongoOwning(id);
+		TblNihongoOwningInfo owningInfo = getNihongoOwning(id);
 		if (owningInfo == null) {
 			return false;
 		}
@@ -21,14 +21,14 @@ public class NihongoOwningService {
 			return false;
 		}
 
-		Map<Long, NihongoPetInfo> petMap = NihongoPetService.getPetMap();
+		Map<Long, TblNihongoPetInfo> petMap = NihongoPetService.getPetMap();
 		if (petMap.containsKey(owningInfo.getPet_id())) {
 			int maxLevel = petMap.get(owningInfo.getPet_id()).getMax_level();
 			if (owningInfo.getCurrent_level() >= maxLevel) {
 				return false;
 			}
 		}
-		NihongoUserInfo nihonUser = NihongoUserService.getNihongoUserInfo(user_id);
+		TblNihongoUserInfo nihonUser = NihongoUserService.getNihongoUserInfo(user_id);
 		if (nihonUser.getStar() <= 0) {
 			return false;
 		}
@@ -43,7 +43,7 @@ public class NihongoOwningService {
 	}
 
 	public static boolean insertOwning(long pet_id, long user_id) {
-		NihongoOwningInfo info = new NihongoOwningInfo();
+		TblNihongoOwningInfo info = new TblNihongoOwningInfo();
 		info.setPet_id(pet_id);
 		info.setUser_id(user_id);
 		info.setCurrent_level(1);
@@ -52,12 +52,12 @@ public class NihongoOwningService {
 	}
 
 	public static boolean buyOwning(long pet_id, long user_id) {
-		NihongoUserInfo nihonUser = NihongoUserService.getNihongoUserInfo(user_id);
+		TblNihongoUserInfo nihonUser = NihongoUserService.getNihongoUserInfo(user_id);
 		if (nihonUser == null || nihonUser.getStar() <= 0) {
 			return false;
 		}
 		List<DaoValue> updateList = new ArrayList<DaoValue>();
-		NihongoOwningInfo info = new NihongoOwningInfo();
+		TblNihongoOwningInfo info = new TblNihongoOwningInfo();
 		info.setPet_id(pet_id);
 		info.setUser_id(user_id);
 		info.setCurrent_level(1);
@@ -68,8 +68,8 @@ public class NihongoOwningService {
 		return CommonDaoService.update(updateList);
 	}
 
-	public static NihongoOwningInfo getNihongoOwning(long id) {
-		NihongoOwningInfo info = new NihongoOwningInfo();
+	public static TblNihongoOwningInfo getNihongoOwning(long id) {
+		TblNihongoOwningInfo info = new TblNihongoOwningInfo();
 		info.setId(id);
 
 		List<DaoValue> list = CommonDaoService.select(info);
@@ -77,20 +77,20 @@ public class NihongoOwningService {
 			return null;
 		}
 
-		return (NihongoOwningInfo) list.get(0);
+		return (TblNihongoOwningInfo) list.get(0);
 	}
 
-	public static List<NihongoOwningInfo> getOwningList(long user_id) {
-		NihongoOwningInfo info = new NihongoOwningInfo();
+	public static List<TblNihongoOwningInfo> getOwningList(long user_id) {
+		TblNihongoOwningInfo info = new TblNihongoOwningInfo();
 		info.setUser_id(user_id);
 
 		List<DaoValue> list = CommonDaoService.select(info);
 		if (list == null || list.size() == 0) {
 			return null;
 		}
-		List<NihongoOwningInfo> ret = new ArrayList<>();
+		List<TblNihongoOwningInfo> ret = new ArrayList<>();
 		for (DaoValue dao : list) {
-			ret.add((NihongoOwningInfo) dao);
+			ret.add((TblNihongoOwningInfo) dao);
 		}
 
 		return ret;

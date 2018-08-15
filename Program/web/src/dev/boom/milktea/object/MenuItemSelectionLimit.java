@@ -1,5 +1,7 @@
 package dev.boom.milktea.object;
 
+import dev.boom.common.milktea.MilkTeaItemOptionType;
+
 public class MenuItemSelectionLimit {
 
 	private int ice_min;
@@ -14,7 +16,16 @@ public class MenuItemSelectionLimit {
 	private int addition_max;
 
 	public MenuItemSelectionLimit() {
-		super();
+		this.ice_min = 0;
+		this.ice_max = 1;
+		this.size_min = 0;
+		this.size_max = 1;
+		this.sugar_min = 0;
+		this.sugar_max = 1;
+		this.topping_min = 0;
+		this.topping_max = 3;
+		this.addition_min = 0;
+		this.addition_max = 3;
 	}
 	
 	public int getIce_min() {
@@ -96,5 +107,39 @@ public class MenuItemSelectionLimit {
 	public void setAddition_max(int addition_max) {
 		this.addition_max = addition_max;
 	}
+	
+	public int getMinSelect(MilkTeaItemOptionType optionType) {
+		switch (optionType) {
+		case ICE:
+			return getIce_min();
+		case SIZE:
+			return getSize_min();
+		case SUGAR:
+			return getSugar_min();
+		case TOPPING:
+			return getTopping_min();
+		case ADDITION:
+			return getAddition_min();
+		default:
+			return 0;
+		}
+	}
 
+	public int getMaxSelect(MilkTeaItemOptionType optionType) {
+		switch (optionType) {
+		case ICE:
+			return getIce_max();
+		case SIZE:
+			return getSize_max();
+		case SUGAR:
+			return getSugar_max();
+		case TOPPING:
+			return getTopping_max();
+		case ADDITION:
+			return getAddition_max();
+		default:
+			return 0;
+		}
+	}
+	
 }

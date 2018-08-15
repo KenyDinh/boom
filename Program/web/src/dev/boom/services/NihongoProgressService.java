@@ -5,15 +5,15 @@ import java.util.Date;
 import java.util.List;
 
 import dev.boom.dao.core.DaoValue;
-import dev.boom.entity.info.NihongoProgressInfo;
-import dev.boom.entity.info.NihongoUserInfo;
+import dev.boom.tbl.info.TblNihongoProgressInfo;
+import dev.boom.tbl.info.TblNihongoUserInfo;
 
 public class NihongoProgressService {
 
 	public static final int MAX_PROGRESS = 99;
 
-	public static NihongoProgressInfo getProgress(int test_id, long user_id) {
-		NihongoProgressInfo info = new NihongoProgressInfo();
+	public static TblNihongoProgressInfo getProgress(int test_id, long user_id) {
+		TblNihongoProgressInfo info = new TblNihongoProgressInfo();
 		info.setUser_id(user_id);
 		info.setTest_id(test_id);
 
@@ -22,11 +22,11 @@ public class NihongoProgressService {
 			return null;
 		}
 
-		return (NihongoProgressInfo) list.get(0);
+		return (TblNihongoProgressInfo) list.get(0);
 	}
 
-	public static List<NihongoProgressInfo> getUserProgressList(long user_id) {
-		NihongoProgressInfo info = new NihongoProgressInfo();
+	public static List<TblNihongoProgressInfo> getUserProgressList(long user_id) {
+		TblNihongoProgressInfo info = new TblNihongoProgressInfo();
 		info.setUser_id(user_id);
 
 		List<DaoValue> list = CommonDaoService.select(info);
@@ -34,17 +34,17 @@ public class NihongoProgressService {
 			return null;
 		}
 
-		List<NihongoProgressInfo> ret = new ArrayList<>();
+		List<TblNihongoProgressInfo> ret = new ArrayList<>();
 		for (DaoValue dao : list) {
-			ret.add((NihongoProgressInfo) dao);
+			ret.add((TblNihongoProgressInfo) dao);
 		}
 
 		return ret;
 	}
 
 	public static boolean updateProgress(int test_id, long user_id, int progress) {
-		NihongoProgressInfo info = getProgress(test_id, user_id);
-		NihongoUserInfo nihonUser = NihongoUserService.getNihongoUserInfo(user_id);
+		TblNihongoProgressInfo info = getProgress(test_id, user_id);
+		TblNihongoUserInfo nihonUser = NihongoUserService.getNihongoUserInfo(user_id);
 		if (nihonUser == null) {
 			return false;
 		}
@@ -55,7 +55,7 @@ public class NihongoProgressService {
 			}
 			info.setUpdated(new Date());
 		} else {
-			info = new NihongoProgressInfo();
+			info = new TblNihongoProgressInfo();
 			info.setUser_id(user_id);
 			info.setTest_id(test_id);
 		}
@@ -70,12 +70,12 @@ public class NihongoProgressService {
 	}
 
 	public static boolean insertProgress(long user_id, int test_id, int progress) {
-		NihongoUserInfo nihonUser = NihongoUserService.getNihongoUserInfo(user_id);
+		TblNihongoUserInfo nihonUser = NihongoUserService.getNihongoUserInfo(user_id);
 		if (nihonUser == null) {
 			return false;
 		}
 		List<DaoValue> updates = new ArrayList<>();
-		NihongoProgressInfo info = new NihongoProgressInfo();
+		TblNihongoProgressInfo info = new TblNihongoProgressInfo();
 		info.setUser_id(user_id);
 		info.setTest_id(test_id);
 		info.setProgress(progress);

@@ -21,6 +21,7 @@ public abstract class EndPointBase {
 	@OnOpen
 	public void onOpen(Session session) {
 		GameLog.getInstance().info("[EndPointBase] Session id:" + session.getId() + " connect!");
+		GameLog.getInstance().info("[EndPointBase] open connection: " + session.getRequestURI().toString());
 		SocketSessionBase socketSession = getInstance(session);
 		if (socketSession != null) {
 			SocketSessionPool.applySocketSession(socketSession);

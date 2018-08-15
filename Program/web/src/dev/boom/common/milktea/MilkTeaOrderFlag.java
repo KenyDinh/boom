@@ -5,13 +5,14 @@ public enum MilkTeaOrderFlag {
 	PLACED,
 	PAID,
 	VOTE,
+	CANCELED,
 	;
 	
 	public boolean isValidFlag(int flag) {
 		return ((flag & (1 << this.ordinal())) != 0);
 	}
 	
-	public int setValidFlag(int flag) {
+	public int getValidFlag(int flag) {
 		return (flag | (1 << this.ordinal()));
 	}
 	

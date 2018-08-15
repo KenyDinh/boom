@@ -534,7 +534,7 @@ public class CommonDaoService {
 	}
 	
 	private static IDaoFactory getDaoFactory(DaoValue dao) {
-		String className = "dev.boom.dao.info.Dao" + dao.getClass().getSimpleName();
+		String className = "dev.boom.dao.info.Dao" + dao.getClass().getSimpleName().substring(3);
 		try {
 			Class<? extends Object> clazz = Class.forName(className);
 			IDaoFactory o = (IDaoFactory) clazz.newInstance();
@@ -549,36 +549,4 @@ public class CommonDaoService {
 		return null;
 	}
 
-	public static void main(String[] args) {
-		HibernateSessionFactory.init();
-		
-//		ShopOptionInfo info = new ShopOptionInfo();
-//		info.setShop_id(2);
-//		info.addSelectedField("id");
-//		info.addSelectedField("name");
-//		info.addSelectedField("price");
-//		String query = "SELECT id FROM order_info WHERE dish_type like '%Uống%'";
-//		List<Object> list = CommonDaoService.executeQuery(query);
-//		System.out.println(list.size());
-//		for (Object arr : list) {
-//			System.out.println(arr);
-//		}
-//		NihongoOwningService.getNihongoOwning(1);
-//		NihongoPetService.getPetMap();
-//		NihongoUserService.getNihongoUserInfo(1);
-//		NihongoProgressService.getProgress(1, 1);
-//		NihongoWordService.getWordList();
-//		System.out.println(CommonDaoService.selectByField(info));
-		
-//		info.setLimit(10);
-//		info.setOffset(5);
-		//info.setSelectOption("ORDER BY id DESC");
-//		List<DaoValue> list = CommonDaoService.select(info);
-		//System.out.println(list.size());
-//		for (DaoValue dao : list) {
-//			System.out.println(dao.Get("id"));
-//		}
-//		
-		HibernateSessionFactory.shutdown();
-	}
 }

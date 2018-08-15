@@ -89,7 +89,6 @@ function doMilkteaOrder(obj) {
 //=============================================//
 var index = 0;
 var list_object = [];
-var flag = 0;
 function doLoadMenu(step) {
 	switch (step) {
 	case "continue":
@@ -118,7 +117,7 @@ function loopSendingMessage() {
 	} else {
 		index = 0;
 		list_object = [];
-		sendMessageSocket('finish_update' + flag);
+		sendMessageSocket('finish_update');
 	}
 }
 //=============================================//

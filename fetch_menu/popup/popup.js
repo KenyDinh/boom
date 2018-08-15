@@ -16,15 +16,7 @@ function placeOrderTest() {
 }
 
 function looking_for_menu() {
-	var flag = 5;
-	if ($('input#new-menu').is(':checked')) {
-		flag |= $('input#new-menu').val();
-	}
-	if (flag == 0) {
-		alert("Flag is not set!");
-		return;
-	}
-	sendMessToBackground({type:'looking_for_menu',flag:flag});
+	sendMessToBackground({type:'looking_for_menu'});
 }
 
 function updateStatus(obj) {

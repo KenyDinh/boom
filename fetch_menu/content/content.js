@@ -162,7 +162,7 @@ function getPlaceOrderInjectCode(order_list) {
 	code += "if (menuData.DishType.hasOwnProperty(i) == false) {continue;}";
 	code += "for (var j in menuData.DishType[i].Dishes) {";
 	code += "if (menuData.DishType[i].Dishes.hasOwnProperty(j) == false) {continue;}";
-	code += "if (menuData.DishType[i].Dishes[j].IsDayOff || menuData.DishType[i].Dishes[j].OutOfStock) {continue;}";
+	code += "if (menuData.DishType[i].Dishes[j].IsDayOff || menuData.DishType[i].Dishes[j].OutOfStock) {console.log('item is now not available!');continue;}";
 	code += "origin_item_list.push(menuData.DishType[i].Dishes[j]);}";
 	code += "}";
 	code += "var real_order_list = [];";

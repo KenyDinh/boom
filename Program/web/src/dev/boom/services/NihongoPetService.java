@@ -6,20 +6,20 @@ import java.util.List;
 import java.util.Map;
 
 import dev.boom.dao.core.DaoValue;
-import dev.boom.entity.info.NihongoPetInfo;
+import dev.boom.tbl.info.TblNihongoPetInfo;
 
 public class NihongoPetService {
 
-	public static Map<Long, NihongoPetInfo> getPetMap() {
-		Map<Long, NihongoPetInfo> ret = new HashMap<Long, NihongoPetInfo>();
-		NihongoPetInfo info = new NihongoPetInfo();
+	public static Map<Long, TblNihongoPetInfo> getPetMap() {
+		Map<Long, TblNihongoPetInfo> ret = new HashMap<Long, TblNihongoPetInfo>();
+		TblNihongoPetInfo info = new TblNihongoPetInfo();
 		
 		List<DaoValue> list = CommonDaoService.select(info);
 		if (list == null || list.isEmpty()) {
 			return ret;
 		}
 		for (Iterator<DaoValue> it = list.iterator(); it.hasNext();) {
-			NihongoPetInfo _value = (NihongoPetInfo) it.next();
+			TblNihongoPetInfo _value = (TblNihongoPetInfo) it.next();
 			ret.put(_value.getId(), _value);
 		}
 
@@ -28,14 +28,14 @@ public class NihongoPetService {
 	
 	public static Map<Long, Map<String, Object>> getPetMapObject() {
 		Map<Long, Map<String, Object>> ret = new HashMap<>();
-		NihongoPetInfo info = new NihongoPetInfo();
+		TblNihongoPetInfo info = new TblNihongoPetInfo();
 		
 		List<DaoValue> list = CommonDaoService.select(info);
 		if (list == null || list.isEmpty()) {
 			return ret;
 		}
 		for (Iterator<DaoValue> it = list.iterator(); it.hasNext();) {
-			NihongoPetInfo _value = (NihongoPetInfo) it.next();
+			TblNihongoPetInfo _value = (TblNihongoPetInfo) it.next();
 			ret.put(_value.getId(), _value.toMapObject());
 		}
 
