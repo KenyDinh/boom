@@ -184,7 +184,7 @@ public class OrderInfo {
 		this.info.setUpdated(updated);
 	}
 	
-	public int getTotalOption(MilkTeaItemOptionType type) {
+	public long getTotalOption(MilkTeaItemOptionType type) {
 		String optionList = null;
 		switch (type) {
 		case SIZE:

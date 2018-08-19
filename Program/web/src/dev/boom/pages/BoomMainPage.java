@@ -19,16 +19,16 @@ public class BoomMainPage extends Template {
 		if (!super.onSecurityCheck()) {
 			return false;
 		}
+		BoomSession boomSession = getBoomSession();
+		if (boomSession != null) {
+			userInfo = UserService.getUserById(boomSession.getId());
+		}
 		return true;
 	}
 
 	@Override
 	public void onInit() {
 		super.onInit();
-		BoomSession boomSession = getBoomSession();
-		if (boomSession != null) {
-			userInfo = UserService.getUserById(boomSession.getId());
-		}
 	}
 	
 	@Override

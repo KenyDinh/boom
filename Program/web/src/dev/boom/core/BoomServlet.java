@@ -13,6 +13,7 @@ public class BoomServlet extends ClickServlet {
 	@Override
 	public void init() throws ServletException {
 		super.init();
+		BoomProperties.load();
 		HibernateSessionFactory.init();
 	}
 

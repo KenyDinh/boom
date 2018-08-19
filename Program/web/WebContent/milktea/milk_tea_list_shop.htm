@@ -1,3 +1,46 @@
 
 ${milkTeaBanner}
 
+#if (${shopInfo})
+	<div class="row">
+		<div class="col-sm-6">
+			#if (${dish_list})
+				<div class="row">
+					#if (${dish_type})
+						<div class="col-sm-4">
+							${dish_type}
+						</div>
+						<div class="col-sm-8">
+							${dish_list}
+						</div>
+					#else ##if (${dish_type})
+						<div class="col-sm-12">
+							${dish_list}
+						</div>
+					#end ##if (${dish_type})
+				</div>
+			#else ##if (${dish_list})
+				<div class="col-sm-12 text-center">
+					${messages.get('MSG_MILK_TEA_NO_DISH_INFO')}
+				</div>
+			#end ##if (${dish_list})
+		</div>
+		##
+		<div class="col-sm-6">
+			$!{menu_list}
+		</div>
+	</div>
+#else ##if (${shopInfo})
+	<div class="row">
+		<div class="col-sm-2">
+		</div>
+		<div class="col-sm-8">
+			$!{shop_list}			
+		</div>
+		<div class="col-sm-2">
+		</div>
+	</div>
+#end ##if (${shopInfo})
+## footer
+<div class="row" style="height:50px;">
+</div>

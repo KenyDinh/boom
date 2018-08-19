@@ -82,6 +82,10 @@ public abstract class DaoValue implements Cloneable, Serializable {
 	public String getRealTableName() {
 		return getTableName();
 	}
+	
+	public String getTableKey() {
+		return getPrimaryKey();
+	}
 
 	// ------------------------------------------------------- //
 

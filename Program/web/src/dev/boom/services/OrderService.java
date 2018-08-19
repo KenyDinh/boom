@@ -74,4 +74,19 @@ public class OrderService {
 		return ret;
 	}
 	
+	public static List<OrderInfo> getCompletedOrderListByUserId(long user_id) {
+		TblOrderInfo orderInfo = new TblOrderInfo();
+		orderInfo.setUser_id(user_id);
+		orderInfo.setSelectOption("AND final_price > 0");
+		List<DaoValue> list = CommonDaoService.select(orderInfo);
+		if (list == null || list.isEmpty()) {
+			return null;
+		}
+		List<OrderInfo> ret = new ArrayList<>();
+		for (DaoValue dao : list) {
+			ret.add(new OrderInfo((TblOrderInfo) dao));
+		}
+		return ret;
+	}
+	
 }

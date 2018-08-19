@@ -272,9 +272,9 @@ public class MilkTeaManageMenu extends ManagePageBase {
 						mtUser.setDishCount(mtUser.getDishCount() + Math.max(1, order.getQuantity()));
 						mtUser.setOrderCount(mtUser.getOrderCount() + 1);
 						mtUser.setLatestOrderId(Math.max(order.getId(), mtUser.getLatestOrderId()));
-						mtUser.setTotalIce(mtUser.getTotalIce() + order.getTotalOption(MilkTeaItemOptionType.ICE));
-						mtUser.setTotalSugar(mtUser.getTotalSugar() + order.getTotalOption(MilkTeaItemOptionType.SUGAR));
-						mtUser.setTotalTopping(mtUser.getTotalTopping() + order.getTotalOption(MilkTeaItemOptionType.TOPPING)); // same as addition
+						mtUser.setTotalIce(mtUser.getTotalIce() + order.getTotalOption(MilkTeaItemOptionType.ICE) * order.getQuantity());
+						mtUser.setTotalSugar(mtUser.getTotalSugar() + order.getTotalOption(MilkTeaItemOptionType.SUGAR) * order.getQuantity());
+						mtUser.setTotalTopping(mtUser.getTotalTopping() + order.getTotalOption(MilkTeaItemOptionType.TOPPING) * order.getQuantity()); // same as addition
 						listUser.put(userId, mtUser);
 						order.setFinalPrice(finalCost);
 						order.setUpdated(now);

@@ -209,4 +209,25 @@ public class CommonHtmlFunc {
 		}
 		return sb.toString();
 	}
+	
+	public static String getPagination(String url, int page, int maxPage, String style) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("<div>");
+			sb.append(String.format("<ul class=\"pagination\" style=\"%s\">", (style != null ? style : "")));
+				sb.append(String.format("<li class=\"page-item %s\">", (page <= 1 ? "disabled" : "")));
+					sb.append("<a class=\"page-link\" href=\"").append(url).append(page - 1).append("\">Previous</a>");
+				sb.append("</li>");
+				for (int i = 1; i <= maxPage; i++) {
+					sb.append(String.format("<li class=\"page-item %s\">", (i == page ? "active" : "")));
+						sb.append("<a class=\"page-link\" href=\"").append(url + i + "\">").append(i).append("</a>");
+					sb.append("</li>");
+				}
+				sb.append(String.format("<li class=\"page-item %s\">", (page >= maxPage ? "disabled" : "")));
+					sb.append("<a class=\"page-link\" href=\"").append(url).append(page - 1).append("\">Next</a>");
+				sb.append("</li>");
+			sb.append("</ul>");
+		sb.append("</div>");
+		
+		return sb.toString();
+	}
 }

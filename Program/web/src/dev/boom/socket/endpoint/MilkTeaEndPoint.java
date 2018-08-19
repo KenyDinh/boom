@@ -91,10 +91,10 @@ public class MilkTeaEndPoint extends EndPointBase{
 			return;
 		}
 		String match = "menu_id=" + menuId;
-		String data = "msg_id=" + msg.getId();
 		for (SocketSessionBase socket : listSocket) {
 			MilkTeaSocketSession milkteaSocket = (MilkTeaSocketSession) socket;
 			if (type == MilkTeaSocketType.ALL || milkteaSocket.getType() == type.getType()) {
+				String data = "msg_id=" + msg.getId();
 				if (milkteaSocket.getData() != null && milkteaSocket.getData().equals(match)) {
 					data += "&" + milkteaSocket.getData();
 				}

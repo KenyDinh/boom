@@ -42,4 +42,20 @@ public class MilkTeaUserService {
 		}
 		return ret;
 	}
+	
+	public static List<MilkTeaUserInfo> getAll(String option) {
+		TblMilkTeaUserInfo info = new TblMilkTeaUserInfo();
+		if (option != null && option.length() > 0) {
+			info.setSelectOption(option);
+		}
+		List<DaoValue> list = CommonDaoService.select(info);
+		if (list == null || list.size() == 0) {
+			return null;
+		}
+		List<MilkTeaUserInfo> ret = new ArrayList<>();
+		for (DaoValue dao : list) {
+			ret.add(new MilkTeaUserInfo((TblMilkTeaUserInfo) dao));
+		}
+		return ret;
+	}
 }

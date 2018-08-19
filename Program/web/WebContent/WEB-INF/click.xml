@@ -36,7 +36,7 @@
   	<page classname="milktea.MilkTeaMenu" path="milktea/milk_tea_menu.htm"/>
   	<page classname="milktea.MilkTeaListShop" path="milktea/milk_tea_list_shop.htm"/>
   	<page classname="milktea.MilkTeaRanking" path="milktea/milk_tea_ranking.htm"/>
-  	<page classname="milktea.MilkTeaOther" path="milktea/milk_tea_other.htm"/>
+  	<page classname="milktea.MilkTeaOrderHistory" path="milktea/milk_tea_order_history.htm"/>
   	<page classname="milktea.MilkTeaManageOrder" path="milktea/milk_tea_manage_order.htm"/>
   	<!-- Game -->
   	<page classname="game.Nihongo" path="game/nihongo.htm"/>

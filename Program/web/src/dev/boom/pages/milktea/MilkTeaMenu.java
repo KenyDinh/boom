@@ -38,8 +38,6 @@ public class MilkTeaMenu extends MilkTeaMainPage {
 		return headElements;
 	}
 
-
-
 	@Override
 	public void onInit() {
 		super.onInit();
@@ -58,11 +56,11 @@ public class MilkTeaMenu extends MilkTeaMainPage {
 		if (menuInfo != null) {
 			List<MenuItem> listMenuItem = MenuService.getMenuItemListByShopId(menuInfo.getShopId());
 			if (listMenuItem != null) {
-				addModel("dish_list", MilkTeaCommonFunc.getHtmlListMenuItem(menuInfo, listMenuItem, contextPath, getUserInfo(), messages));
+				addModel("dish_list", MilkTeaCommonFunc.getHtmlListMenuItem(menuInfo, listMenuItem, contextPath, getUserInfo(), getMessages()));
 				addModel("dish_type", MilkTeaCommonFunc.getHtmlListMenuItemType(listMenuItem, contextPath));
 			}
 			List<OrderInfo> listOrder = OrderService.getOrderInfoListByMenuId(menuInfo.getId());
-			addModel("order_list", MilkTeaCommonFunc.getHtmlListOrder(listOrder, menuInfo, getUserInfo(), contextPath, messages));
+			addModel("order_list", MilkTeaCommonFunc.getHtmlListOrder(listOrder, menuInfo, getUserInfo(), contextPath, getMessages()));
 			addModel("menuInfo", menuInfo);
 		} else {
 			addModel("menuList", MilkTeaCommonFunc.getHtmlListMenu(contextPath, getMessages()));

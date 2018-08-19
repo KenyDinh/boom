@@ -36,7 +36,7 @@ public class MilkTeaMainPage extends BoomMainPage {
 	
 	private void initMilkTeaBanner() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("<div class=\"row\" style=\"min-height:9.375rem;\" id=\"milktea-intro\" >");
+		sb.append("<div class=\"row\" style=\"height:15.625rem;\" id=\"milktea-intro\" >");
 			sb.append(initMilkTeaIntro());
 		sb.append("</div>");
 		
@@ -45,6 +45,9 @@ public class MilkTeaMainPage extends BoomMainPage {
 		
 		sb.append("<ul class=\"nav nav-tabs bg-light\" role=\"tablist\">");
 		for (MilkTeaTabEnum tab : MilkTeaTabEnum.values()) {
+			if (tab.isLoginRequire() && getUserInfo() == null) {
+				continue;
+			}
 			sb.append("<li class=\"nav-item\">");
 				sb.append(String.format("<a class=\"nav-link %s\" href=\"%s\">", (tab.getIndex() == this.getMilkTeaTabIndex() ? "active bg-success" : ""), getHostURL() + getContextPath() + "/" + tab.getViewPage()));
 				sb.append(getMessage(tab.getLabel()));

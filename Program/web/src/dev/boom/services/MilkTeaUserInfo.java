@@ -1,5 +1,7 @@
 package dev.boom.services;
 
+import java.text.DecimalFormat;
+
 import dev.boom.tbl.info.TblMilkTeaUserInfo;
 
 public class MilkTeaUserInfo {
@@ -90,4 +92,21 @@ public class MilkTeaUserInfo {
 		this.info.setLatest_order_id(latest_order_id);
 	}
 	
+	public String getFormatAverageSugar() {
+		if (getDishCount() <= 0) {
+			return "0.00";
+		}
+		DecimalFormat df = new DecimalFormat("#.##");
+		double avg = (double)getTotalSugar() / getDishCount();
+		return df.format(avg);
+	}
+	
+	public String getFormatAverageIce() {
+		if (getDishCount() <= 0) {
+			return "0.00";
+		}
+		DecimalFormat df = new DecimalFormat("#.##");
+		double avg = (double)getTotalIce() / getDishCount();
+		return df.format(avg);
+	}
 }

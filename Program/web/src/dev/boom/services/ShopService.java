@@ -8,8 +8,15 @@ import dev.boom.tbl.info.TblShopInfo;
 
 public class ShopService {
 	
-	public static List<ShopInfo> getShopList() {
+	public static List<ShopInfo> getShopList(String option, int limit, int offset) {
 		TblShopInfo shopInfo = new TblShopInfo();
+		if (option != null && option.length() > 0) {
+			shopInfo.setSelectOption(option);
+		}
+		if (limit > 0) {
+			shopInfo.setLimit(limit);
+			shopInfo.setOffset(offset);
+		}
 		List<DaoValue> list = CommonDaoService.select(shopInfo);
 		if (list == null || list.isEmpty()) {
 			return null;

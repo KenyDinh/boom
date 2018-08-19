@@ -215,10 +215,8 @@ public class CommonDaoService {
 			if (dao.getLimit() > 0) {
 				option += " LIMIT " + dao.getLimit();
 				query.setMaxResults(dao.getLimit());
-				if (dao.getOffset() > 0) {
-					option += " OFFSET " + dao.getOffset();
-					query.setFirstResult(dao.getOffset());
-				}
+				option += " OFFSET " + dao.getOffset();
+				query.setFirstResult(dao.getOffset());
 			}
 			GameLog.getInstance().info(String.format("SELECT * FROM %s", (dao.getRealTableName() + whereClause + option)));
 			List list = query.list();
@@ -289,7 +287,10 @@ public class CommonDaoService {
 			}
 		}
 		if (sf.isEmpty()) {
-			sf = "*";
+			sf = dao.getTableKey();
+			if (sf.isEmpty()) {
+				sf = "*";
+			}
 		}
 		String whereClause = dao.getUpdateWhereClause();
 		Session session = HibernateSessionFactory.getSessionFactory().openSession();

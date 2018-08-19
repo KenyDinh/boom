@@ -26,6 +26,7 @@ public class PageBase extends Page {
 
 	private static final long serialVersionUID = 1L;
 	protected WorldInfo worldInfo = null;
+	protected boolean isDataTableFormat = false;
 
 	protected void storeBoomSession(TblUserInfo info) {
 		BoomSession boomSession = new BoomSession(info.getId());
@@ -53,6 +54,10 @@ public class PageBase extends Page {
 			worldInfo = WorldService.getWorldInfo();
 		}
 		return worldInfo;
+	}
+	
+	protected void setDataTableFormat(boolean isDataTableFormat) {
+		this.isDataTableFormat = isDataTableFormat;
 	}
 	
 	public PageBase() {
@@ -178,13 +183,27 @@ public class PageBase extends Page {
 			headElements = super.getHeadElements();
 		}
 		headElements.add(new CssImport("/css/lib/bootstrap-darkly.min.css"));
-//		headElements.add(new CssImport("/css/lib/fontawesome.css"));
-//		headElements.add(new CssImport("/css/lib/solid.css"));
 		headElements.add(new JsImport("/js/lib/jquery-3.3.1.min.js"));
 		headElements.add(new JsImport("/js/lib/popper-1.14.0.min.js"));
 		headElements.add(new JsImport("/js/lib/bootstrap.min.js"));
+		if (isDataTableFormat) {
+			initHeadElementsForTableData();
+		}
 		headElements.add(new JsImport("/js/socket.js"));
 		
 		return headElements;
+	}
+	
+	@SuppressWarnings({ "unchecked" })
+	protected void initHeadElementsForTableData() {
+		headElements.add(new CssImport("https://cdn.datatables.net/1.10.19/css/dataTables.bootstrap4.min.css"));
+//		headElements.add(new CssImport("https://cdn.datatables.net/fixedheader/3.1.5/css/fixedHeader.bootstrap.min.css"));
+		headElements.add(new CssImport("https://cdn.datatables.net/responsive/2.2.3/css/responsive.bootstrap4.min.css"));
+		
+		headElements.add(new JsImport("https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"));
+		headElements.add(new JsImport("https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js"));
+//		headElements.add(new JsImport("https://cdn.datatables.net/fixedheader/3.1.5/js/dataTables.fixedHeader.min.js"));
+		headElements.add(new JsImport("https://cdn.datatables.net/responsive/2.2.3/js/dataTables.responsive.min.js"));
+		headElements.add(new JsImport("https://cdn.datatables.net/responsive/2.2.3/js/responsive.bootstrap4.min.js"));
 	}
 }

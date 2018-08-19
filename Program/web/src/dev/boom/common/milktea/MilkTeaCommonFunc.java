@@ -77,7 +77,7 @@ public class MilkTeaCommonFunc {
 						sb.append(getShowPriceWithUnit(item.getPrice(), "height:100%;", messages));
 					sb.append("</div></div>");
 					sb.append("<div class=\"row\"><div class=\"col-sm-12\" style=\"position:relative;height:1.6875rem;\">");
-					if (menuInfo.isOpening()) {
+					if (menuInfo != null && menuInfo.isOpening()) {
 						if (userInfo != null) {
 							if (!UserFlagEnum.ACTIVE.isValid(userInfo.getFlag())) {
 								sb.append("<div data-toggle=\"tooltip\" data-placement=\"bottom\" title=\"Can not order!\" style=\"position:absolute;cursor:pointer;right:1.25rem;bottom:0;\" >");
@@ -106,7 +106,7 @@ public class MilkTeaCommonFunc {
 			sb.append("</div>");
 		}
 		// modal
-		if (menuInfo.isOpening()) {
+		if (menuInfo != null && menuInfo.isOpening()) {
 			if (userInfo != null) {
 				if (!UserFlagEnum.ACTIVE.isValid(userInfo.getFlag())) {
 					sb.append(CommonHtmlFunc.getModalAlertWithMessage("account-not-active-modal", "warning", (String)messages.get("MSG_ACCOUNT_INACTIVE")));
@@ -528,6 +528,24 @@ public class MilkTeaCommonFunc {
 	}
 	
 	@SuppressWarnings("rawtypes")
+	private static String getHtmlShopPreview(ShopInfo shopInfo, String contextPath, Map messages) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("<div style=\"background-color:white;\" class=\"border\">");
+		sb.append(String.format("<a href=\"%s\">", contextPath + "/milktea/milk_tea_list_shop.htm?id=" + shopInfo.getId()));
+		String preUrlImage = shopInfo.getPreImageUrl();
+		if (preUrlImage == null || preUrlImage.isEmpty() || preUrlImage.indexOf("http") < 0) {
+			sb.append(String.format("<img src=\"%s\" style=\"object-fit:cover;width:100%%;\" class=\"menu-pre-image\"/>", contextPath + getMenuCommonImage()));
+		} else {
+			sb.append(String.format("<img src=\"%s\" style=\"object-fit:cover;width:100%%;\" class=\"menu-pre-image\"/>", preUrlImage));
+		}
+		sb.append("</a>");
+		sb.append("<div class=\"text-secondary font-weight-bold\" style=\"text-overflow:ellipsis;overflow:hidden;white-space:nowrap;\" title=\"").append(shopInfo.getName()).append("\">").append(shopInfo.getName()).append("</div>");
+		sb.append("<div class=\"text-secondary font-italic\" data-toggle=\"tooltip\" data-placement=\"bottom\" style=\"text-overflow:ellipsis;overflow:hidden;white-space:nowrap;font-size:0.75rem;\" title=\"").append(shopInfo.getAddress()).append("\">").append(shopInfo.getAddress()).append("</div>");
+		sb.append("</div>");
+		return sb.toString();
+	}
+	
+	@SuppressWarnings("rawtypes")
 	public static String getHtmlListMenu(String contextPath, Map messages) {
 		byte[] statusList = new byte[] {MilkTeaMenuStatus.OPENING.getStatus(), MilkTeaMenuStatus.DELIVERING.getStatus(), MilkTeaMenuStatus.COMPLETED.getStatus()};
 		List<MenuInfo> menuList = MenuService.getMenuListByStatusList(statusList);
@@ -559,7 +577,7 @@ public class MilkTeaCommonFunc {
 			sb.append("<div>");
 			sb.append("<div class=\"row\">");
 			sb.append("<div class=\"col-sm-12 bg-success text-center rounded\" style=\"line-height:2;margin-top:1rem;margin-bottom:0.5rem;\">");
-			sb.append(messages.get("MSG_MILK_TEA_MENU_OPENING"));
+			sb.append(messages.get(menuStatus.getLabel()));
 			sb.append("</div>");
 			sb.append("</div>");
 			List<String> elements = menuMaps.get(stt);
@@ -661,6 +679,160 @@ public class MilkTeaCommonFunc {
 			sb.append("</div>");
 			sb.append("</div></div>");
 		}
+		return sb.toString();
+	}
+	
+	@SuppressWarnings("rawtypes")
+	public static String getHtmlListShop(List<ShopInfo> listShop, String contextPath, Map messages) {	
+		StringBuilder sb = new StringBuilder();
+		sb.append("<div id=\"shop-list\">");
+		sb.append("<div>");
+		sb.append("<div class=\"row\">");
+		sb.append("<div class=\"col-sm-12 bg-success text-center rounded\" style=\"line-height:2;margin-top:1rem;margin-bottom:0.5rem;\">");
+		sb.append(messages.get("MSG_MILK_TEA_LIST_SHOP"));
+		sb.append("</div>");
+		sb.append("</div>");
+		if (listShop == null || listShop.isEmpty()) {
+			sb.append("<div class=\"col-sm-12 text-center\">");
+			sb.append(messages.get("MSG_MILK_TEA_LIST_SHOP_NO_SHOP"));
+			sb.append("</div>");
+		} else {
+			List<String> elements = new ArrayList<>();
+			for (ShopInfo shop : listShop) {
+				elements.add(getHtmlShopPreview(shop, contextPath, messages));
+			}
+			sb.append(CommonHtmlFunc.getGridLayoutElement(elements, 6));
+		}
+		sb.append("</div>");
+		sb.append("</div>");
+		return sb.toString();
+	}
+	
+	@SuppressWarnings("rawtypes")
+	public static String getHtmlShopDetail(ShopInfo shopInfo, TblUserInfo userInfo, String contextPath, Map messages) {
+		StringBuilder sb = new StringBuilder();
+		if (shopInfo != null) {
+			sb.append("<div id=\"menu-detail\" class=\"col-12\"><div class=\"row\">");
+			sb.append("<div class=\"col-lg-3 col-md-6\" style=\"\">");
+			String url = shopInfo.getImageUrl();
+			if (url != null && url.indexOf("youtube") >= 0) {
+				sb.append(String.format("<iframe style=\"%s\" src=\"%s\"></iframe>", "width:100%;height:15.625rem;", url));
+			} else if (url != null && url.startsWith("http")) {
+				sb.append(String.format("<img src=\"%s\" style=\"%s\"/>", url, "width:100%;max-height:15.625rem;"));
+			} else {
+				sb.append(String.format("<img src=\"%s\" style=\"%s\" />", contextPath + getMenuCommonImage(), "width:100%;max-height:15.625rem;"));
+			}
+			sb.append("</div>");
+			sb.append("<div class=\"col-lg-9 col-md-6\">");
+				sb.append("<h5 class=\"font-weight-bol text-info\" style=\"margin-top:1rem;\">");
+				if (userInfo != null && UserFlagEnum.ADMINISTRATOR.isValid(userInfo.getFlag())) {
+					sb.append(String.format("<a class=\"text-info\" href=\"%s\" target=\"_blank\">", shopInfo.getUrl()));
+					sb.append(shopInfo.getName()).append("</a></h5>");
+				} else {
+					sb.append(shopInfo.getName()).append("</h5>");
+				}
+				sb.append("<div class=\"font-italic\" style=\"font-size:0.875rem;margin-bottom:0.5rem;\">").append(shopInfo.getAddress()).append("</div>");
+				sb.append("<div class=\"rating\">");
+					double rating = 0.0;
+					if (shopInfo.getVotingCount() > 0) {
+						rating = (double)shopInfo.getStarCount() / shopInfo.getVotingCount();
+						rating = ((double)Math.round(rating * 10) / 10);
+					}
+					sb.append("<div class=\"stars\">");
+						for (int i = 0; i < CommonDefine.MAX_MILKTEA_VOTING_STAR; i++) {
+							double gap = rating - i;
+							if (gap >= 0.3) {
+								if (gap <= 0.8 || (gap < 1.0 && i == CommonDefine.MAX_MILKTEA_VOTING_STAR - 1)) {
+									sb.append("<span class=\"half\"></span>");
+								} else {
+									sb.append("<span class=\"full\"></span>");
+								}
+							} else {
+								sb.append("<span class=\"empty\"></span>");
+							}
+						}
+					sb.append("</div>");
+					sb.append("<span class=\"text-info font-italic\" style=\"margin-left:0.4rem;\">").append(MessageFormat.format((String)messages.get("MSG_MILK_TEA_SHOP_RATING_S"), shopInfo.getStarCount(), shopInfo.getVotingCount())).append("</span>");
+//					if (shopInfo.getOpeningCount() > 0) {
+//						sb.append("<div class=\"text-success\" style=\"margin-bottom:0.5rem;font-size:0.875rem;\">").append(MessageFormat.format((String)messages.get("MSG_MILK_TEA_SHOP_INFO_STATISTIC"), shopInfo.getOpeningCount(), shopInfo.getOrderedDishCount())).append("</div>");
+//					} else {
+//						sb.append("<div class=\"text-success\" style=\"margin-bottom:0.5rem;font-size:0.875rem;\">").append((String)messages.get("MSG_MILK_TEA_SHOP_INFO_FIRST_TIME_OPEN")).append("</div>");
+//					}
+				sb.append("</div>");
+//				sb.append("<div style=\"margin-bottom:0.5rem;\">");
+//				sb.append("</div>");
+			sb.append("</div>");
+			sb.append("</div></div>");
+		}
+		return sb.toString();
+	}
+	
+	@SuppressWarnings("rawtypes")
+	public static String getHtmlListMenuOnShop(List<MenuInfo> menuList, String contextPath, Map messages) {
+		boolean hasMenu = (menuList != null && !menuList.isEmpty());
+		StringBuilder sb = new StringBuilder();
+		sb.append("<div id=\"order-list\">");
+		sb.append("<div style=\"text-align:center;\" class=\"text-success\">");
+		sb.append(messages.get("MSG_MILK_TEA_LIST_SHOP_MENU_LIST"));
+		sb.append("</div>");
+		sb.append(String.format("<table class=\"table table-responsive %s\">", (hasMenu ? "table-striped table-hover" : "")));
+			sb.append("<thead>");
+				sb.append("<tr>");
+				String thStyle = String.format("border-top:0.0625rem solid %s;border-bottom:0.125rem solid %s;", ORDER_BORDER_COLOR, ORDER_BORDER_COLOR);
+					sb.append("<th scope=\"col\" style=\"" + thStyle + "\">");
+						sb.append(messages.get("MSG_MILK_TEA_LIST_SHOP_COLUMN_MENU_NAME")).append("</th>");
+					sb.append("<th scope=\"col\" style=\"width:10%;" + thStyle + "\">");
+						sb.append(messages.get("MSG_MILK_TEA_LIST_SHOP_COLUMN_MENU_STATUS")).append("</th>");
+					sb.append("<th scope=\"col\" style=\"width:10%;" + thStyle + "\">");
+						sb.append(messages.get("MSG_MILK_TEA_LIST_SHOP_COLUMN_MENU_SALE")).append("</th>");
+					sb.append("<th scope=\"col\" style=\"width:18%;" + thStyle + "\">");
+						sb.append(messages.get("MSG_MILK_TEA_LIST_SHOP_COLUMN_MENU_SHIPPING_FEE")).append("</th>");
+					sb.append("<th scope=\"col\" style=\"width:22%;" + thStyle + "\">");
+						sb.append(messages.get("MSG_MILK_TEA_LIST_SHOP_COLUMN_MENU_CREATED")).append("</th>");
+				sb.append("</tr>");
+			sb.append("</thead>");
+			sb.append("<tbody>");
+			String tdStyle = String.format("<td style=\"border-top:0.0625rem solid %s;\">", ORDER_BORDER_COLOR);
+		if (hasMenu) {
+			for (MenuInfo menuInfo : menuList) {
+				sb.append("<tr>");
+					sb.append(String.format("<td style=\"border-top:0.0625rem solid %s;\">", ORDER_BORDER_COLOR));
+						sb.append("<div style=\"max-width:250px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;\">");
+						sb.append("<a href=\"" + contextPath + "/milktea/milk_tea_menu.htm?id=" + menuInfo.getId() + "\">");
+							sb.append(menuInfo.getName());
+						sb.append("</a>");
+						sb.append("</div>");
+					sb.append("</td>");
+					sb.append(tdStyle);
+							sb.append(MilkTeaMenuStatus.valueOf(menuInfo.getStatus()).name());
+					sb.append("</td>");
+					sb.append(tdStyle);
+					if (menuInfo.getSale() > 0) {
+						sb.append(menuInfo.getSale() + "%");
+					} else {
+						sb.append("---");
+					}
+					sb.append("</td>");
+					sb.append(tdStyle);
+						sb.append(getShowPriceWithUnit(menuInfo.getShippingFee(), "", messages));
+					sb.append("</td>");
+					sb.append(tdStyle);
+						sb.append(CommonMethod.getFormatDateString(menuInfo.getCreated(), CommonDefine.DATE_FORMAT_PATTERN));
+					sb.append("</td>");
+				sb.append("</tr>");
+			}
+		} else {
+			sb.append("<tr>");
+			sb.append(String.format("<td style=\"border-top:0.0625rem solid %s;\" colspan=\"8\">", ORDER_BORDER_COLOR));
+			sb.append("<div class=\"text-success\" style=\"width:100%;text-align:center;\">");
+			sb.append(messages.get("MSG_MILK_TEA_LIST_SHOP_NO_MENU"));
+			sb.append("</div>");
+			sb.append("</td>");
+			sb.append("</tr>");
+		}
+			sb.append("</tbody>");
+		sb.append("</table>");
+		sb.append("</div>");
 		return sb.toString();
 	}
 	

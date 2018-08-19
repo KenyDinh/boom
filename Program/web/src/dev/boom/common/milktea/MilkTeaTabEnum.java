@@ -2,23 +2,25 @@ package dev.boom.common.milktea;
 
 public enum MilkTeaTabEnum {
 
-	OPENING_MENU(1, "MSG_MILK_TEA_TAB_MENU","milktea/milk_tea_menu.htm"), 
-	LIST_SHOP(2, "MSG_MILK_TEA_TAB_SHOP","milktea/milk_tea_list_shop.htm"), 
-	RANKING(3, "MSG_MILK_TEA_TAB_RANKING","milktea/milk_tea_ranking.htm"), 
-	OTHER(4, "MSG_MILK_TEA_TAB_OTHER","milktea/milk_tea_other.htm"),
+	OPENING_MENU(1, "MSG_MILK_TEA_TAB_MENU","milktea/milk_tea_menu.htm", false), 
+	LIST_SHOP(2, "MSG_MILK_TEA_TAB_SHOP","milktea/milk_tea_list_shop.htm", false), 
+	RANKING(3, "MSG_MILK_TEA_TAB_RANKING","milktea/milk_tea_ranking.htm", false), 
+	ORDER_HISTORY(4, "MSG_MILK_TEA_TAB_ORDER_HISTORY","milktea/milk_tea_order_history.htm", true),
 	;
 
 	public static final int MIN_INDEX = OPENING_MENU.getIndex();
-	public static final int MAX_INDEX = OTHER.getIndex();
+	public static final int MAX_INDEX = ORDER_HISTORY.getIndex();
 	
 	private int index;
 	private String label;
 	private String viewPage;
+	private boolean loginRequire;
 
-	private MilkTeaTabEnum(int index, String label, String viewPage) {
+	private MilkTeaTabEnum(int index, String label, String viewPage, boolean loginRequire) {
 		this.index = index;
 		this.label = label;
 		this.viewPage = viewPage;
+		this.loginRequire = loginRequire;
 	}
 
 	public int getIndex() {
@@ -31,6 +33,10 @@ public enum MilkTeaTabEnum {
 
 	public String getViewPage() {
 		return viewPage;
+	}
+
+	public boolean isLoginRequire() {
+		return loginRequire;
 	}
 
 }
