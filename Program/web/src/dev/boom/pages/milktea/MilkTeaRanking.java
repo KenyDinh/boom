@@ -66,9 +66,8 @@ public class MilkTeaRanking extends MilkTeaMainPage {
 			sb.append("<thead>");
 				sb.append("<tr role=\"row\" class=\"text-success\">");
 					sb.append("<th>").append("Username").append("</th>");
-					sb.append("<th>").append("Orders number").append("</th>");
-					sb.append("<th>").append("Quantity").append("</th>");
-					sb.append("<th>").append("Total money").append("</th>");
+					sb.append("<th>").append("Total Orders").append("</th>");
+					sb.append("<th>").append("Total money (vnd)").append("</th>");
 					sb.append("<th>").append("Ice Avg").append("</th>");
 					sb.append("<th>").append("Sugar Avg").append("</th>");
 					sb.append("<th>").append("Topping count").append("</th>");
@@ -81,7 +80,6 @@ public class MilkTeaRanking extends MilkTeaMainPage {
 					sb.append(String.format("<tr role=\"row\" class=\"%s\">", ((getUserInfo() != null && getUserInfo().getId() == info.getUserId()) ? "bg-success" : "")));
 						sb.append("<td>").append(info.getUsername()).append("</td>");
 						sb.append("<td>").append(info.getOrderCount()).append("</td>");
-						sb.append("<td>").append(info.getDishCount()).append("</td>");
 						sb.append("<td>").append(CommonMethod.getFormatNumberThousandComma(info.getTotalMoney())).append("</td>");
 						sb.append("<td>").append(info.getFormatAverageIce() + "%").append("</td>");
 						sb.append("<td>").append(info.getFormatAverageSugar() + "%").append("</td>");
@@ -90,7 +88,7 @@ public class MilkTeaRanking extends MilkTeaMainPage {
 				}
 			} else {
 				sb.append("<tr role=\"row\">");
-				sb.append("<td colspan=\"7\">").append("No records found!").append("</td>");
+				sb.append("<td colspan=\"6\">").append("No records found!").append("</td>");
 				sb.append("</tr>");
 			}
 			sb.append("</tbody>");
@@ -98,9 +96,8 @@ public class MilkTeaRanking extends MilkTeaMainPage {
 				sb.append("<tfoot>");
 				sb.append("<tr role=\"row\" class=\"text-success\">");
 					sb.append("<th>").append("Username").append("</th>");
-					sb.append("<th>").append("Orders number").append("</th>");
-					sb.append("<th>").append("Quantity").append("</th>");
-					sb.append("<th>").append("Total money").append("</th>");
+					sb.append("<th>").append("Total Orders").append("</th>");
+					sb.append("<th>").append("Total money (vnd)").append("</th>");
 					sb.append("<th>").append("Ice Avg").append("</th>");
 					sb.append("<th>").append("Sugar Avg").append("</th>");
 					sb.append("<th>").append("Topping count").append("</th>");

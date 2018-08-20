@@ -788,7 +788,7 @@ public class MilkTeaCommonFunc {
 					sb.append("<th scope=\"col\" style=\"width:18%;" + thStyle + "\">");
 						sb.append(messages.get("MSG_MILK_TEA_LIST_SHOP_COLUMN_MENU_SHIPPING_FEE")).append("</th>");
 					sb.append("<th scope=\"col\" style=\"width:22%;" + thStyle + "\">");
-						sb.append(messages.get("MSG_MILK_TEA_LIST_SHOP_COLUMN_MENU_CREATED")).append("</th>");
+						sb.append(messages.get("MSG_MILK_TEA_LIST_SHOP_COLUMN_MENU_OPENING_TIME")).append("</th>");
 				sb.append("</tr>");
 			sb.append("</thead>");
 			sb.append("<tbody>");

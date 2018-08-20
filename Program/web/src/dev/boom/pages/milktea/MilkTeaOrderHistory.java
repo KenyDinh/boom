@@ -71,7 +71,7 @@ public class MilkTeaOrderHistory extends MilkTeaMainPage {
 					sb.append("<th>").append("Option").append("</th>");
 					sb.append("<th>").append("Quantity").append("</th>");
 					sb.append("<th>").append("Price").append("</th>");
-					sb.append("<th>").append("Created date").append("</th>");
+					sb.append("<th>").append("Ordering time").append("</th>");
 					//sb.append("<th>").append("Vote").append("</th>");
 				sb.append("</tr>");
 			sb.append("</thead>");
@@ -109,7 +109,7 @@ public class MilkTeaOrderHistory extends MilkTeaMainPage {
 						sb.append("<th>").append("Option").append("</th>");
 						sb.append("<th>").append("Quantity").append("</th>");
 						sb.append("<th>").append("Price").append("</th>");
-						sb.append("<th>").append("Created date").append("</th>");
+						sb.append("<th>").append("Ordering time").append("</th>");
 						//sb.append("<th>").append("Vote").append("</th>");
 					sb.append("</tr>");
 				sb.append("</tfoot>");

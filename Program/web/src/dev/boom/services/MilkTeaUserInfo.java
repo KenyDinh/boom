@@ -93,20 +93,20 @@ public class MilkTeaUserInfo {
 	}
 	
 	public String getFormatAverageSugar() {
-		if (getDishCount() <= 0) {
+		if (getOrderCount() <= 0) {
 			return "0.00";
 		}
 		DecimalFormat df = new DecimalFormat("#.##");
-		double avg = (double)getTotalSugar() / getDishCount();
+		double avg = (double)getTotalSugar() / getOrderCount();
 		return df.format(avg);
 	}
 	
 	public String getFormatAverageIce() {
-		if (getDishCount() <= 0) {
+		if (getOrderCount() <= 0) {
 			return "0.00";
 		}
 		DecimalFormat df = new DecimalFormat("#.##");
-		double avg = (double)getTotalIce() / getDishCount();
+		double avg = (double)getTotalIce() / getOrderCount();
 		return df.format(avg);
 	}
 }
