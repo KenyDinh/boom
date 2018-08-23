@@ -106,4 +106,12 @@ public class CommonMethod {
 		return String.valueOf(price).replaceAll("\\B(?=(\\d{3})+(?!\\d))", ",");
 	}
 	
+	public static String getStringTimeLeft(long timeMili) {
+		timeMili = timeMili / 1000;
+		int second = (int)(timeMili) % 60;
+		int minute = (int)(timeMili / 60) % 60;
+		int hour = (int)(timeMili - minute * 60 - second) / 3600;
+		return String.format("%02d:%02d:%02d", hour, minute, second);
+	}
+	
 }

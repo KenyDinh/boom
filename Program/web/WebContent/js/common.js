@@ -1,4 +1,5 @@
 var $j = jQuery.noConflict();
+var countdown = null;
 $j(document).ready(function() {
 	$j('a#logout').click(function() {
 		if ($j('form#logout-form').length) {
@@ -6,6 +7,7 @@ $j(document).ready(function() {
 		}
 	});
 	initToolTip();
+	initCountdown();
 });
 
 function initToolTip() {
@@ -125,4 +127,96 @@ function onclickChangePassword() {
 			$j('div#change-pwd-message').html("Please input the valid datas!");
 		}
 	}
+}
+
+function initCountdown() {
+	let cdList = $j('.countdown-timer');
+	if (cdList.length) {
+		for (let i = 0; i < cdList.length; i++) {
+			let elem = cdList.eq(i);
+			let id = elem.attr('id');
+			if (id) {
+				let time = parseFullTime(elem.text());
+				let parent_id = elem.attr('data-parent');
+				if (time <= 0) {
+					if (parent_id && $j(parent_id).length) {
+						$j(parent_id).hide();
+					}
+					continue;
+				}
+				if (countdown == null) {
+					countdown = [];
+				}
+				id = "#" + id;
+				let obj = {
+					key:id,
+					time:time
+				}
+				if (parent_id && $j(parent_id).length) {
+					obj.parent = parent_id;
+				}
+				if (elem.attr('data-reload')) {
+					obj.reload = true;
+				} else {
+					obj.reload = false;
+				}
+				countdown.push(obj);
+			}
+		}
+		window.setTimeout(startCountdown, 1000);
+	}
+}
+
+function startCountdown() {
+	if (countdown == null || countdown.length == 0) {
+		return;
+	}
+	for (let i = 0; i < countdown.length; i++) {
+		let obj = countdown[i];
+		obj.time--;
+		if (obj.time <= 0) {
+			if (obj.reload) {
+				window.location.reload();
+				return;
+			}
+			$j(obj.parent).hide();
+		} else {
+			let str_time = formatFullTime(obj.time);
+			$j(obj.key).text(str_time);
+		}
+	}
+	window.setTimeout(startCountdown, 1000);
+}
+
+function parseFullTime(str_time) {
+	if (str_time === null || str_time === undefined) {
+		return 0;
+	}
+	if (/^\d{2}:\d{2}:\d{2}$/.test(str_time) == false) {
+		return false;
+	}
+	let arr = str_time.split(':');
+	let time = 0;
+	time += parseInt(arr[0]) * 3600;
+	time += parseInt(arr[1]) * 60;
+	time += parseInt(arr[2]);
+	return time;
+}
+
+function formatFullTime(time) {
+	let h = parseInt(time/3600);
+	time = time - 3600 * h;
+	if (h < 10) {
+		h = "0" + h;
+	}
+	let m = parseInt(time/60);
+	time = time - 60 * m;
+	if (m < 10) {
+		m = "0" + m;
+	}
+	let s = time;
+	if (s < 10) {
+		s = "0" + s;
+	}
+	return h + ":" + m + ":" + s;
 }

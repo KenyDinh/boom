@@ -8,10 +8,20 @@ $j(document).ready(function() {
 		if ($j(window).outerWidth() >= 992) {
 			scrollDishType(elem,mainNav,$j(window));
 		} else if ($j(window).outerWidth() <= 576) {
-			$j('div#milktea-intro').css('max-height','');
+			$j('div#milktea-intro').css('height','');
 		}
 		$j(window).on('scroll resize', function() {
 			scrollDishType(elem,mainNav,$j(this));
+		});
+	}
+	if ($j('#milktea-intro > div#menu-detail').length || $j('#milktea-intro > div#shop-detail').length) {
+		if ($j(window).outerWidth() <= 1700) {
+			$j('div#milktea-intro').css('height','');
+		}
+		$j(window).on('scroll resize', function() {
+			if ($j(window).outerWidth() <= 1700) {
+				$j('div#milktea-intro').css('height','');
+			}
 		});
 	}
 	if ($j('img.menu-pre-image').length) {

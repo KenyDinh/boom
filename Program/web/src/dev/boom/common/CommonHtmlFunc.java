@@ -230,4 +230,23 @@ public class CommonHtmlFunc {
 		
 		return sb.toString();
 	}
+	
+	public static String getHtmlStarRating(double rating, int max_rating) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("<div class=\"stars\">");
+		for (int i = 0; i < max_rating; i++) {
+			double gap = rating - i;
+			if (gap >= 0.3) {
+				if (gap <= 0.8 || (gap < 1.0 && i == max_rating - 1)) {
+					sb.append("<span class=\"half\"></span>");
+				} else {
+					sb.append("<span class=\"full\"></span>");
+				}
+			} else {
+				sb.append("<span class=\"empty\"></span>");
+			}
+		}
+	sb.append("</div>");
+		return sb.toString();
+	}
 }

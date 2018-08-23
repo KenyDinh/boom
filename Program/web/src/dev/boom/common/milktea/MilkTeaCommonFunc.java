@@ -2,6 +2,7 @@ package dev.boom.common.milktea;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -67,7 +68,7 @@ public class MilkTeaCommonFunc {
 					sb.append("</div>");
 					if (item.getDesc() != null && item.getDesc().length() > 0) {
 						sb.append("<div class=\"row font-italic\" style=\"position:relative;font-size:0.875rem;color:lightgray;\">");
-						sb.append("<span style=\"\">").append(item.getDesc()).append("</span>");
+						sb.append("<span style=\"line-height:1;\">").append(item.getDesc()).append("</span>");
 						sb.append("</div>");
 					}
 				sb.append("</div>");
@@ -599,6 +600,7 @@ public class MilkTeaCommonFunc {
 		StringBuilder sb = new StringBuilder();
 		ShopInfo shopInfo = ShopService.getShopById(menuInfo.getShopId());
 		if (shopInfo != null) {
+			boolean menuOpening = menuInfo.isOpening();
 			sb.append("<div id=\"menu-detail\" class=\"col-12\"><div class=\"row\">");
 			sb.append("<div class=\"col-lg-3 col-md-6\" style=\"\">");
 			String url = shopInfo.getImageUrl();
@@ -610,7 +612,7 @@ public class MilkTeaCommonFunc {
 				sb.append(String.format("<img src=\"%s\" style=\"%s\" />", contextPath + getMenuCommonImage(), "width:100%;max-height:15.625rem;"));
 			}
 			sb.append("</div>");
-			sb.append("<div class=\"col-lg-9 col-md-6\">");
+			sb.append(String.format("<div class=\"col-lg-%d col-md-6\">", (menuOpening ? 4 : 5)));
 				sb.append("<h5 class=\"font-weight-bol text-info\" style=\"margin-top:1rem;\">");
 				if (userInfo != null && UserFlagEnum.ADMINISTRATOR.isValid(userInfo.getFlag())) {
 					sb.append(String.format("<a class=\"text-info\" href=\"%s\" target=\"_blank\">", shopInfo.getUrl()));
@@ -625,20 +627,7 @@ public class MilkTeaCommonFunc {
 						rating = (double)shopInfo.getStarCount() / shopInfo.getVotingCount();
 						rating = ((double)Math.round(rating * 10) / 10);
 					}
-					sb.append("<div class=\"stars\">");
-						for (int i = 0; i < CommonDefine.MAX_MILKTEA_VOTING_STAR; i++) {
-							double gap = rating - i;
-							if (gap >= 0.3) {
-								if (gap <= 0.8 || (gap < 1.0 && i == CommonDefine.MAX_MILKTEA_VOTING_STAR - 1)) {
-									sb.append("<span class=\"half\"></span>");
-								} else {
-									sb.append("<span class=\"full\"></span>");
-								}
-							} else {
-								sb.append("<span class=\"empty\"></span>");
-							}
-						}
-					sb.append("</div>");
+					sb.append(CommonHtmlFunc.getHtmlStarRating(rating, CommonDefine.MAX_MILKTEA_VOTING_STAR));
 					sb.append("<span class=\"text-info font-italic\" style=\"margin-left:0.4rem;\">").append(MessageFormat.format((String)messages.get("MSG_MILK_TEA_SHOP_RATING_S"), shopInfo.getStarCount(), shopInfo.getVotingCount())).append("</span>");
 					if (shopInfo.getOpeningCount() > 0) {
 						sb.append("<div class=\"text-success\" style=\"margin-bottom:0.5rem;font-size:0.875rem;\">").append(MessageFormat.format((String)messages.get("MSG_MILK_TEA_SHOP_INFO_STATISTIC"), shopInfo.getOpeningCount(), shopInfo.getOrderedDishCount())).append("</div>");
@@ -677,6 +666,21 @@ public class MilkTeaCommonFunc {
 				sb.append("<span class=\"text-info\">").append(menuInfo.getDescription()).append("</span>");
 			sb.append("</div>");
 			sb.append("</div>");
+			sb.append("<div class=\"col-lg-4 col-md-12\">");
+			if (menuOpening) {
+				long left = menuInfo.getExpired().getTime() - Calendar.getInstance().getTimeInMillis();
+				if (left <= 3 * CommonDefine.MILLION_SECOND_HOUR) {
+					sb.append("<div id=\"menu-countdown\" class=\"text-center\" >");
+					sb.append("<div class=\"text-warning\" style=\"font-size:1.25rem;\">");
+						sb.append(messages.get("MSG_MILK_TEA_MENU_ATTENTION_CLOSE"));
+					sb.append("</div>");
+					sb.append("<div class=\"\" style=\"\">");
+					sb.append(String.format("<span id=\"menu-countdown-time\" class=\"font-weight-bold text-warning countdown-timer\" style=\"font-size:2.5rem;\" data-reload=\"1\" data-parent=\"#menu-countdown\">%s</span>", CommonMethod.getStringTimeLeft(left)));
+					sb.append("</div>");
+					sb.append("</div>");
+				}
+			}
+			sb.append("</div>");
 			sb.append("</div></div>");
 		}
 		return sb.toString();
@@ -712,7 +716,7 @@ public class MilkTeaCommonFunc {
 	public static String getHtmlShopDetail(ShopInfo shopInfo, TblUserInfo userInfo, String contextPath, Map messages) {
 		StringBuilder sb = new StringBuilder();
 		if (shopInfo != null) {
-			sb.append("<div id=\"menu-detail\" class=\"col-12\"><div class=\"row\">");
+			sb.append("<div id=\"shop-detail\" class=\"col-12\"><div class=\"row\">");
 			sb.append("<div class=\"col-lg-3 col-md-6\" style=\"\">");
 			String url = shopInfo.getImageUrl();
 			if (url != null && url.indexOf("youtube") >= 0) {
