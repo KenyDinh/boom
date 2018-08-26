@@ -1,10 +1,10 @@
 .rating{
 	position:relative;
 }
-.rating .stars {
+.stars {
     display: inline-block;
 }
-.rating .stars span {
+.stars span.star {
     display: inline-block;
     width: 16px;
     height: 14px;
@@ -12,9 +12,9 @@
     margin-left: 2px;
     cursor: pointer;
 }
-.rating .stars span.full {
+.stars span.star.full {
     background-position: -5px -42px;
 }
-.rating .stars span.half {
+.stars span.star.half {
     background-position: -5px -21px;
 }

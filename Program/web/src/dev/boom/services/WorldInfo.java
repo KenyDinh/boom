@@ -46,7 +46,14 @@ public class WorldInfo {
 		addEventFlag(eventFlag.getIndex());
 	}
 	
-	public boolean isActiveEvent(EventFlagEnum eventFlag) {
-		return (getEventFlag() & eventFlag.getIndex()) > 0;
+	public boolean isActiveEventFlag(int index) {
+		if (index <= 0) {
+			return false;
+		}
+		return (getEventFlag() & (1 << (index - 1))) > 0;
+	}
+	
+	public boolean isActiveEventFlag(EventFlagEnum eventFlag) {
+		return isActiveEventFlag(eventFlag.getIndex());
 	}
 }

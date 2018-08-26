@@ -8,7 +8,7 @@ import dev.boom.tbl.info.TblOrderInfo;
 
 public class OrderService {
 	
-	public static TblOrderInfo getOrderInfoById(long id) {
+	public static OrderInfo getOrderInfoById(long id) {
 		TblOrderInfo orderInfo = new TblOrderInfo();
 		orderInfo.setId(id);
 		List<DaoValue> list = CommonDaoService.select(orderInfo);
@@ -16,7 +16,7 @@ public class OrderService {
 			return null;
 		}
 		
-		return (TblOrderInfo) list.get(0);
+		return new OrderInfo((TblOrderInfo) list.get(0));
 	}
 	
 	public static List<OrderInfo> getOrderList(List<Long> ids) {

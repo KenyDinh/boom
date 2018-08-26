@@ -38,7 +38,7 @@
         <property name="dish_code" type="java.lang.Integer">
             <column name="dish_code" not-null="true" />
         </property>
-        <property name="voting_star" type="java.lang.Long">
+        <property name="voting_star" type="java.lang.Byte">
             <column name="voting_star" not-null="true" />
         </property>
         <property name="quantity" type="java.lang.Long">

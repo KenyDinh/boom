@@ -79,11 +79,19 @@ public class MilkTeaMenu extends MilkTeaMainPage {
 	
 	@Override
 	protected String initMilkTeaIntro() {
-		String intro = "";
 		if (menuInfo != null) {
-			intro = MilkTeaCommonFunc.getHtmlMenuDetail(menuInfo, userInfo, getHostURL() + getContextPath(), getMessages());
+			return MilkTeaCommonFunc.getHtmlMenuDetail(menuInfo, userInfo, getHostURL() + getContextPath(), getMessages());
 		}
-		return intro;
+		StringBuilder sb = new StringBuilder();
+		sb.append("<div class=\"col-lg-12\">");
+		sb.append("<div style=\"height:100%;");
+			sb.append("background-image:");
+				sb.append("url('" + getContextPath() + "/img/milktea/ranking_banner_c.png');");
+			sb.append("background-repeat:repeat-x;");
+		sb.append("\">");
+		sb.append("</div>");
+		sb.append("</div>");
+		return sb.toString();
 	}
 
 	@Override

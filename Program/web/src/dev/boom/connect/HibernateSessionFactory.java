@@ -30,6 +30,7 @@ public class HibernateSessionFactory {
 			config.addResource("dev/boom/tbl/mapping/TblMilkTeaUserInfo.hbm.xml");
 			config.addResource("dev/boom/tbl/mapping/TblShopInfo.hbm.xml");
 			config.addResource("dev/boom/tbl/mapping/TblDishInfo.hbm.xml");
+			config.addResource("dev/boom/tbl/mapping/TblDishRatingInfo.hbm.xml");
 			config.addResource("dev/boom/tbl/mapping/TblMenuInfo.hbm.xml");
 			config.addResource("dev/boom/tbl/mapping/TblOrderInfo.hbm.xml");
 			config.addResource("dev/boom/tbl/mapping/TblWorldInfo.hbm.xml");

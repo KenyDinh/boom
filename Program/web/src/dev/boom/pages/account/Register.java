@@ -26,7 +26,7 @@ public class Register extends JsonPageBase {
 		if (!getContext().isPost()) {
 			return false;
 		}
-		if (!worldInfo.isActiveEvent(EventFlagEnum.REGISTER)) {
+		if (!worldInfo.isActiveEventFlag(EventFlagEnum.REGISTRATON)) {
 			return false;
 		}
 		return true;

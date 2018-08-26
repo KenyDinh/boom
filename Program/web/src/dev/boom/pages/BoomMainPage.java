@@ -96,7 +96,7 @@ public class BoomMainPage extends Template {
 				} else {
 					sb.append("<form class=\"form-inline my-2 my-lg-0\">");
 						sb.append("<button style=\"width:80px;\" class=\"btn btn-info my-2 my-sm-0\" type=\"button\" data-toggle=\"modal\" data-target=\"#login-form-modal\">" + getMessage("MSG_GENERAL_LOGIN") + "</button>");
-						if (worldInfo != null && worldInfo.isActiveEvent(EventFlagEnum.REGISTER)) {
+						if (worldInfo != null && worldInfo.isActiveEventFlag(EventFlagEnum.REGISTRATON)) {
 							sb.append("<button style=\"width:80px;margin-left:1rem;\" class=\"btn btn-success my-2 my-sm-0\" type=\"button\" data-toggle=\"modal\" data-target=\"#regist-form-modal\">" + getMessage("MSG_GENERAL_SIGNUP") + "</button>");
 							addModel("register_modal", CommonHtmlFunc.getRegisterFormModal(contextPath, getMessages()));
 						}

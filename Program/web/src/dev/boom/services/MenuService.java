@@ -25,6 +25,7 @@ public class MenuService {
 	public static List<MenuInfo> getMenuListByShopId(long shop_id) {
 		TblMenuInfo menuInfo = new TblMenuInfo();
 		menuInfo.setShop_id(shop_id);
+		menuInfo.setSelectOption("ORDER BY created DESC");
 		List<DaoValue> list = CommonDaoService.select(menuInfo);
 		if (list == null || list.isEmpty()) {
 			return null;

@@ -238,15 +238,16 @@ public class CommonHtmlFunc {
 			double gap = rating - i;
 			if (gap >= 0.3) {
 				if (gap <= 0.8 || (gap < 1.0 && i == max_rating - 1)) {
-					sb.append("<span class=\"half\"></span>");
+					sb.append("<span class=\"star half\"></span>");
 				} else {
-					sb.append("<span class=\"full\"></span>");
+					sb.append("<span class=\"star full\"></span>");
 				}
 			} else {
-				sb.append("<span class=\"empty\"></span>");
+				sb.append("<span class=\"star\"></span>");
 			}
 		}
 	sb.append("</div>");
 		return sb.toString();
 	}
+	
 }

@@ -742,29 +742,14 @@ public class MilkTeaCommonFunc {
 						rating = (double)shopInfo.getStarCount() / shopInfo.getVotingCount();
 						rating = ((double)Math.round(rating * 10) / 10);
 					}
-					sb.append("<div class=\"stars\">");
-						for (int i = 0; i < CommonDefine.MAX_MILKTEA_VOTING_STAR; i++) {
-							double gap = rating - i;
-							if (gap >= 0.3) {
-								if (gap <= 0.8 || (gap < 1.0 && i == CommonDefine.MAX_MILKTEA_VOTING_STAR - 1)) {
-									sb.append("<span class=\"half\"></span>");
-								} else {
-									sb.append("<span class=\"full\"></span>");
-								}
-							} else {
-								sb.append("<span class=\"empty\"></span>");
-							}
-						}
-					sb.append("</div>");
+					sb.append(CommonHtmlFunc.getHtmlStarRating(rating, CommonDefine.MAX_MILKTEA_VOTING_STAR));
 					sb.append("<span class=\"text-info font-italic\" style=\"margin-left:0.4rem;\">").append(MessageFormat.format((String)messages.get("MSG_MILK_TEA_SHOP_RATING_S"), shopInfo.getStarCount(), shopInfo.getVotingCount())).append("</span>");
-//					if (shopInfo.getOpeningCount() > 0) {
-//						sb.append("<div class=\"text-success\" style=\"margin-bottom:0.5rem;font-size:0.875rem;\">").append(MessageFormat.format((String)messages.get("MSG_MILK_TEA_SHOP_INFO_STATISTIC"), shopInfo.getOpeningCount(), shopInfo.getOrderedDishCount())).append("</div>");
-//					} else {
-//						sb.append("<div class=\"text-success\" style=\"margin-bottom:0.5rem;font-size:0.875rem;\">").append((String)messages.get("MSG_MILK_TEA_SHOP_INFO_FIRST_TIME_OPEN")).append("</div>");
-//					}
+					if (shopInfo.getOpeningCount() > 0) {
+						sb.append("<div class=\"text-success\" style=\"margin-bottom:0.5rem;font-size:0.875rem;\">").append(MessageFormat.format((String)messages.get("MSG_MILK_TEA_SHOP_INFO_STATISTIC"), shopInfo.getOpeningCount(), shopInfo.getOrderedDishCount())).append("</div>");
+					} else {
+						sb.append("<div class=\"text-success\" style=\"margin-bottom:0.5rem;font-size:0.875rem;\">").append((String)messages.get("MSG_MILK_TEA_SHOP_INFO_ZERO_TIME_OPEN")).append("</div>");
+					}
 				sb.append("</div>");
-//				sb.append("<div style=\"margin-bottom:0.5rem;\">");
-//				sb.append("</div>");
 			sb.append("</div>");
 			sb.append("</div></div>");
 		}
@@ -837,6 +822,44 @@ public class MilkTeaCommonFunc {
 			sb.append("</tbody>");
 		sb.append("</table>");
 		sb.append("</div>");
+		return sb.toString();
+	}
+	
+	@SuppressWarnings("rawtypes")
+	public static String getOrderVotingModal(OrderInfo order, Map messages) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(String.format("<div class=\"modal fade\" id=\"voting-up-order-%d\">", order.getId()));
+			sb.append("<div class=\"modal-dialog modal-dialog-centered modal-md\">");
+				sb.append("<div class=\"modal-content\">");
+					sb.append("<div>");
+					sb.append("<span class=\"text-info font-weight-bold\" style=\"font-size:1rem;padding-left:1rem;\">").append(order.getDishName()).append("</span>");
+					sb.append("<button type=\"button\" class=\"close\" style=\"padding-right:0.5rem;\" data-dismiss=\"modal\">&times;</button>");
+					sb.append("</div>");
+					sb.append("<div class=\"modal-body text-center\">");
+						sb.append(String.format("<form id=\"voting-up-order-form-%d\">", order.getId()));
+						sb.append("<div class=\"form-group\">");
+							for (int i = 0; i < CommonDefine.MAX_MILKTEA_VOTING_STAR; i++) {
+								sb.append(String.format("<span id=\"order-star-%d-%d\" class=\"order-star\" style=\"cursor:pointer;font-size:3rem;\"><i class=\"fas fa-star\"></i></span>", order.getId(), (i+1)));
+							}
+						sb.append("</div>");
+						sb.append("<button type=\"button\" class=\"btn btn-success\" style=\"width:100%;\" onclick=\"upvoteTheOrder(" + order.getId() + ");this.blur();return false;\">");
+							sb.append(messages.get("MSG_GENERAL_SUBMIT"));
+						sb.append("</button>");
+						sb.append("</form>");
+					sb.append("</div>");
+		
+				sb.append("</div>");
+			sb.append("</div>");
+		sb.append("</div>");
+		return sb.toString();
+	}
+	
+	public static String getOrderRating(OrderInfo order) {
+		StringBuilder sb = new StringBuilder();
+			sb.append(String.format("<div id=\"order-rating-%d\" class=\"stars\">", order.getId()));
+			sb.append("<span class=\"\" style=\"\">").append(order.getVotingStar()).append("</span>");
+			sb.append("<span class=\"star full\"></span>");
+			sb.append("</div>");
 		return sb.toString();
 	}
 	

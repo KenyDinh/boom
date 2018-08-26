@@ -3,7 +3,9 @@ package dev.boom.common.enums;
 public enum EventFlagEnum {
 	
 	INVALID(0,""),
-	REGISTER(1,""),
+	REGISTRATON(1,""),
+	ORDER_VOTING(2,""),
+	RATING_CRONJOB(3,""),
 	;
 	
 	private int index;

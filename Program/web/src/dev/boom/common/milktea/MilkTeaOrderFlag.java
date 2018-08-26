@@ -5,6 +5,7 @@ public enum MilkTeaOrderFlag {
 	PLACED,
 	PAID,
 	VOTE,
+	VOTE_CRON,
 	CANCELED,
 	;
 	

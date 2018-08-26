@@ -6,6 +6,7 @@ import java.util.List;
 
 import dev.boom.common.milktea.MilkTeaCommonFunc;
 import dev.boom.common.milktea.MilkTeaItemOptionType;
+import dev.boom.common.milktea.MilkTeaOrderFlag;
 import dev.boom.tbl.info.TblOrderInfo;
 
 public class OrderInfo {
@@ -112,11 +113,11 @@ public class OrderInfo {
 		this.info.setDish_code(dish_code);
 	}
 
-	public long getVotingStar() {
+	public byte getVotingStar() {
 		return this.info.getVoting_star();
 	}
 
-	public void setVotingStar(long voting_star) {
+	public void setVotingStar(byte voting_star) {
 		this.info.setVoting_star(voting_star);
 	}
 
@@ -182,6 +183,14 @@ public class OrderInfo {
 
 	public void setUpdated(Date updated) {
 		this.info.setUpdated(updated);
+	}
+	
+	public boolean isVoted() {
+		int flag = getFlag();
+		if (MilkTeaOrderFlag.VOTE.isValidFlag(flag) || MilkTeaOrderFlag.VOTE_CRON.isValidFlag(flag)) {
+			return true;
+		}
+		return false;
 	}
 	
 	public long getTotalOption(MilkTeaItemOptionType type) {

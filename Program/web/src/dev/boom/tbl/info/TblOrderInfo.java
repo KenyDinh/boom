@@ -21,7 +21,7 @@ public class TblOrderInfo extends DaoValueInfo implements IDaoValue {
 	private long attr_price;
 	private long final_price;
 	private int dish_code;
-	private long voting_star;
+	private byte voting_star;
 	private long quantity;
 	private String size;
 	private String ice;
@@ -143,11 +143,11 @@ public class TblOrderInfo extends DaoValueInfo implements IDaoValue {
 		this.dish_code = dish_code;
 	}
 
-	public long getVoting_star() {
+	public byte getVoting_star() {
 		return voting_star;
 	}
 
-	public void setVoting_star(long voting_star) {
+	public void setVoting_star(byte voting_star) {
 		this.voting_star = voting_star;
 	}
 
