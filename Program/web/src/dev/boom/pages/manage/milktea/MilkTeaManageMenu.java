@@ -19,6 +19,7 @@ import dev.boom.common.milktea.MilkTeaSocketType;
 import dev.boom.core.GameLog;
 import dev.boom.dao.core.DaoValue;
 import dev.boom.pages.manage.ManagePageBase;
+import dev.boom.pages.milktea.MilkTeaMenu;
 import dev.boom.services.CommonDaoService;
 import dev.boom.services.MenuInfo;
 import dev.boom.services.MenuService;
@@ -234,7 +235,7 @@ public class MilkTeaManageMenu extends ManagePageBase {
 		table.append("</tbody>");
 		table.append("</table>");
 		addModel("table", table.toString());
-		addHomeBackLink();
+		addBackLink(MilkTeaMenu.class, "MSG_MAIN_NAV_BAR_MILKTEA");
 	}
 
 	private void doUpdateMenu(MenuInfo menuInfo) {

@@ -3,6 +3,7 @@ package dev.boom.services;
 import java.util.ArrayList;
 import java.util.List;
 
+import dev.boom.common.milktea.MilkTeaMenuStatus;
 import dev.boom.core.GameLog;
 import dev.boom.dao.core.DaoValue;
 import dev.boom.milktea.object.MenuItem;
@@ -25,7 +26,8 @@ public class MenuService {
 	public static List<MenuInfo> getMenuListByShopId(long shop_id) {
 		TblMenuInfo menuInfo = new TblMenuInfo();
 		menuInfo.setShop_id(shop_id);
-		menuInfo.setSelectOption("ORDER BY created DESC");
+		menuInfo.setSelectOption("AND status IN (" + MilkTeaMenuStatus.OPENING.getStatus() + 
+				"," + MilkTeaMenuStatus.DELIVERING.getStatus() + "," + MilkTeaMenuStatus.COMPLETED.getStatus() + ") ORDER BY created DESC");
 		List<DaoValue> list = CommonDaoService.select(menuInfo);
 		if (list == null || list.isEmpty()) {
 			return null;

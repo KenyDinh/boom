@@ -1,5 +1,7 @@
 package dev.boom.pages.manage;
 
+import org.apache.click.Page;
+
 import dev.boom.common.enums.UserFlagEnum;
 import dev.boom.core.BoomProperties;
 import dev.boom.core.BoomSession;
@@ -52,10 +54,16 @@ public class ManagePageBase extends ManageTemplate {
 		super.onRender();
 	}
 	
-	protected void addHomeBackLink() {
+	protected void addBackLink(Class<? extends Page> clazz, String label) {
+		if (label == null) {
+			label = "MSG_GENERAL_BACK";
+		}
+		if (clazz == null) {
+			clazz = Home.class;
+		}
 		StringBuilder sb = new StringBuilder();
 		sb.append("<p style=\"margin-top:1rem;\">");
-		sb.append("<a href=\"").append(getPagePath(Home.class)).append("\">").append(getMessage("MSG_MAIN_NAV_BAR_HOME")).append("</a>");
+		sb.append("<a href=\"").append(getPagePath(clazz)).append("\">").append(getMessage(label)).append("</a>");
 		sb.append("</p>");
 		addModel("home", sb.toString());
 	}

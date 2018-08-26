@@ -470,9 +470,8 @@ public class MilkTeaCommonFunc {
 			if (userInfo != null && UserFlagEnum.ADMINISTRATOR.isValid(userInfo.getFlag())) {
 				int d = 6;
 				if (isManagement && userInfo != null && UserFlagEnum.ADMINISTRATOR.isValid(userInfo.getFlag())) {
-					d = 7;
 					if (menuInfo.getStatus() == MilkTeaMenuStatus.DELIVERING.ordinal()) {
-						d = 8;
+						d = 7;
 					}
 				}
 				sb.append("<tr>");
@@ -481,6 +480,13 @@ public class MilkTeaCommonFunc {
 						sb.append("Total: " + dishcount + " dishs / " + orderList.size() + " orders");
 					sb.append("</div>");
 				sb.append("</td>");
+				if (isManagement && userInfo != null && UserFlagEnum.ADMINISTRATOR.isValid(userInfo.getFlag())) {
+					sb.append(String.format("<td style=\"border-top:0.0625rem solid %s;\">", ORDER_BORDER_COLOR));
+						sb.append("<div class=\"text-danger font-weight-bold\">");
+							sb.append(getShowPriceWithUnit(totalMoney, "", messages));
+						sb.append("</div>");
+					sb.append("</td>");
+				}
 				sb.append(String.format("<td style=\"border-top:0.0625rem solid %s;\" colspan=\"2\">", ORDER_BORDER_COLOR));
 					sb.append("<div class=\"text-danger font-weight-bold\">");
 						sb.append(getShowPriceWithUnit(totalRealCost, "", messages));

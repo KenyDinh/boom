@@ -43,6 +43,7 @@
   	<page classname="game.json.NihongoJson" path="game/json/nihongo_json.json"/>
   	<!-- Manage Pages -->
   	<page classname="manage.milktea.MilkTeaManageMenu" path="manage/milktea/milk_tea_manage_menu.htm"/>
+  	<page classname="manage.ManageEvent" path="manage/manage_event.htm"/>
   </pages>
 
 </click-app>
