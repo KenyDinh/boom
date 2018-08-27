@@ -1,6 +1,9 @@
 package dev.boom.pages.milktea;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.click.element.CssImport;
 import org.apache.click.element.JsImport;
@@ -14,6 +17,8 @@ import dev.boom.common.milktea.MilkTeaTabEnum;
 import dev.boom.pages.Home;
 import dev.boom.services.OrderInfo;
 import dev.boom.services.OrderService;
+import dev.boom.services.ShopInfo;
+import dev.boom.services.ShopService;
 
 public class MilkTeaOrderHistory extends MilkTeaMainPage {
 
@@ -79,12 +84,30 @@ public class MilkTeaOrderHistory extends MilkTeaMainPage {
 
 	private void initTable() {
 		List<OrderInfo> list = OrderService.getCompletedOrderListByUserId(getUserInfo().getId());
+		Map<Long, ShopInfo> shopMap = new HashMap<>();
+		List<Long> ids = new ArrayList<>();
+		if (list != null && !list.isEmpty()) {
+			for (OrderInfo order : list) {
+				if (!ids.contains(order.getShopId())) {
+					ids.add(order.getShopId());
+				}
+			}
+		}
+		if (ids.size() > 0) {
+			List<ShopInfo> shopList = ShopService.getShopListById(ids);
+			if (shopList != null && shopList.size() > 0) {
+				for (ShopInfo shopInfo : shopList) {
+					shopMap.put(shopInfo.getId(), shopInfo);
+				}
+			}
+		}
 		StringBuilder sb = new StringBuilder();
 		StringBuilder sbModal = new StringBuilder();
 		sb.append("<table id=\"order-history-table\" class=\"table table-striped table-hover nowrap\" style=\"width:100%;\">");
 			sb.append("<thead>");
 				sb.append("<tr role=\"row\" class=\"text-success\">");
 					sb.append("<th>").append("Order Name").append("</th>");
+					sb.append("<th>").append("Shop").append("</th>");
 					sb.append("<th>").append("Ice").append("</th>");
 					sb.append("<th>").append("Sugar").append("</th>");
 					sb.append("<th>").append("Option").append("</th>");
@@ -101,7 +124,19 @@ public class MilkTeaOrderHistory extends MilkTeaMainPage {
 			if (list != null && !list.isEmpty()) {
 				for (OrderInfo order : list) {
 					sb.append("<tr role=\"row\">");
-						sb.append("<td>").append(order.getDishName()).append("</td>");
+						sb.append("<td>");
+							sb.append(order.getDishName());
+						sb.append("</td>");
+						sb.append("<td>");
+							if (shopMap.get(order.getShopId()) != null) {
+								sb.append("<div>").append(shopMap.get(order.getShopId()).getName()).append("</div>");
+								sb.append("<div class=\"font-italic text-info\" data-toggle=\"tooltip\" data-placement=\"bottom\" style=\"max-width:12.5rem;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;font-size:0.75rem;\" title=\"");
+								sb.append(shopMap.get(order.getShopId()).getAddress()).append("\">").append(shopMap.get(order.getShopId()).getAddress()).append("</div>");
+							} else {
+								sb.append("---");
+							}
+						sb.append("</td>");
+						
 						sb.append("<td>").append(order.getTotalOption(MilkTeaItemOptionType.ICE) + "%").append("</td>");
 						sb.append("<td>").append(order.getTotalOption(MilkTeaItemOptionType.SUGAR) + "%").append("</td>");
 						sb.append("<td>").append(order.getOptionList()).append("</td>");
