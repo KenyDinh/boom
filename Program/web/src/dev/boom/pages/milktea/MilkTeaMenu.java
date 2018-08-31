@@ -44,6 +44,10 @@ public class MilkTeaMenu extends MilkTeaMainPage {
 		String strMenuId = getContext().getRequestParameter("id");
 		if (CommonMethod.isValidNumeric(strMenuId, 1, Long.MAX_VALUE)) {
 			menuInfo = MenuService.getMenuById(Long.parseLong(strMenuId));
+			if (menuInfo != null && !menuInfo.isAvailableForUser(getUserInfo())) {
+				setRedirect(this.getClass());
+				return;
+			}
 		}
 	}
 
@@ -52,6 +56,9 @@ public class MilkTeaMenu extends MilkTeaMainPage {
 	@Override
 	public void onRender() {
 		super.onRender();
+		if (getRedirect() != null) {
+			return;
+		}
 		String contextPath = getHostURL() + getContextPath();
 		if (menuInfo != null) {
 			List<MenuItem> listMenuItem = MenuService.getMenuItemListByShopId(menuInfo.getShopId());
@@ -63,7 +70,7 @@ public class MilkTeaMenu extends MilkTeaMainPage {
 			addModel("order_list", MilkTeaCommonFunc.getHtmlListOrder(listOrder, menuInfo, getUserInfo(), contextPath, getMessages()));
 			addModel("menuInfo", menuInfo);
 		} else {
-			addModel("menuList", MilkTeaCommonFunc.getHtmlListMenu(contextPath, getMessages()));
+			addModel("menuList", MilkTeaCommonFunc.getHtmlListMenu(getUserInfo(), contextPath, getMessages()));
 		}
 		if (getUserInfo() != null) {
 			String milkteaToken = SocketSessionPool.generateValidToken(MilkTeaEndPoint.ENDPOINT_NAME, getUserInfo());

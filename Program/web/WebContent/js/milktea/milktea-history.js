@@ -7,7 +7,7 @@ $j(document).ready(function() {
 	            { "type": "num-fmt", "targets": [1,2,5] },
 	            { "orderable": false, "targets": 3 }
 	        ],
-	        "order": [[ 6, "desc" ]]
+	        "order": [[ 7, "desc" ]]
 	    });
 	}
 	$j('span.order-star').click(function() {

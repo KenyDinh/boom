@@ -8,7 +8,7 @@ import dev.boom.tbl.info.TblUserInfo;
 
 public class UserService {
 
-	public static TblUserInfo getUser(String username, String password) {
+	public static UserInfo getUser(String username, String password) {
 		TblUserInfo info = new TblUserInfo();
 		info.setUsername(username);
 		info.setPassword(CommonMethod.getEncryptMD5(password));
@@ -16,20 +16,20 @@ public class UserService {
 		if (daos == null || daos.isEmpty() || daos.size() != 1) {
 			return null;
 		}
-		return (TblUserInfo) daos.get(0);
+		return new UserInfo((TblUserInfo) daos.get(0));
 	}
 	
-	public static TblUserInfo getUserById(long id) {
+	public static UserInfo getUserById(long id) {
 		TblUserInfo info = new TblUserInfo();
 		info.setId(id);
 		List<DaoValue> daos = CommonDaoService.select(info);
 		if (daos == null || daos.isEmpty() || daos.size() != 1) {
 			return null;
 		}
-		return (TblUserInfo) daos.get(0);
+		return new UserInfo((TblUserInfo) daos.get(0));
 	}
 	
-	public static TblUserInfo getUserByName(String username) {
+	public static UserInfo getUserByName(String username) {
 		TblUserInfo info = new TblUserInfo();
 		info.setUsername(username);
 		List<DaoValue> daos = CommonDaoService.select(info);
@@ -37,7 +37,7 @@ public class UserService {
 			return null;
 		}
 		
-		return (TblUserInfo) daos.get(0);
+		return new UserInfo((TblUserInfo) daos.get(0));
 	}
 	
 	public static boolean createUser(String username, String password) {

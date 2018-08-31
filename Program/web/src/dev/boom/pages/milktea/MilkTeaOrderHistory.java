@@ -169,13 +169,16 @@ public class MilkTeaOrderHistory extends MilkTeaMainPage {
 				sb.append("<tfoot>");
 					sb.append("<tr role=\"row\" class=\"text-success\">");
 						sb.append("<th>").append("Order Name").append("</th>");
+						sb.append("<th>").append("Shop").append("</th>");
 						sb.append("<th>").append("Ice").append("</th>");
 						sb.append("<th>").append("Sugar").append("</th>");
 						sb.append("<th>").append("Option").append("</th>");
 						sb.append("<th>").append("Quantity").append("</th>");
 						sb.append("<th>").append("Price").append("</th>");
 						sb.append("<th>").append("Ordering time").append("</th>");
-						//sb.append("<th>").append("Vote").append("</th>");
+						if (worldInfo.isActiveEventFlag(EventFlagEnum.ORDER_VOTING)) {
+							sb.append("<th>").append("Rating").append("</th>");
+						}
 					sb.append("</tr>");
 				sb.append("</tfoot>");
 			}

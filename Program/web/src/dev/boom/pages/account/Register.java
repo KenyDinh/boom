@@ -5,8 +5,8 @@ import org.apache.commons.lang.StringUtils;
 import dev.boom.common.enums.EventFlagEnum;
 import dev.boom.core.BoomSession;
 import dev.boom.pages.JsonPageBase;
+import dev.boom.services.UserInfo;
 import dev.boom.services.UserService;
-import dev.boom.tbl.info.TblUserInfo;
 
 public class Register extends JsonPageBase {
 
@@ -59,7 +59,7 @@ public class Register extends JsonPageBase {
 			putJsonData("error", getMessage("MSG_ACCOUNT_CONFIRM_PWD_INCORRECT"));
 			return;
 		}
-		TblUserInfo existUser = UserService.getUserByName(username);
+		UserInfo existUser = UserService.getUserByName(username);
 		if (existUser != null) {
 			putJsonData("error", getMessage("MSG_ACCOUNT_USERNAME_NOT_AVAILABLE"));
 			return;

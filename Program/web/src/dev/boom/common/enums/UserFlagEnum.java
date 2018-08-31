@@ -5,6 +5,10 @@ public enum UserFlagEnum {
 	ADMINISTRATOR(0x00001),
 	ACTIVE(0x00002),
 	MILKTEA_BANNED(0x00004),
+	PWD_CHANGE(0x00008),
+	DEV_DP(0x00010), // DEV department
+	QA_DP(0x00020), // QA department
+	CG_DP(0x00040), // CG department
 	;
 	
 	private int flag;

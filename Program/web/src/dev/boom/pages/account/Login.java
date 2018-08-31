@@ -5,9 +5,9 @@ import org.apache.commons.lang.StringUtils;
 import dev.boom.common.enums.UserFlagEnum;
 import dev.boom.core.BoomSession;
 import dev.boom.pages.JsonPageBase;
+import dev.boom.services.UserInfo;
 import dev.boom.services.UserService;
 import dev.boom.socket.endpoint.FridayEndpoint;
-import dev.boom.tbl.info.TblUserInfo;
 
 public class Login extends JsonPageBase {
 
@@ -50,7 +50,7 @@ public class Login extends JsonPageBase {
 			putJsonData("error", getMessage("MSG_ACCOUNT_INCORRECT_VALUE"));
 			return;
 		}
-		TblUserInfo info = UserService.getUser(username, password);
+		UserInfo info = UserService.getUser(username, password);
 		if (info == null) {
 			putJsonData("error", getMessage("MSG_ACCOUNT_LOGIN_INCORRECT"));
 			return;

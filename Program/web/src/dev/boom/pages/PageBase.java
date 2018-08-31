@@ -18,9 +18,9 @@ import dev.boom.core.GameLog;
 import dev.boom.pages.account.ChangePassword;
 import dev.boom.pages.account.Login;
 import dev.boom.pages.account.Register;
+import dev.boom.services.UserInfo;
 import dev.boom.services.WorldInfo;
 import dev.boom.services.WorldService;
-import dev.boom.tbl.info.TblUserInfo;
 
 public class PageBase extends Page {
 
@@ -28,7 +28,7 @@ public class PageBase extends Page {
 	protected WorldInfo worldInfo = null;
 	protected boolean isDataTableFormat = false;
 
-	protected void storeBoomSession(TblUserInfo info) {
+	protected void storeBoomSession(UserInfo info) {
 		BoomSession boomSession = new BoomSession(info.getId());
 		getContext().getSession().setAttribute("boom_session", boomSession);
 	}

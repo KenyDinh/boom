@@ -16,6 +16,7 @@ import dev.boom.common.milktea.MilkTeaMenuStatus;
 import dev.boom.common.milktea.MilkTeaOrderFlag;
 import dev.boom.common.milktea.MilkTeaSocketMessage;
 import dev.boom.common.milktea.MilkTeaSocketType;
+import dev.boom.common.milktea.MilkteaMenuFlag;
 import dev.boom.core.GameLog;
 import dev.boom.dao.core.DaoValue;
 import dev.boom.pages.manage.ManagePageBase;
@@ -29,9 +30,9 @@ import dev.boom.services.OrderInfo;
 import dev.boom.services.OrderService;
 import dev.boom.services.ShopInfo;
 import dev.boom.services.ShopService;
+import dev.boom.services.UserInfo;
 import dev.boom.services.UserService;
 import dev.boom.socket.endpoint.MilkTeaEndPoint;
-import dev.boom.tbl.info.TblUserInfo;
 
 public class MilkTeaManageMenu extends ManagePageBase {
 
@@ -133,6 +134,20 @@ public class MilkTeaManageMenu extends ManagePageBase {
 						update = true;
 					}
 				}
+				menuInfo.setShowFlag(0);
+				update = true;
+				String[] showFlags = getContext().getRequestParameterValues("show_flag");
+				if (showFlags != null && showFlags.length > 0) {
+					for (String strFlag : showFlags) {
+						if (CommonMethod.isValidNumeric(strFlag, 1, Integer.MAX_VALUE)) {
+							MilkteaMenuFlag mmf = MilkteaMenuFlag.valueOf(Integer.parseInt(strFlag));
+							if (mmf == MilkteaMenuFlag.INVALID) {
+								continue;
+							}
+							menuInfo.addShowFlag(mmf);
+						}
+					}
+				}
 				if (update) {
 					doUpdateMenu(menuInfo);
 					MilkTeaEndPoint.sendSocketUpdate(menuInfo.getId(), MilkTeaSocketType.MENU_LIST, MilkTeaSocketMessage.UPDATE_MENU_LIST);
@@ -177,6 +192,17 @@ public class MilkTeaManageMenu extends ManagePageBase {
 				}
 				sb.append("</select>");
 				addModel("selectStatus", sb.toString());
+				StringBuilder display = new StringBuilder();
+				for (MilkteaMenuFlag mmf : MilkteaMenuFlag.values()) {
+					if (mmf == MilkteaMenuFlag.INVALID) {
+						continue;
+					}
+					display.append("<div class=\"custom-control custom-checkbox\">");
+					display.append("<input type=\"checkbox\" class=\"custom-control-input\" name=\"show_flag\" id=\"show-flag-" + mmf.ordinal() + "\" value=\"" + mmf.getFlag() + "\" " + (menuInfo.isActiveShowFlag(mmf) ? "checked" : "") + "/>");
+					display.append("<label class=\"custom-control-label\" for=\"show-flag-" + mmf.ordinal() + "\">").append(getMessage(mmf.getLabel())).append("</label>");
+					display.append("</div>");
+				}
+				addModel("display", display.toString());
 			}
 			break;
 		default:
@@ -199,6 +225,7 @@ public class MilkTeaManageMenu extends ManagePageBase {
 		table.append("<th scope=\"col\">").append("Shipping Fee").append("</th>");
 		table.append("<th scope=\"col\">").append("Description").append("</th>");
 		table.append("<th scope=\"col\">").append("Status").append("</th>");
+		table.append("<th scope=\"col\">").append("Display").append("</th>");
 		table.append("<th scope=\"col\">").append("Created").append("</th>");
 		table.append("<th scope=\"col\">").append("Expired").append("</th>");
 		table.append("<th scope=\"col\">").append("Edit").append("</th>");
@@ -222,6 +249,22 @@ public class MilkTeaManageMenu extends ManagePageBase {
 				String desc = StringEscapeUtils.escapeHtml(menu.getDescription());
 				table.append("<td><div data-toggle=\"tooltip\" data-placement=\"bottom\" style=\"width:200px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;\" title=\"").append(desc).append("\">").append(desc).append("</div></td>");
 				table.append("<td>").append(MilkTeaMenuStatus.valueOf(menu.getStatus()).name()).append("</td>");
+				table.append("<td>");
+					String show = "";
+					for (MilkteaMenuFlag mmf : MilkteaMenuFlag.values()) {
+						if (mmf == MilkteaMenuFlag.INVALID) {
+							continue;
+						}
+						if (mmf.isValid(menu.getShowFlag())) {
+							if (show.length() > 0) {
+								show += ",";
+							}
+							show += mmf.getName();
+						}
+					}
+					show = (show.length() > 0) ? show : "---";
+					table.append(show);
+				table.append("</td>");
 				table.append("<td>").append(CommonMethod.getFormatDateString(menu.getCreated())).append("</td>");
 				table.append("<td>").append(CommonMethod.getFormatDateString(menu.getExpired())).append("</td>");
 				table.append("<td>");
@@ -259,7 +302,7 @@ public class MilkTeaManageMenu extends ManagePageBase {
 							mtUser = MilkTeaUserService.getMilkTeaUserInfoById(userId);
 						}
 						if (mtUser == null) {
-							TblUserInfo userInfo = UserService.getUserById(userId);
+							UserInfo userInfo = UserService.getUserById(userId);
 							if (userInfo == null) {
 								GameLog.getInstance().error("user is null, user_id: " + userId + " in order_id: " + order.getId());
 								return;

@@ -58,13 +58,16 @@ public class MilkTeaDetailUpdate extends MilkTeaAjaxPageBase {
 		}
 		switch (msg) {
 		case UPDATE_MENU_LIST:
-			addModel("result", MilkTeaCommonFunc.getHtmlListMenu(getHostURL() + getContextPath(), getMessages()));
+			addModel("result", MilkTeaCommonFunc.getHtmlListMenu(getUserInfo(), getHostURL() + getContextPath(), getMessages()));
 			break;
 		case UPDATE_MENU_DETAIL:
 		case UPDATE_ORDER_LIST:
 			String strMenuId = getContext().getRequestParameter("menu_id");
 			if (CommonMethod.isValidNumeric(strMenuId, 1, Long.MAX_VALUE)) {
 				MenuInfo menuInfo = MenuService.getMenuById(Long.parseLong(strMenuId));
+				if (!menuInfo.isAvailableForUser(getUserInfo())) {
+					return;
+				}
 				StringBuilder sb = new StringBuilder();
 				if (msg == MilkTeaSocketMessage.UPDATE_MENU_DETAIL) {
 					sb.append(MilkTeaCommonFunc.getHtmlMenuDetail(menuInfo, userInfo, getHostURL() + getContextPath(), getMessages()));

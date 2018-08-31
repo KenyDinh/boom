@@ -5,6 +5,7 @@ import java.util.Date;
 import dev.boom.common.CommonDefine;
 import dev.boom.common.CommonMethod;
 import dev.boom.common.milktea.MilkTeaMenuStatus;
+import dev.boom.common.milktea.MilkteaMenuFlag;
 import dev.boom.tbl.info.TblMenuInfo;
 
 public class MenuInfo {
@@ -95,6 +96,14 @@ public class MenuInfo {
 		this.info.setStatus(status);
 	}
 
+	public int getShowFlag() {
+		return this.info.getShow_flag();
+	}
+
+	public void setShowFlag(int show_flag) {
+		this.info.setShow_flag(show_flag);
+	}
+	
 	public Date getCreated() {
 		return this.info.getCreated();
 	}
@@ -145,5 +154,39 @@ public class MenuInfo {
 	
 	public boolean isCanceled() {
 		return (this.info.getStatus() == MilkTeaMenuStatus.CANCELED.ordinal());
+	}
+	
+	public void addShowFlag(MilkteaMenuFlag mmf) {
+		if (mmf == MilkteaMenuFlag.INVALID) {
+			return;
+		}
+		int newFlag = getShowFlag() | mmf.getFlag();
+		setShowFlag(newFlag);
+	}
+	
+	public boolean isActiveShowFlag(MilkteaMenuFlag mmf) {
+		if (mmf == MilkteaMenuFlag.INVALID) {
+			return false;
+		}
+		return mmf.isValid(getShowFlag());
+	}
+	
+	public boolean isAvailableForUser(UserInfo userInfo) {
+		if (userInfo != null) {
+			if (userInfo.isMenuAvailable(this)) {
+				return true;
+			}
+			return false;
+		}
+		for (MilkteaMenuFlag mmf : MilkteaMenuFlag.values()) {
+			if (mmf == MilkteaMenuFlag.INVALID) {
+				continue;
+			}
+			if (!mmf.isValid(getShowFlag())) {
+				return false;
+			}
+		}
+		
+		return true;
 	}
 }

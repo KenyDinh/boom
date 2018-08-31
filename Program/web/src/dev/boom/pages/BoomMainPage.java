@@ -6,13 +6,13 @@ import dev.boom.common.enums.MainNavBarEnum;
 import dev.boom.common.enums.UserFlagEnum;
 import dev.boom.core.BoomSession;
 import dev.boom.pages.manage.Index;
+import dev.boom.services.UserInfo;
 import dev.boom.services.UserService;
-import dev.boom.tbl.info.TblUserInfo;
 
 public class BoomMainPage extends Template {
 
 	private static final long serialVersionUID = 1L;
-	protected TblUserInfo userInfo = null;
+	protected UserInfo userInfo = null;
 	
 	@Override
 	public boolean onSecurityCheck() {
@@ -37,7 +37,7 @@ public class BoomMainPage extends Template {
 		initMenuBar();
 	}
 	
-	protected TblUserInfo getUserInfo() {
+	protected UserInfo getUserInfo() {
 		return userInfo;
 	}
 

@@ -92,6 +92,10 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 				error = true;
 				return;
 			}
+			if (!menuInfo.isAvailableForUser(getUserInfo())) {
+				error = true;
+				return;
+			}
 			if (!menuInfo.isOpening()) {
 				GameLog.getInstance().error("[MilkTeaManageOrder] Menu is no longer open!, id:" + menuInfo.getId());
 				error = true;
@@ -191,7 +195,7 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 				}
 			}
 		}
-		MenuItemSelectionLimit limitSelectOption = menuItem.getLimit_select();
+		MenuItemSelectionLimit limitSelectOption = null;
 		if (limitSelectOption == null) {
 			limitSelectOption = new MenuItemSelectionLimit();
 		}

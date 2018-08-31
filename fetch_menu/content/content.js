@@ -81,7 +81,7 @@ function fetchData() {
 						menu_item.add_sugar(option);
 						menu_item.limit_select.sugar_min = min_select;
 						menu_item.limit_select.sugar_max = max_select;
-					} else if (attribute_name.toLocaleLowerCase().includes('topping')) {
+					} else if (attribute_name.toLocaleLowerCase().includes('topping') || attribute_name.toLocaleLowerCase().includes('toping')) {
 						menu_item.add_topping(option);
 						menu_item.limit_select.topping_min = min_select;
 						menu_item.limit_select.topping_max = max_select;

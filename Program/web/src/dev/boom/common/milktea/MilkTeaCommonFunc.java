@@ -6,6 +6,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -22,7 +23,7 @@ import dev.boom.services.MenuService;
 import dev.boom.services.OrderInfo;
 import dev.boom.services.ShopInfo;
 import dev.boom.services.ShopService;
-import dev.boom.tbl.info.TblUserInfo;
+import dev.boom.services.UserInfo;
 
 public class MilkTeaCommonFunc {
 	
@@ -33,7 +34,7 @@ public class MilkTeaCommonFunc {
 	
 	// ========================================== //
 	@SuppressWarnings("rawtypes")
-	public static String getHtmlListMenuItem(MenuInfo menuInfo, List<MenuItem> listMenuItem, String contextPath, TblUserInfo userInfo, Map messages) {
+	public static String getHtmlListMenuItem(MenuInfo menuInfo, List<MenuItem> listMenuItem, String contextPath, UserInfo userInfo, Map messages) {
 		if (listMenuItem == null || listMenuItem.isEmpty()) {
 			return "";
 		}
@@ -305,12 +306,12 @@ public class MilkTeaCommonFunc {
 	
 	// ========================================== //
 	@SuppressWarnings("rawtypes")
-	public static String getHtmlListOrder(List<OrderInfo> orderList, MenuInfo menuInfo, TblUserInfo userInfo, String contextPath, Map messages) {
+	public static String getHtmlListOrder(List<OrderInfo> orderList, MenuInfo menuInfo, UserInfo userInfo, String contextPath, Map messages) {
 		return getHtmlListOrder(orderList, menuInfo, userInfo, contextPath, messages, false);
 	}
 	
 	@SuppressWarnings("rawtypes")
-	public static String getHtmlListOrder(List<OrderInfo> orderList, MenuInfo menuInfo, TblUserInfo userInfo, String contextPath, Map messages, boolean isManagement) {
+	public static String getHtmlListOrder(List<OrderInfo> orderList, MenuInfo menuInfo, UserInfo userInfo, String contextPath, Map messages, boolean isManagement) {
 		long userId = (userInfo != null) ? userInfo.getId() : 0;
 		boolean isMenuOpening = menuInfo.isOpening();
 		boolean hasOrder = (orderList != null && !orderList.isEmpty());
@@ -553,13 +554,19 @@ public class MilkTeaCommonFunc {
 	}
 	
 	@SuppressWarnings("rawtypes")
-	public static String getHtmlListMenu(String contextPath, Map messages) {
+	public static String getHtmlListMenu(UserInfo userInfo, String contextPath, Map messages) {
 		byte[] statusList = new byte[] {MilkTeaMenuStatus.OPENING.getStatus(), MilkTeaMenuStatus.DELIVERING.getStatus(), MilkTeaMenuStatus.COMPLETED.getStatus()};
 		List<MenuInfo> menuList = MenuService.getMenuListByStatusList(statusList);
 		Map<Byte,List<String>> menuMaps = new HashMap<>();
 		List<Long> shopids = new ArrayList<>();
 		if (menuList != null && menuList.size() > 0) {
-			for (MenuInfo menuInfo : menuList) {
+			Iterator<MenuInfo> it = menuList.iterator();
+			while(it.hasNext()) {
+				MenuInfo menuInfo =  it.next();
+				if (!menuInfo.isAvailableForUser(userInfo)) {
+					it.remove();
+					continue;
+				}
 				shopids.add(menuInfo.getShopId());
 			}
 		}
@@ -602,7 +609,7 @@ public class MilkTeaCommonFunc {
 	}
 	
 	@SuppressWarnings("rawtypes")
-	public static String getHtmlMenuDetail(MenuInfo menuInfo, TblUserInfo userInfo, String contextPath, Map messages) {
+	public static String getHtmlMenuDetail(MenuInfo menuInfo, UserInfo userInfo, String contextPath, Map messages) {
 		StringBuilder sb = new StringBuilder();
 		ShopInfo shopInfo = ShopService.getShopById(menuInfo.getShopId());
 		if (shopInfo != null) {
@@ -675,7 +682,7 @@ public class MilkTeaCommonFunc {
 			sb.append("<div class=\"col-lg-4 col-md-12\">");
 			if (menuOpening) {
 				long left = menuInfo.getExpired().getTime() - Calendar.getInstance().getTimeInMillis();
-				if (left <= 3 * CommonDefine.MILLION_SECOND_HOUR) {
+				if (left <= 5 * CommonDefine.MILLION_SECOND_HOUR) {
 					sb.append("<div id=\"menu-countdown\" class=\"text-center\" >");
 					sb.append("<div class=\"text-warning\" style=\"font-size:1.25rem;\">");
 						sb.append(messages.get("MSG_MILK_TEA_MENU_ATTENTION_CLOSE"));
@@ -719,7 +726,7 @@ public class MilkTeaCommonFunc {
 	}
 	
 	@SuppressWarnings("rawtypes")
-	public static String getHtmlShopDetail(ShopInfo shopInfo, TblUserInfo userInfo, String contextPath, Map messages) {
+	public static String getHtmlShopDetail(ShopInfo shopInfo, UserInfo userInfo, String contextPath, Map messages) {
 		StringBuilder sb = new StringBuilder();
 		if (shopInfo != null) {
 			sb.append("<div id=\"shop-detail\" class=\"col-12\"><div class=\"row\">");

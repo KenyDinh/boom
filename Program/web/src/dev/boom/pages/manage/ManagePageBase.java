@@ -7,15 +7,15 @@ import dev.boom.core.BoomProperties;
 import dev.boom.core.BoomSession;
 import dev.boom.core.GameLog;
 import dev.boom.pages.Home;
+import dev.boom.services.UserInfo;
 import dev.boom.services.UserService;
 import dev.boom.socket.endpoint.ManageMilkTeaEndPoint;
-import dev.boom.tbl.info.TblUserInfo;
 
 public class ManagePageBase extends ManageTemplate {
 
 	private static final long serialVersionUID = 1L;
 
-	protected TblUserInfo userInfo = null;
+	protected UserInfo userInfo = null;
 	
 	@Override
 	public boolean onSecurityCheck() {

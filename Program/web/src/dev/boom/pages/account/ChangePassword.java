@@ -55,7 +55,7 @@ public class ChangePassword extends JsonPageBase {
 			return;
 		}
 		userInfo.setPassword(CommonMethod.getEncryptMD5(new_password));
-		if (!CommonDaoService.update(userInfo)) {
+		if (!CommonDaoService.update(userInfo.getInfo())) {
 			GameLog.getInstance().error("[ChangePassword] update failed!");
 			putJsonData("error", getMessage("MSG_GENERAL_ERROR"));
 			return;
