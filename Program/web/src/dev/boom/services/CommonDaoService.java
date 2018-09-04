@@ -11,6 +11,7 @@ import org.hibernate.Transaction;
 
 import dev.boom.common.CommonMethod;
 import dev.boom.connect.HibernateSessionFactory;
+import dev.boom.connect.MySQLDialect;
 import dev.boom.core.GameLog;
 import dev.boom.dao.core.DaoValue;
 import dev.boom.dao.core.IDaoFactory;
@@ -210,7 +211,7 @@ public class CommonDaoService {
 			if (!whereClause.isEmpty()) {
 				sql += whereClause;
 			}
-			Query query = session.createQuery(sql);
+			Query query = session.createQuery(correctBitwiseOperation(sql));
 			String option = "";
 			if (dao.getLimit() > 0) {
 				option += " LIMIT " + dao.getLimit();
@@ -442,7 +443,7 @@ public class CommonDaoService {
 			tx = session.beginTransaction();
 			GameLog.getInstance().info(String.format("SELECT %s FROM %s", sf, (dao.getRealTableName() + whereClause)));
 			String sql = "SELECT " + sf + " FROM " + dao.getClass().getSimpleName() + dao.getUpdateWhereClause();
-			list = session.createQuery(sql).list();
+			list = session.createQuery(correctBitwiseOperation(sql)).list();
 		} catch (Exception e) {
 			e.printStackTrace();
 			if (tx != null) {
@@ -531,7 +532,14 @@ public class CommonDaoService {
 				hql = hql.replace(tbl_name, info_name);
 			}
 		}
-		return hql;
+		return correctBitwiseOperation(hql);
+	}
+	
+	private static String correctBitwiseOperation(String sql) {
+		if (sql.indexOf("&") <= 0) {
+			return sql;
+		}
+		return sql.replaceAll("(?<=\\W)(\\w+)\\s*&\\s*(\\w+)(?=(\\W|$))", MySQLDialect.BITWISE_FUNCTION_AND + "($1,$2)");
 	}
 	
 	private static IDaoFactory getDaoFactory(DaoValue dao) {

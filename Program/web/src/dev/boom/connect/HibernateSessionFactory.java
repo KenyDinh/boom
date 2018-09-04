@@ -10,36 +10,44 @@ import org.hibernate.service.ServiceRegistry;
 import dev.boom.core.BoomProperties;
 
 public class HibernateSessionFactory {
+	
+	private static final String[] HIBERNATE_MAPPING_RESOURCE = {
+			//_/_/_/_/_/_/_/_/_/_/_/_//
+			"TblMilkTeaUserInfo",
+			"TblShopInfo",
+			"TblDishInfo",
+			"TblDishRatingInfo",
+			"TblMenuInfo",
+			"TblOrderInfo",
+			//_/_/_/_/_/_/_/_/_/_/_/_//
+			"TblWorldInfo",
+			"TblUserInfo",
+			//_/_/_/_/_/_/_/_/_/_/_/_//
+			"TblNihongoOwningInfo",
+			"TblNihongoPetInfo",
+			"TblNihongoProgressInfo",
+			"TblNihongoUserInfo",
+			"TblNihongoWordInfo",
+			//_/_/_/_/_/_/_/_/_/_/_/_//
+	};
 
 	private static SessionFactory sessionFactory = buildSessionFactory();
-	
 	private static SessionFactory buildSessionFactory() {
 		try {
 			Configuration config = new Configuration();
 			Properties prop = new Properties();
 			prop.put("show_sql", false);
 			prop.put("hibernate.bytecode.use_reflection_optimizer", false);
-			prop.put("hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
+//			prop.put("hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
+			prop.put("hibernate.dialect", "dev.boom.connect.MySQLDialect");
 			prop.put("hibernate.connection.driver_class", "com.mysql.jdbc.Driver");
 			prop.put("hibernate.connection.url", BoomProperties.DB_CONNECTION_URL);
 			prop.put("hibernate.connection.password", BoomProperties.DB_CONNECTION_PWD);
 			prop.put("hibernate.connection.username", BoomProperties.DB_CONNECTION_USER);
 			config.addProperties(prop);
-			// milktea
-			config.addResource("dev/boom/tbl/mapping/TblUserInfo.hbm.xml");
-			config.addResource("dev/boom/tbl/mapping/TblMilkTeaUserInfo.hbm.xml");
-			config.addResource("dev/boom/tbl/mapping/TblShopInfo.hbm.xml");
-			config.addResource("dev/boom/tbl/mapping/TblDishInfo.hbm.xml");
-			config.addResource("dev/boom/tbl/mapping/TblDishRatingInfo.hbm.xml");
-			config.addResource("dev/boom/tbl/mapping/TblMenuInfo.hbm.xml");
-			config.addResource("dev/boom/tbl/mapping/TblOrderInfo.hbm.xml");
-			config.addResource("dev/boom/tbl/mapping/TblWorldInfo.hbm.xml");
-			//nihongo game
-			config.addResource("dev/boom/tbl/mapping/TblNihongoOwningInfo.hbm.xml");
-			config.addResource("dev/boom/tbl/mapping/TblNihongoPetInfo.hbm.xml");
-			config.addResource("dev/boom/tbl/mapping/TblNihongoProgressInfo.hbm.xml");
-			config.addResource("dev/boom/tbl/mapping/TblNihongoUserInfo.hbm.xml");
-			config.addResource("dev/boom/tbl/mapping/TblNihongoWordInfo.hbm.xml");
+			for (String resource : HIBERNATE_MAPPING_RESOURCE) {
+				config.addResource("dev/boom/tbl/mapping/" + resource + ".hbm.xml");
+			}
 			ServiceRegistry serviceResitry = new StandardServiceRegistryBuilder().applySettings(config.getProperties()).build();
 			return config.buildSessionFactory(serviceResitry);
 		} catch (Exception e) {
