@@ -16,7 +16,7 @@ import dev.boom.socket.MilkTeaSocketSession;
 import dev.boom.socket.SocketSessionBase;
 import dev.boom.socket.SocketSessionPool;
 
-@ServerEndpoint(value = "/socket/milktea")
+@ServerEndpoint(value = MilkTeaEndPoint.SOCKET_PATH)
 public class MilkTeaEndPoint extends EndPointBase{
 
 	public static final String ENDPOINT_NAME = MilkTeaEndPoint.class.getSimpleName();

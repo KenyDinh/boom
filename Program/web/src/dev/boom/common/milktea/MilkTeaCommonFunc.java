@@ -18,6 +18,7 @@ import dev.boom.common.enums.UserFlagEnum;
 import dev.boom.core.GameLog;
 import dev.boom.milktea.object.MenuItem;
 import dev.boom.milktea.object.MenuItemOption;
+import dev.boom.milktea.object.MenuItemSelectionLimit;
 import dev.boom.services.MenuInfo;
 import dev.boom.services.MenuService;
 import dev.boom.services.OrderInfo;
@@ -68,7 +69,7 @@ public class MilkTeaCommonFunc {
 						sb.append("<span style=\"\">").append(item.getName()).append("</span>");
 					sb.append("</div>");
 					if (item.getDesc() != null && item.getDesc().length() > 0) {
-						sb.append("<div class=\"row font-italic\" style=\"position:relative;font-size:0.875rem;color:lightgray;\">");
+						sb.append("<div class=\"row font-italic\" style=\"position:relative;font-size:0.8rem;color:lightgray;\">");
 						sb.append("<span style=\"line-height:1;\">").append(item.getDesc()).append("</span>");
 						sb.append("</div>");
 					}
@@ -198,6 +199,12 @@ public class MilkTeaCommonFunc {
 		if (listItemOption == null || listItemOption.length == 0) {
 			return "";
 		}
+		MenuItemSelectionLimit limit = item.getLimit_select();
+		if (limit == null) {
+			limit = new MenuItemSelectionLimit();
+			item.setLimit_select(limit);
+		}
+		String attention = "";
 		String inputName = null;
 		String label = null;
 		String inputType = null;
@@ -208,35 +215,65 @@ public class MilkTeaCommonFunc {
 		} else {
 			inputType = "radio";
 		}
+		int minSelect = -1;
+		int maxSelect = -1;
 		switch (optionType) {
 		case SIZE:
 			inputName = "size";
 			label = "MSG_MILK_TEA_OPTION_SIZE";
+			minSelect = limit.getSize_min();
+			maxSelect = limit.getSize_max();
 			break;
 		case ICE:
 			inputName = "ice";
 			label = "MSG_MILK_TEA_OPTION_ICE";
+			minSelect = limit.getIce_min();
+			maxSelect = limit.getIce_max();
 			break;
 		case SUGAR:
 			inputName = "sugar";
 			label = "MSG_MILK_TEA_OPTION_SUGAR";
+			minSelect = limit.getSugar_min();
+			maxSelect = limit.getSugar_max();
 			break;
 		case TOPPING:
 			inputName = "topping";
 			label = "MSG_MILK_TEA_OPTION_TOPPING";
 			inputType = "checkbox";
+			minSelect = limit.getTopping_min();
+			maxSelect = limit.getTopping_max();
+			if (minSelect == maxSelect && minSelect == 1) {
+				inputType = "radio";
+			}
 			break;
 		case ADDITION:
 			inputName = "addition";
 			label = "MSG_MILK_TEA_OPTION_ADDITION";
 			inputType = "checkbox";
+			minSelect = limit.getAddition_min();
+			maxSelect = limit.getAddition_max();
+			if (minSelect == maxSelect && minSelect == 1) {
+				inputType = "radio";
+			}
 			break;
 		default:
 			return "";
 		}
+		if (minSelect > 0) {
+			attention += "Minimum: " + minSelect;
+		}
+		if (maxSelect > 0 && maxSelect >= minSelect) {
+			if (attention.length() > 0) {
+				attention += ", ";
+			}
+			attention += "Maximum: " + maxSelect;
+		}
 		sb.append("<div class=\"form-group\">");
 		sb.append("<div class=\"row\"><div class=\"col-sm-12\">");
 		sb.append("<label class=\"font-weight-bold\" style=\"font-size:1.125rem;\">").append(messages.get(label)).append("</label>");
+		if (attention.length() > 0) {
+			sb.append("<label class=\"font-italic none-select\" style=\"margin-left:1rem;font-size:0.75rem;color:lightgray;\">").append(attention).append("</label>");
+		}
 		sb.append("</div></div>");
 		for (int i = 0; i < rowCount; i++) {
 			sb.append("<div class=\"row\">");
@@ -556,7 +593,27 @@ public class MilkTeaCommonFunc {
 	@SuppressWarnings("rawtypes")
 	public static String getHtmlListMenu(UserInfo userInfo, String contextPath, Map messages) {
 		byte[] statusList = new byte[] {MilkTeaMenuStatus.OPENING.getStatus(), MilkTeaMenuStatus.DELIVERING.getStatus(), MilkTeaMenuStatus.COMPLETED.getStatus()};
-		List<MenuInfo> menuList = MenuService.getMenuListByStatusList(statusList);
+		String options = null;
+		int validFalg = 0;
+		if (userInfo == null) {
+			validFalg = MilkteaMenuFlag.combineAllFlag();
+			if (validFalg > 0) {
+				options = "show_flag & " + validFalg + " = " + validFalg;
+			}
+		} else if (!UserFlagEnum.ADMINISTRATOR.isValid(userInfo.getFlag())){
+			for (MilkteaMenuFlag mmf : MilkteaMenuFlag.values()) {
+				if (mmf == MilkteaMenuFlag.INVALID) {
+					continue;
+				}
+				if (mmf.isValidUserFlag(userInfo.getFlag())) {
+					validFalg |= mmf.getFlag();
+				}
+			}
+			if (validFalg > 0) {
+				options = "show_flag & " + validFalg + " > 0 ";
+			}
+		}
+		List<MenuInfo> menuList = MenuService.getMenuListByStatusList(statusList, options);
 		Map<Byte,List<String>> menuMaps = new HashMap<>();
 		List<Long> shopids = new ArrayList<>();
 		if (menuList != null && menuList.size() > 0) {

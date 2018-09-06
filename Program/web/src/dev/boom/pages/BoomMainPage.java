@@ -8,6 +8,8 @@ import dev.boom.core.BoomSession;
 import dev.boom.pages.manage.Index;
 import dev.boom.services.UserInfo;
 import dev.boom.services.UserService;
+import dev.boom.socket.SocketSessionPool;
+import dev.boom.socket.endpoint.FridayEndpoint;
 
 public class BoomMainPage extends Template {
 
@@ -29,6 +31,13 @@ public class BoomMainPage extends Template {
 	@Override
 	public void onInit() {
 		super.onInit();
+		
+		// re-init friday socket token
+		if (userInfo != null && UserFlagEnum.ADMINISTRATOR.isValid(userInfo.getFlag())) {
+			if (!SocketSessionPool.isExistToken(FridayEndpoint.ENDPOINT_NAME, userInfo)) {
+				SocketSessionPool.generateValidToken(FridayEndpoint.ENDPOINT_NAME, userInfo);
+			}
+		}
 	}
 	
 	@Override

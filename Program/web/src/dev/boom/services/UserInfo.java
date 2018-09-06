@@ -56,14 +56,13 @@ public class UserInfo {
 		if (UserFlagEnum.ADMINISTRATOR.isValid(getFlag())) {
 			return true;
 		}
-		if (UserFlagEnum.DEV_DP.isValid(getFlag()) && MilkteaMenuFlag.DEV_SHOW.isValid(menuInfo.getShowFlag())) {
-			return true;
-		}
-		if (UserFlagEnum.QA_DP.isValid(getFlag()) && MilkteaMenuFlag.QA_SHOW.isValid(menuInfo.getShowFlag())) {
-			return true;
-		}
-		if (UserFlagEnum.CG_DP.isValid(getFlag()) && MilkteaMenuFlag.CG_SHOW.isValid(menuInfo.getShowFlag())) {
-			return true;
+		for (MilkteaMenuFlag mmf : MilkteaMenuFlag.values()) {
+			if (mmf == MilkteaMenuFlag.INVALID) {
+				continue;
+			}
+			if (mmf.isValid(menuInfo.getShowFlag()) && mmf.isValidUserFlag(getFlag())) {
+				return true;
+			}
 		}
 		return false;
 	}

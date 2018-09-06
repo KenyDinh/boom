@@ -72,8 +72,8 @@ public class MilkTeaManageMenu extends ManagePageBase {
 					addModel("error", "menu is null");
 					return;
 				}
-				if (menuInfo.getStatus() == MilkTeaMenuStatus.COMPLETED.ordinal()) {
-					addModel("error", "can not modify completed menu!");
+				if (!menuInfo.isEditable()) {
+					addModel("error", "can not modify the menu!");
 					return;
 				}
 				boolean update = false;

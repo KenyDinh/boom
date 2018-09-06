@@ -80,7 +80,7 @@ public class MilkTeaMenu extends MilkTeaMainPage {
 			} else {
 				params += "&type=" + MilkTeaSocketType.MENU_LIST.getType();
 			}
-			addModel("milkteaToken", getSocketUrl(params));
+			addModel("milkteaToken", getSocketUrl(MilkTeaEndPoint.SOCKET_PATH, params));
 		}
 	}
 	

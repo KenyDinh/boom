@@ -13,6 +13,7 @@ import org.apache.click.element.JsImport;
 import org.apache.click.util.ClickUtils;
 import org.apache.click.util.HtmlStringBuffer;
 
+import dev.boom.core.BoomProperties;
 import dev.boom.core.BoomSession;
 import dev.boom.core.GameLog;
 import dev.boom.pages.account.ChangePassword;
@@ -58,6 +59,17 @@ public class PageBase extends Page {
 	
 	protected void setDataTableFormat(boolean isDataTableFormat) {
 		this.isDataTableFormat = isDataTableFormat;
+	}
+	
+	protected String getSocketUrl(String websocketPath, String params) {
+		if (!params.startsWith("?")) {
+			params = "?" + params;
+		}
+		String port = String.valueOf(getContext().getRequest().getServerPort());
+		if (!BoomProperties.SERVICE_HOSTNAME.isEmpty()) {
+			port = BoomProperties.WEBSOCKET_PORT_SCALE;
+		}
+		return "ws://" + BoomProperties.SERVICE_HOSTNAME + (port.equals("80") ? "" : ":" + port) + getContextPath() + websocketPath + params;
 	}
 	
 	public PageBase() {

@@ -54,6 +54,10 @@ public class MenuService {
 	}
 	
 	public static List<MenuInfo> getMenuListByStatusList(byte[] status) {
+		return getMenuListByStatusList(status, null);
+	}
+	
+	public static List<MenuInfo> getMenuListByStatusList(byte[] status, String options) {
 		TblMenuInfo menuInfo = new TblMenuInfo();
 		String option = "";
 		for (byte stt : status) {
@@ -63,7 +67,16 @@ public class MenuService {
 			option += stt;
 		}
 		if (!option.isEmpty()) {
-			menuInfo.setSelectOption("WHERE status IN (" + option + ") ORDER BY status ASC");
+			option = "status IN (" + option + ")";
+		}
+		if (options != null && options.length() > 0) {
+			if (!option.isEmpty()) {
+				option += " AND ";
+			}
+			option += options;
+		}
+		if (!option.isEmpty()) {
+			menuInfo.setSelectOption("WHERE " + option + " ORDER BY status ASC");
 		}
 		List<DaoValue> list = CommonDaoService.select(menuInfo);
 		if (list == null || list.isEmpty()) {

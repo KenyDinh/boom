@@ -161,7 +161,7 @@ public class MilkTeaOrderHistory extends MilkTeaMainPage {
 				}
 			} else {
 				sb.append("<tr role=\"row\">");
-				sb.append("<td colspan=\"7\">").append("No records found!").append("</td>");
+				sb.append("<td colspan=\"" + (worldInfo.isActiveEventFlag(EventFlagEnum.ORDER_VOTING) ? "9" : "8") + "\">").append("No records found!").append("</td>");
 				sb.append("</tr>");
 			}
 			sb.append("</tbody>");

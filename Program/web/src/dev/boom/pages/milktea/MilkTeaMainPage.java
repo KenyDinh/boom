@@ -2,9 +2,7 @@ package dev.boom.pages.milktea;
 
 import dev.boom.common.enums.MainNavBarEnum;
 import dev.boom.common.milktea.MilkTeaTabEnum;
-import dev.boom.core.BoomProperties;
 import dev.boom.pages.BoomMainPage;
-import dev.boom.socket.endpoint.MilkTeaEndPoint;
 
 public class MilkTeaMainPage extends BoomMainPage {
 
@@ -64,14 +62,6 @@ public class MilkTeaMainPage extends BoomMainPage {
 	
 	protected String initMilkTeaIntro() {
 		return "";
-	}
-	
-	protected String getSocketUrl(String params) {
-		if (!params.startsWith("?")) {
-			params = "?" + params;
-		}
-		int port = getContext().getRequest().getServerPort();
-		return "ws://" + BoomProperties.SERVICE_HOSTNAME + (port == 80 ? "" : ":" + port) + getContextPath() + MilkTeaEndPoint.SOCKET_PATH + params;
 	}
 	
 }

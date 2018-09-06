@@ -1,7 +1,7 @@
 package dev.boom.common.enums;
 
 public enum UserFlagEnum {
-	
+	INVALID(0),
 	ADMINISTRATOR(0x00001),
 	ACTIVE(0x00002),
 	MILKTEA_BANNED(0x00004),

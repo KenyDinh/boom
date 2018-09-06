@@ -7,11 +7,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import dev.boom.common.CommonMethod;
 import dev.boom.core.GameLog;
 import dev.boom. services.UserInfo;
 
 public class SocketSessionPool {
+	
+	private static Log log = LogFactory.getLog(SocketSessionPool.class);
 
 	private static Map<String, Map<String, SocketSessionBase>> mapSocketSession = new HashMap<>();
 	private static Set<String> listValidToken = new HashSet<>();
@@ -126,21 +131,30 @@ public class SocketSessionPool {
 		}
 	}
 	
-	public static void removeToken(String key) {
-		if (listValidToken.contains(key)) {
-			listValidToken.remove(key);
+	public static void removeToken(String token) {
+		if (listValidToken.contains(token)) {
+			listValidToken.remove(token);
 		}
-		if (mapTokenUserId.containsKey(key)) {
-			mapTokenUserId.remove(key);
+		if (mapTokenUserId.containsKey(token)) {
+			mapTokenUserId.remove(token);
 		}
 	}
 	
-	public static boolean isValidToken(String key) {
-		return listValidToken.contains(key);
+	public static boolean isValidToken(String token) {
+		return listValidToken.contains(token);
+	}
+	
+	public static boolean isExistToken(String enpoint, UserInfo userInfo) {
+		String token = getPlayerKey(enpoint, userInfo);
+		if (listValidToken.contains(token)) {
+			return true;
+		}
+		return false;
 	}
 	
 	public static String generateValidToken(String endpoint, UserInfo userInfo) {
 		String key = getPlayerKey(endpoint, userInfo);
+		log.info("Generate token for " + endpoint + ", token:" + key);
 		listValidToken.add(key);
 		mapTokenUserId.put(key, userInfo.getId());
 		return key;
@@ -154,6 +168,7 @@ public class SocketSessionPool {
 	public static String generateValidToken(String endpoint, String uuid) {
 		String base = endpoint + "-" + uuid;
 		String key = CommonMethod.getEncryptMD5(base);
+		log.info("Generate token for " + endpoint + ", token:" + key);
 		listValidToken.add(key);
 		return key;
 	}

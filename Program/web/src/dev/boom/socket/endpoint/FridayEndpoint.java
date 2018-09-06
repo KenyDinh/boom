@@ -11,10 +11,11 @@ import dev.boom.socket.FridaySocketSession;
 import dev.boom.socket.SocketSessionBase;
 import dev.boom.socket.SocketSessionPool;
 
-@ServerEndpoint(value = "/socket/friday")
+@ServerEndpoint(value = FridayEndpoint.SOCKET_PATH)
 public class FridayEndpoint extends EndPointBase{
 
 	public static final String ENDPOINT_NAME = FridayEndpoint.class.getSimpleName();
+	public static final String SOCKET_PATH = "/socket/friday";
 	private static final String VALIDATION_KEY = "friday_token";
 
 	@Override

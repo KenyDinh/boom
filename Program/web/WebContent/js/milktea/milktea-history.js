@@ -4,8 +4,8 @@ $j(document).ready(function() {
 		$j('table#order-history-table').DataTable( {
 	        responsive: true,
 	        "columnDefs": [
-	            { "type": "num-fmt", "targets": [1,2,5] },
-	            { "orderable": false, "targets": 3 }
+	            { "type": "num-fmt", "targets": [2,3,6] },
+	            { "orderable": false, "targets": 4 }
 	        ],
 	        "order": [[ 7, "desc" ]]
 	    });

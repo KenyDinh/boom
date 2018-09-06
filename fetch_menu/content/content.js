@@ -89,7 +89,8 @@ function fetchData() {
 						menu_item.add_size(option);
 						menu_item.limit_select.size_min = min_select;
 						menu_item.limit_select.size_max = max_select;
-					} else if (attribute_name.toLocaleLowerCase().includes('thêm') || attribute_name.toLocaleLowerCase().includes('khác')) {
+					} else if (attribute_name.toLocaleLowerCase().includes('thêm') || attribute_name.toLocaleLowerCase().includes('khác') || 
+							attribute_name.toLocaleLowerCase().includes('option') || attribute_name.toLocaleLowerCase().includes('chọn')) {
 						menu_item.add_addition(option);
 						menu_item.limit_select.addition_min = min_select;
 						menu_item.limit_select.addition_max = max_select;
