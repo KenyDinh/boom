@@ -57,6 +57,7 @@ CREATE TABLE menu_info(
 	shipping_fee INT UNSIGNED NOT NULL,
 	description TEXT NOT NULL,
 	`status` TINYINT NOT NULL,
+	show_flag INT NOT NULL,
 	created DATETIME NOT NULL,
 	expired DATETIME NOT NULL,
 	updated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
