@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>KTV Gala survey</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/solid.css" integrity="sha384-Rw5qeepMFvJVEZdSo1nDQD5B6wX0m7c5Z/pLNvjkB14W6Yki1hKbSEQaX9ffUbWe" crossorigin="anonymous">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/fontawesome.css" integrity="sha384-GVa9GOgVQgOk+TNYXu7S/InPTfSDTtBalSgkgqQ7sCik56N9ztlkoTr2f/T44oKV" crossorigin="anonymous">
+$!{headElements}
+</head>
+<body>
+	<div id="content" class="container">
+		#if (${valid_form})
+		<div style="margin-top:5rem;">
+			<form action="" method="post">
+				<div class="form-group text-center">
+			    <label for="email">Employee ID:</label>
+			    <input type="text" maxlength="6" minlength="6" class="form-control" id="user_code" name="user_code" style="text-align:center;max-width:30rem;margin:0 auto;">
+			  	</div>
+			  	<div class="text-center">
+			  		<button type="submit" class="btn btn-primary">Submit</button>
+			  	</div>
+			</form>
+		</div>
+		#else
+			#if (${survey})
+			
+			#else
+			
+			#end
+		#end
+	</div>
+	<script type="text/javascript">
+	//<![CDATA[
+	#if(${context})
+		var CONTEXT = '${context}';
+	#end
+	//]]>
+	</script>
+	$!{jsElements}
+</body>
+</html>
+

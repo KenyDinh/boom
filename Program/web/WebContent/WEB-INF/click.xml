@@ -28,6 +28,7 @@
   	<page classname="Home" path="home.htm"/>
   	<page classname="Game" path="game.htm"/>
   	<page classname="About" path="about.htm"/>
+  	<page classname="Survey" path="survey.htm"/>
   	<!-- Account -->
   	<page classname="account.Login" path="account/login.htm"/>
   	<page classname="account.Register" path="account/register.htm"/>
