@@ -29,6 +29,10 @@ public class HibernateSessionFactory {
 			"TblNihongoUserInfo",
 			"TblNihongoWordInfo",
 			//_/_/_/_/_/_/_/_/_/_/_/_//
+			"TblSurveyInfo",
+			"TblSurveyOptionInfo",
+			"TblSurveyResultInfo",
+			//_/_/_/_/_/_/_/_/_/_/_/_//
 	};
 
 	private static SessionFactory sessionFactory = buildSessionFactory();

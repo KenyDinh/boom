@@ -166,3 +166,16 @@ CREATE TABLE dish_rating_info (
 	updated TIMESTAMP NOT NULL,
 	INDEX(shop_id,`name`)
 ) ENGINE INNODB;
+
+DROP TABLE IF EXISTS survey_info;
+CREATE TABLE survey_info (
+	id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
+	name VARCHAR(255) NOT NULL,
+	status TINYINT NOT NULL,
+	description TEXT NOT NULL,
+	max_choice TINYINT NOT NULL,
+	created DATETIME NOT NULL,
+	expired DATETIME NOT NULL,
+	updated TIMESTAMP NOT NULL,
+	INDEX(status)
+) ENGINE INNODB;
