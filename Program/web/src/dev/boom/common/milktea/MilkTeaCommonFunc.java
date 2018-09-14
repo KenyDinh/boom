@@ -435,12 +435,12 @@ public class MilkTeaCommonFunc {
 						sb.append(order.getUsername()).append("</td>");
 					sb.append(tdStyle);
 					if (order.getSugar() != null && order.getSugar().length() > 0) {
-						sb.append(getStringOptionAmount(order.getSugar()) + "%");
+						sb.append(getStringOptionAmount(order.getSugar()));
 					}
 					sb.append("</td>");
 					sb.append(tdStyle);
 					if (order.getIce() != null && order.getIce().length() > 0) {
-						sb.append(getStringOptionAmount(order.getIce()) + "%");
+						sb.append(getStringOptionAmount(order.getIce()));
 					}
 					sb.append("</td>");
 					sb.append(tdStyle);
@@ -994,13 +994,16 @@ public class MilkTeaCommonFunc {
 	
 	public static String getStringOptionAmount(String option) {
 		if (option.matches("[^0-9]*([0-9]+).*")) {
-			return option.replaceAll("[^0-9]*([0-9]+).*", "$1");
+			return option.replaceAll("[^0-9]*([0-9]+).*", "$1") + "%";
 		}
 		return option;
 	}
 	
 	public static int calcOptionAmount(String option) {
 		String strAmount = getStringOptionAmount(option);
+		if (strAmount.length() > 0 && strAmount.charAt(strAmount.length() - 1) == '%') {
+			strAmount = strAmount.substring(0, strAmount.length() - 1);
+		}
 		if (CommonMethod.isValidNumeric(strAmount, 0, Integer.MAX_VALUE)) {
 			return Integer.parseInt(strAmount);
 		}

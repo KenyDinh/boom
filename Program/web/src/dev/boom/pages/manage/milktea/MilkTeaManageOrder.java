@@ -55,7 +55,7 @@ public class MilkTeaManageOrder extends ManagePageBase {
 		addModel("orderList", MilkTeaCommonFunc.getHtmlListOrder(orderList, menuInfo, userInfo, getHostURL() + getContextPath(), getMessages(), true));
 		String token = SocketSessionPool.generateValidToken(ManageMilkTeaEndPoint.ENDPOINT_NAME, userInfo);
 		String params = "?" + ManageMilkTeaEndPoint.VALIDATION_KEY + "=" + token;
-		addModel("socket_url", getSocketUrl(params));
+		addModel("socket_url", getSocketUrl(ManageMilkTeaEndPoint.SOCKET_PATH, params));
 	}
 
 	@Override

@@ -3,13 +3,11 @@ package dev.boom.pages.manage;
 import org.apache.click.Page;
 
 import dev.boom.common.enums.UserFlagEnum;
-import dev.boom.core.BoomProperties;
 import dev.boom.core.BoomSession;
 import dev.boom.core.GameLog;
 import dev.boom.pages.Home;
 import dev.boom.services.UserInfo;
 import dev.boom.services.UserService;
-import dev.boom.socket.endpoint.ManageMilkTeaEndPoint;
 
 public class ManagePageBase extends ManageTemplate {
 
@@ -66,14 +64,6 @@ public class ManagePageBase extends ManageTemplate {
 		sb.append("<a href=\"").append(getPagePath(clazz)).append("\">").append(getMessage(label)).append("</a>");
 		sb.append("</p>");
 		addModel("home", sb.toString());
-	}
-	
-	protected String getSocketUrl(String params) {
-		if (!params.startsWith("?")) {
-			params = "?" + params;
-		}
-		int port = getContext().getRequest().getServerPort();
-		return "ws://" + BoomProperties.SERVICE_HOSTNAME + (port == 80 ? "" : ":" + port) + getContextPath() + ManageMilkTeaEndPoint.SOCKET_PATH + params;
 	}
 	
 }
