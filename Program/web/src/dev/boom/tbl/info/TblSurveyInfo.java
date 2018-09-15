@@ -17,6 +17,7 @@ public class TblSurveyInfo extends DaoValueInfo implements IDaoValue {
 	private byte status;
 	private String description;
 	private byte max_choice;
+	private byte max_retry;
 	private Date created;
 	private Date expired;
 	private Date updated;
@@ -27,6 +28,7 @@ public class TblSurveyInfo extends DaoValueInfo implements IDaoValue {
 		this.status = 0;
 		this.description = "";
 		this.max_choice = 1;
+		this.max_retry = 0;
 		this.created = new Date();
 		this.expired = new Date(this.created.getTime() + CommonDefine.MILLION_SECOND_DAY);
 		this.updated = this.created;
@@ -71,6 +73,14 @@ public class TblSurveyInfo extends DaoValueInfo implements IDaoValue {
 
 	public void setMax_choice(byte max_choice) {
 		this.max_choice = max_choice;
+	}
+
+	public byte getMax_retry() {
+		return max_retry;
+	}
+
+	public void setMax_retry(byte max_retry) {
+		this.max_retry = max_retry;
 	}
 
 	public Date getCreated() {

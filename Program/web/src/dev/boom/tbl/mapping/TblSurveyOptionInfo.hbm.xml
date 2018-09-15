@@ -3,7 +3,7 @@
 "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping>
-	<class name="dev.boom.tbl.info.TblSurveyOptionInfo" table="servey_option_info" catalog="boom">
+	<class name="dev.boom.tbl.info.TblSurveyOptionInfo" table="survey_option_info" catalog="boom">
 		<id name="id" type="java.lang.Long">
 			<column name="id" />
 			<generator class="increment" />
@@ -18,10 +18,10 @@
 			<column name="content" not-null="true" />
 		</property>
 		<property name="image" type="java.lang.String">
-			<column name="image" not-null="true" />
+			<column name="image" length="255" not-null="true" />
 		</property>
 		<property name="video" type="java.lang.String">
-			<column name="video" not-null="true" />
+			<column name="video" length="255" not-null="true" />
 		</property>
 		<property name="ref_url" type="java.lang.String">
 			<column name="ref_url" length="255" not-null="true" />

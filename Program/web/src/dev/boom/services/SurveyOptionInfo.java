@@ -17,13 +17,13 @@ public class SurveyOptionInfo {
 	public TblSurveyOptionInfo getInfo() {
 		return info;
 	}
-	
+
 	public long getId() {
 		return this.info.getId();
 	}
 
 	public void setId(long id) {
-		this.info.setId(id);;
+		this.info.setId(id);
 	}
 
 	public long getSurveyId() {
@@ -31,7 +31,7 @@ public class SurveyOptionInfo {
 	}
 
 	public void setSurveyId(long survey_id) {
-		this.info.setSurvey_id(survey_id);;
+		this.info.setSurvey_id(survey_id);
 	}
 
 	public String getName() {
@@ -47,7 +47,7 @@ public class SurveyOptionInfo {
 	}
 
 	public void setContent(String content) {
-		this.info.setContent(content);;
+		this.info.setContent(content);
 	}
 
 	public String getImage() {
@@ -55,7 +55,7 @@ public class SurveyOptionInfo {
 	}
 
 	public void setImage(String image) {
-		this.info.setImage(image);;
+		this.info.setImage(image);
 	}
 
 	public String getVideo() {
@@ -73,5 +73,5 @@ public class SurveyOptionInfo {
 	public void setRefUrl(String ref_url) {
 		this.info.setRef_url(ref_url);
 	}
-	
+
 }

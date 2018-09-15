@@ -1,12 +1,25 @@
-DROP TABLE IF EXISTS survey_info;
-CREATE TABLE survey_info (
+ALTER TABLE survey_info ADD COLUMN max_retry TINYINT NOT NULL AFTER max_choice;
+
+DROP TABLE IF EXISTS survey_option_info;
+CREATE TABLE survey_option_info (
 	id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
+	survey_id INT UNSIGNED NOT NULL,
 	name VARCHAR(255) NOT NULL,
-	status TINYINT NOT NULL,
-	description TEXT NOT NULL,
-	max_choice TINYINT NOT NULL,
+	content TEXT NOT NULL,
+	image VARCHAR(255) NOT NULL,
+	video VARCHAR(255) NOT NULL,
+	ref_url VARCHAR(255) NOT NULL,
+	INDEX(survey_id)
+) ENGINE INNODB;
+
+DROP TABLE IF EXISTS survey_result_info;
+CREATE TABLE survey_result_info (
+	id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
+	survey_id INT UNSIGNED NOT NULL,
+	user VARCHAR(32) NOT NULL,
+	result TEXT NOT NULL,
+	retry_remain TINYINT NOT NULL,
 	created DATETIME NOT NULL,
-	expired DATETIME NOT NULL,
-	updated TIMESTAMP NOT NULL,
-	INDEX(status)
+	INDEX(user),
+	INDEX(survey_id)
 ) ENGINE INNODB;

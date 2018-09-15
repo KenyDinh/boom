@@ -972,7 +972,7 @@ public class MilkTeaCommonFunc {
 			sale = 100 - menuInfo.getSale();
 		}
 		long price = (order.getDishPrice() + order.getAttrPrice()) * Math.max(order.getQuantity(), 1);
-		if (menuInfo.getMaxDiscount() > 0 && ((totalMoney * sale) / 100) > menuInfo.getMaxDiscount()) {
+		if (menuInfo.getMaxDiscount() > 0 && ((totalMoney * menuInfo.getSale()) / 100) > menuInfo.getMaxDiscount()) {
 			double rate = ((double) price) / totalMoney;
 			price = price - (long) Math.floor(menuInfo.getMaxDiscount() * rate);
 		} else {

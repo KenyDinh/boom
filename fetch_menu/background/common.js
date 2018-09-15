@@ -13,7 +13,7 @@ var CommonMethod = {
 	},
 	getTabId : function(match, callback) {
 		if (typeof callback == 'function') {
-			chrome.tabs.query({currentWindow:true},function(tabs){
+			chrome.tabs.query({active:true,currentWindow:true},function(tabs){
 				if (CommonMethod.isValidData(tabs)) {
 					for (var i = 0; i < tabs.length; i++) {
 						if (tabs[i].url.includes(match)) {

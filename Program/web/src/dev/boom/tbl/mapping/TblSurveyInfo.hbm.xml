@@ -20,6 +20,9 @@
 		<property name="max_choice" type="java.lang.Byte">
 			<column name="max_choice" not-null="true" />
 		</property>
+		<property name="max_retry" type="java.lang.Byte">
+			<column name="max_retry" not-null="true" />
+		</property>
 		<property name="created" type="java.util.Date">
 			<column name="created" not-null="true" />
 		</property>

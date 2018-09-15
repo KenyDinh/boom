@@ -23,7 +23,7 @@ public class SurveyResultInfo {
 	public TblSurveyResultInfo getInfo() {
 		return info;
 	}
-	
+
 	public long getId() {
 		return this.info.getId();
 	}
@@ -51,7 +51,7 @@ public class SurveyResultInfo {
 	public String getResult() {
 		return this.info.getResult();
 	}
-	
+
 	public List<Integer> getResultList() {
 		List<Integer> ret = null;
 		String results = getResult();
@@ -73,7 +73,7 @@ public class SurveyResultInfo {
 	public void setResult(String result) {
 		this.info.setResult(result);
 	}
-	
+
 	public void setResultList(List<Integer> resuls) {
 		String ret = "";
 		if (resuls != null && !resuls.isEmpty()) {
@@ -85,7 +85,7 @@ public class SurveyResultInfo {
 			}
 		}
 	}
-	
+
 	public byte getRetryRemain() {
 		return this.info.getRetry_remain();
 	}
@@ -101,5 +101,5 @@ public class SurveyResultInfo {
 	public void setCreated(Date created) {
 		this.info.setCreated(created);
 	}
-	
+
 }
