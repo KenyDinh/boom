@@ -61,6 +61,9 @@ public class Survey extends PageBase {
 			}
 			return;
 		}
+		if (surveySession != null ) {
+			
+		}
 	}
 
 	@Override
@@ -87,7 +90,7 @@ public class Survey extends PageBase {
 		String str = "";
 		StringBuilder sb = new StringBuilder();
 		sb.append("<div class=\"row\">");
-		sb.append("<form method=\"get\">");
+		sb.append("<form method=\"post\">");
 		sb.append("<div class=\"form-group\">");
 		for (SurveyOptionInfo info : surveyOptionList) {
 //			sb.append("<div class=\"col\">");
@@ -95,7 +98,7 @@ public class Survey extends PageBase {
 			sb.append("<div class=\"col-md-3\">");
 			sb.append("<label class=\"btn btn-primary\">");
 			sb.append("<img src=\""+info.getImage()+"\" alt=\"...\" class=\"img-thumbnail img-check\">");
-			sb.append("<input type=\"checkbox\" name=\"chk1\" id=\"item4\" value=\"val1\" class=\"d-none\" autocomplete=\"off\">");
+			sb.append("<input type=\"checkbox\" name=\""+info.getName()+"\" id="+info.getId()+" value="+info.getId()+" class=\"d-none\" autocomplete=\"off\">");
 			sb.append("<span>"+info.getName()+"</span>");
 			sb.append("</label>");
 //			sb.append("</div>");
@@ -103,6 +106,9 @@ public class Survey extends PageBase {
 		}
 		sb.append("</div>");
 		sb.append("</form>");
+		sb.append("</div>");
+		sb.append("<div class=\"text-center\">");
+		sb.append("<button type=\"submit\" class=\"btn btn-primary\">Submit</button>");
 		sb.append("</div>");
 		str += sb.toString();
 		addModel("options", str);
