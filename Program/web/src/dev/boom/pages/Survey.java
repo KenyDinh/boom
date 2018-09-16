@@ -1,11 +1,17 @@
 package dev.boom.pages;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+
+import org.apache.click.element.CssImport;
+import org.apache.click.element.JsImport;
 
 import dev.boom.common.CommonDefine;
 import dev.boom.core.GameLog;
 import dev.boom.core.SurveySession;
 import dev.boom.services.SurveyInfo;
+import dev.boom.services.SurveyOptionInfo;
 import dev.boom.services.SurveyService;
 
 public class Survey extends PageBase {
@@ -68,7 +74,58 @@ public class Survey extends PageBase {
 			return;
 		}
 		addModel("survey", activeSurvey);
+		List<SurveyOptionInfo> surveyOptionList = new ArrayList<>();
+		surveyOptionList = SurveyService.getSurveyOptionList(activeSurvey.getId());
+		if (surveyOptionList == null) {
+			return;
+		}
+		renderOptions(surveyOptionList);
 		//List<SurveyResultInfo> surveyResult = SurveyService.getSurveyResultBySurveyId(activeSurvey)
 	}
 	
+	private void renderOptions(List<SurveyOptionInfo> surveyOptionList) {
+		String str = "";
+		StringBuilder sb = new StringBuilder();
+		sb.append("<div class=\"row\">");
+		sb.append("<form method=\"get\">");
+		sb.append("<div class=\"form-group\">");
+		for (SurveyOptionInfo info : surveyOptionList) {
+//			sb.append("<div class=\"col\">");
+//			sb.append("<div class=\"row\" style=\"display: flex;justify-content: center;align-items: center;height: 100%;\">");
+			sb.append("<div class=\"col-md-3\">");
+			sb.append("<label class=\"btn btn-primary\">");
+			sb.append("<img src=\""+info.getImage()+"\" alt=\"...\" class=\"img-thumbnail img-check\">");
+			sb.append("<input type=\"checkbox\" name=\"chk1\" id=\"item4\" value=\"val1\" class=\"d-none\" autocomplete=\"off\">");
+			sb.append("<span>"+info.getName()+"</span>");
+			sb.append("</label>");
+//			sb.append("</div>");
+			sb.append("</div>");
+		}
+		sb.append("</div>");
+		sb.append("</form>");
+		sb.append("</div>");
+		str += sb.toString();
+		addModel("options", str);
+	}
+	
+	private void renderResult() {
+		
+	}
+	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Override
+	public List getHeadElements() {
+		if (headElements == null) {
+			headElements = super.getHeadElements();
+		}
+		headElements.add(new CssImport("/css/vote/vote.css"));
+		headElements.add(new JsImport("/js/vote/vote.js"));
+
+		if (isDataTableFormat) {
+			initHeadElementsForTableData();
+		}
+		headElements.add(new JsImport("/js/socket.js"));
+		
+		return headElements;
+	}
 }
