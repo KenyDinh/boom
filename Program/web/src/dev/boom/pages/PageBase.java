@@ -195,7 +195,6 @@ public class PageBase extends Page {
 			headElements = super.getHeadElements();
 		}
 		headElements.add(new CssImport("/css/lib/bootstrap-darkly.min.css"));
-		headElements.add(new CssImport("/css/vote/vote.css"));
 		headElements.add(new JsImport("/js/lib/jquery-3.3.1.min.js"));
 		headElements.add(new JsImport("/js/lib/popper-1.14.0.min.js"));
 		headElements.add(new JsImport("/js/lib/bootstrap.min.js"));
