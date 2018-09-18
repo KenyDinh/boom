@@ -17,16 +17,19 @@ function sendVote() {
 			++count;
 		}
 		let maxChoice = parseInt($j('span#maxChoice').text());
-		if (count <= 0) {
-			$j('#error').text('Please choose at least 1 option!');
-			return;
-		}
 		if (count > maxChoice) {
-			$j('#error').text('You can only choose max 3 options!');
+			let opCount = "You can only choose max " + maxChoice + " options!";
+			$j('#error').text(opCount);
 			return;
 		}
 		$j('#options').val(options);
+		$j('#mode').val("voted");
 		$j('#vote_form').submit();
 		return;
 	}
+	$j('#error').text('Please choose at least 1 option!');
+}
+function sendRetry() {
+	$j('#mode').val("retry");
+	$j('#vote_form').submit();
 }

@@ -134,8 +134,24 @@ public class Survey extends PageBase {
 		if (surveyOptionList == null) {
 			return;
 		}
-		renderOptions(surveyOptionList);
-		//List<SurveyResultInfo> surveyResult = SurveyService.getSurveyResultBySurveyId(activeSurvey)
+		String strMode = getContext().getRequestParameter("mode");
+		List<SurveyResultInfo> surveyResultInfos = SurveyService.getSurveyResultBySurveyId(activeSurvey.getId());
+		if (surveyResultInfos == null) {
+			renderOptions(surveyOptionList);
+		} else {
+			String user = surveySession.getCode();
+			if (strMode == null || strMode.isEmpty()) {
+				if (SurveyService.isExistSurveyResult(user)) {
+					renderResult(surveyResultInfos, user);
+				} else {
+					renderOptions(surveyOptionList);
+				}
+			} else if (strMode.equals("voted")){
+				renderResult(surveyResultInfos, user);
+			} else if (strMode.equals("retry")) {
+				renderOptions(surveyOptionList);
+			}
+		}
 	}
 	
 	private void renderOptions(List<SurveyOptionInfo> surveyOptionList) {
@@ -163,8 +179,28 @@ public class Survey extends PageBase {
 		addModel("options", str);
 	}
 	
-	private void renderResult() {
-		
+	private void renderResult(List<SurveyResultInfo> resultInfos, String userID) {
+		if (resultInfos == null || resultInfos.isEmpty()) {
+			return;
+		}
+		String str = "";
+		StringBuilder sb = new StringBuilder();
+		sb.append("<div>");
+		sb.append("Result test");
+		sb.append("</div>");
+//		for (SurveyResultInfo info : resultInfos) {
+//			
+//		}
+		SurveyResultInfo resultInfo = SurveyService.getSurveyResultByUser(userID);
+		if (resultInfo != null) {
+			if (resultInfo.getRetryRemain() > 0 ) {
+				sb.append("<div class=\"text-center\">");
+				sb.append("<button type=\"submit\" onClick=\"sendRetry(); this.blur; return false;\" class=\"btn btn-success\">Retry</button>");
+				sb.append("</div>");
+			}
+		}
+		str += sb.toString();
+		addModel("options", str);
 	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
