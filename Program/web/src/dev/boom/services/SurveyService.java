@@ -60,21 +60,17 @@ public class SurveyService {
 		return ret;
 	}
 	
-	public static List<SurveyResultInfo> getSurveyResultByUser(String user) {
+	public static SurveyResultInfo getSurveyResultByUser(String user) {
 		TblSurveyResultInfo info = new TblSurveyResultInfo();
 		info.setUser(user);
 		
 		List<DaoValue> list = CommonDaoService.select(info);
-		if (list == null || list.isEmpty()) {
+		if (list == null || list.size() != 1) {
 			return null;
 		}
 		
-		List<SurveyResultInfo> ret = new ArrayList<>();
-		for (DaoValue dao : list) {
-			ret.add(new SurveyResultInfo((TblSurveyResultInfo) dao));
-		}
+		return new SurveyResultInfo((TblSurveyResultInfo) list.get(0));
 		
-		return ret;
 	}
 	
 	public static boolean isExistSurveyResult(String user) {

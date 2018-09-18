@@ -14,7 +14,7 @@ $!{headElements}
 		<div style="margin-top:5rem;">
 			<form action="" method="post">
 				<div class="form-group text-center">
-			    <label for="email">Employee ID:</label>
+			    <label for="user_code">Employee ID:</label>
 			    <input type="text" maxlength="6" minlength="6" class="form-control" id="user_code" name="user_code" style="text-align:center;max-width:30rem;margin:0 auto;">
 			  	</div>
 			  	<div class="text-center">
@@ -27,10 +27,16 @@ $!{headElements}
 			<h1 style="text-align:center;">KTV GALA SURVEY</h1>
 			<h2 style="text-align:center;">(Banner here)</h2>
 			${options}
-			#else
-			
+			<label class="text-danger" id="error"></label>
+			<form id="vote_form" action="survey.htm" method="post">
+				<input type="hidden" name="options" id="options"/>
+				<input type="hidden" name="mode" value="retry"/>
+			</form>
 			#end
 		#end
+	</div>
+	<div style="display:none;">
+	<span id="maxChoice">${survey.getMaxChoice()}</span>
 	</div>
 	<script type="text/javascript">
 	//<![CDATA[
@@ -40,6 +46,7 @@ $!{headElements}
 	//]]>
 	</script>
 	$!{jsElements}
+	
 </body>
 </html>
 
