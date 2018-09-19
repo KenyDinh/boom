@@ -23,7 +23,6 @@ function sendVote() {
 			return;
 		}
 		$j('#options').val(options);
-		$j('#mode').val("voted");
 		$j('#vote_form').submit();
 		return;
 	}

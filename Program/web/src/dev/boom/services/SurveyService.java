@@ -43,6 +43,24 @@ public class SurveyService {
 		return ret;
 	}
 	
+	public static List<SurveyOptionInfo> getSurveyOptionListWithResult(String result) {
+		TblSurveyOptionInfo info = new TblSurveyOptionInfo();
+		String option = "WHERE id IN(" + result + ")";
+		info.setSelectOption(option);
+		
+		List<DaoValue> list = CommonDaoService.select(info);
+		if (list == null || list.isEmpty()) {
+			return null;
+		}
+		
+		List<SurveyOptionInfo> ret = new ArrayList<>();
+		for (DaoValue dao : list) {
+			ret.add(new SurveyOptionInfo((TblSurveyOptionInfo) dao));
+		}
+		
+		return ret;
+	}
+	
 	public static List<SurveyResultInfo> getSurveyResultBySurveyId(long survey_id) {
 		TblSurveyResultInfo info = new TblSurveyResultInfo();
 		info.setSurvey_id(survey_id);

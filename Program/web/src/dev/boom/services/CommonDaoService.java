@@ -139,8 +139,7 @@ public class CommonDaoService {
 	 */
 	public static Object _Insert(DaoValue dao) {
 		Object ret = null;
-		Session session = HibernateSessionFactory.getSessionFactory().openSession();
-		GameLog.getInstance().info("Session open");
+		Session session = HibernateSessionFactory.openSession();
 		Transaction tx = null;
 		try {
 			tx = session.beginTransaction();
@@ -153,8 +152,7 @@ public class CommonDaoService {
 				tx.rollback();
 			}
 		} finally {
-			session.close();
-			GameLog.getInstance().info("Session close");
+			HibernateSessionFactory.closeSession(session);
 		}
 		return ret;
 	}
@@ -171,8 +169,7 @@ public class CommonDaoService {
 		if (updateClause.isEmpty()) {
 			return true;
 		}
-		Session session = HibernateSessionFactory.getSessionFactory().openSession();
-		GameLog.getInstance().info("Session open");
+		Session session = HibernateSessionFactory.openSession();
 		Transaction tx = null;
 		try {
 			tx = session.beginTransaction();
@@ -192,8 +189,7 @@ public class CommonDaoService {
 				tx.rollback();
 			}
 		} finally {
-			session.close();
-			GameLog.getInstance().info("Session close");
+			HibernateSessionFactory.closeSession(session);
 		}
 		return result;
 	}
@@ -201,8 +197,7 @@ public class CommonDaoService {
 	@SuppressWarnings("rawtypes")
 	public static List<DaoValue> _Select(DaoValue dao) {
 		List<DaoValue> ret = null;
-		Session session = HibernateSessionFactory.getSessionFactory().openSession();
-		GameLog.getInstance().info("Session open");
+		Session session = HibernateSessionFactory.openSession();
 		Transaction tx = null;
 		try {
 			tx = session.beginTransaction();
@@ -236,8 +231,7 @@ public class CommonDaoService {
 				tx.rollback();
 			}
 		} finally {
-			session.close();
-			GameLog.getInstance().info("Session close");
+			HibernateSessionFactory.closeSession(session);
 		}
 		return ret;
 	}
@@ -248,8 +242,7 @@ public class CommonDaoService {
 		if (deleteClause.isEmpty()) {
 			return false;
 		}
-		Session session = HibernateSessionFactory.getSessionFactory().openSession();
-		GameLog.getInstance().info("Session open");
+		Session session = HibernateSessionFactory.openSession();
 		Transaction tx = null;
 		try {
 			tx = session.beginTransaction();
@@ -268,8 +261,7 @@ public class CommonDaoService {
 				tx.rollback();
 			}
 		} finally {
-			session.close();
-			GameLog.getInstance().info("Session close");
+			HibernateSessionFactory.closeSession(session);
 		}
 		return result;
 	}
@@ -294,8 +286,7 @@ public class CommonDaoService {
 			}
 		}
 		String whereClause = dao.getUpdateWhereClause();
-		Session session = HibernateSessionFactory.getSessionFactory().openSession();
-		GameLog.getInstance().info("Session open");
+		Session session = HibernateSessionFactory.openSession();
 		Transaction tx = null;
 		try {
 			tx = session.beginTransaction();
@@ -311,8 +302,7 @@ public class CommonDaoService {
 				tx.rollback();
 			}
 		} finally {
-			session.close();
-			GameLog.getInstance().info("Session close");
+			HibernateSessionFactory.closeSession(session);
 		}
 		
 		return count;
@@ -335,8 +325,7 @@ public class CommonDaoService {
 			return count;
 		}
 		String whereClause = dao.getUpdateWhereClause();
-		Session session = HibernateSessionFactory.getSessionFactory().openSession();
-		GameLog.getInstance().info("Session open");
+		Session session = HibernateSessionFactory.openSession();
 		Transaction tx = null;
 		try {
 			tx = session.beginTransaction();
@@ -352,8 +341,7 @@ public class CommonDaoService {
 				tx.rollback();
 			}
 		} finally {
-			session.close();
-			GameLog.getInstance().info("Session close");
+			HibernateSessionFactory.closeSession(session);
 		}
 		
 		return count;
@@ -376,8 +364,7 @@ public class CommonDaoService {
 			return count;
 		}
 		String whereClause = dao.getUpdateWhereClause();
-		Session session = HibernateSessionFactory.getSessionFactory().openSession();
-		GameLog.getInstance().info("Session open");
+		Session session = HibernateSessionFactory.openSession();
 		Transaction tx = null;
 		try {
 			tx = session.beginTransaction();
@@ -393,8 +380,7 @@ public class CommonDaoService {
 				tx.rollback();
 			}
 		} finally {
-			session.close();
-			GameLog.getInstance().info("Session close");
+			HibernateSessionFactory.closeSession(session);
 		}
 		
 		return count;
@@ -403,8 +389,7 @@ public class CommonDaoService {
 	@SuppressWarnings("unchecked")
 	public static List<Object> executeQuery(String sqlQuery) {
 		List<Object> list = null;
-		Session session = HibernateSessionFactory.getSessionFactory().openSession();
-		GameLog.getInstance().info("Session open");
+		Session session = HibernateSessionFactory.openSession();
 		Transaction tx = null;
 		try {
 			tx = session.beginTransaction();
@@ -416,8 +401,7 @@ public class CommonDaoService {
 				tx.rollback();
 			}
 		} finally {
-			session.close();
-			GameLog.getInstance().info("Session close");
+			HibernateSessionFactory.closeSession(session);
 		}
 		
 		return list;
@@ -436,8 +420,7 @@ public class CommonDaoService {
 			}
 		}
 		String whereClause = dao.getUpdateWhereClause();
-		Session session = HibernateSessionFactory.getSessionFactory().openSession();
-		GameLog.getInstance().info("Session open");
+		Session session = HibernateSessionFactory.openSession();
 		Transaction tx = null;
 		try {
 			tx = session.beginTransaction();
@@ -450,16 +433,14 @@ public class CommonDaoService {
 				tx.rollback();
 			}
 		} finally {
-			session.close();
-			GameLog.getInstance().info("Session close");
+			HibernateSessionFactory.closeSession(session);
 		}
 		
 		return list;
 	}
 	
 	public static boolean _Transactions(List<DaoValue> list) {
-		Session session = HibernateSessionFactory.getSessionFactory().openSession();
-		GameLog.getInstance().info("Session open");
+		Session session = HibernateSessionFactory.openSession();
 		Transaction tx = null;
 		try {
 			GameLog.getInstance().info("Transaction Begin!");
@@ -509,8 +490,7 @@ public class CommonDaoService {
 				tx.rollback();
 			}
 		} finally {
-			session.close();
-			GameLog.getInstance().info("Session close");
+			HibernateSessionFactory.closeSession(session);
 		}
 		return false;
 	}

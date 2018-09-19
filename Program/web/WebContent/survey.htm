@@ -9,9 +9,19 @@
 $!{headElements}
 </head>
 <body>
-	<div id="content" class="container">
+	<div id="content" class="container" style="background-color:#333;">
+	<div class="row">
+		<div class="col-sm-12">
+			<img src="${context}/img/vote/Banner.png" style="max-width:100%;height: auto;display:block; margin:0 auto;"/>
+			
+			<img src="${context}/img/vote/KTVlogo.png" style="max-width:20%;height: auto;display:block;position:absolute;top:2%;right:3%"/>
+		</div>
+	</div>
+	<BR/>
+	<h1 class="deepshd" style="text-align:center;">KTV Voting System</h1>
+	<BR/>
 		#if (${valid_form})
-		<div style="margin-top:5rem;">
+		<div style="margin-top:1rem;">
 			<form action="" method="post">
 				<div class="form-group text-center">
 			    <label for="user_code">Employee ID:</label>
@@ -24,8 +34,6 @@ $!{headElements}
 		</div>
 		#else
 			#if (${survey})
-			<h1 style="text-align:center;">KTV GALA SURVEY</h1>
-			<h2 style="text-align:center;">(Banner here)</h2>
 			${options}
 			<label class="text-danger" id="error"></label>
 			<form id="vote_form" action="survey.htm" method="post">
@@ -47,6 +55,8 @@ $!{headElements}
 	</script>
 	$!{jsElements}
 	
+<footer>
+</footer>
 </body>
 </html>
 

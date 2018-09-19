@@ -15,7 +15,6 @@ import dev.boom.services.SurveyInfo;
 import dev.boom.services.SurveyOptionInfo;
 import dev.boom.services.SurveyResultInfo;
 import dev.boom.services.SurveyService;
-import dev.boom.tbl.info.TblSurveyResultInfo;
 
 public class Survey extends PageBase {
 
@@ -129,78 +128,66 @@ public class Survey extends PageBase {
 			return;
 		}
 		addModel("survey", activeSurvey);
+		Long surveyId = activeSurvey.getId();
 		List<SurveyOptionInfo> surveyOptionList = new ArrayList<>();
 		surveyOptionList = SurveyService.getSurveyOptionList(activeSurvey.getId());
 		if (surveyOptionList == null) {
 			return;
 		}
 		String strMode = getContext().getRequestParameter("mode");
-		List<SurveyResultInfo> surveyResultInfos = SurveyService.getSurveyResultBySurveyId(activeSurvey.getId());
-		if (surveyResultInfos == null) {
+		SurveyResultInfo resultInfo = SurveyService.getSurveyResultByUser(surveySession.getCode());
+		if (resultInfo == null) {
 			renderOptions(surveyOptionList);
 		} else {
-			String user = surveySession.getCode();
 			if (strMode == null || strMode.isEmpty()) {
-				if (SurveyService.isExistSurveyResult(user)) {
-					renderResult(surveyResultInfos, user);
-				} else {
-					renderOptions(surveyOptionList);
-				}
-			} else if (strMode.equals("voted")){
-				renderResult(surveyResultInfos, user);
+				renderResult(resultInfo, surveyId);
 			} else if (strMode.equals("retry")) {
 				renderOptions(surveyOptionList);
-			}
+			} 
 		}
 	}
 	
 	private void renderOptions(List<SurveyOptionInfo> surveyOptionList) {
-		String str = "";
 		StringBuilder sb = new StringBuilder();
-		sb.append("<div class=\"row\">");
 		sb.append("<form method=\"post\" name=\"optionForm\">");
 		sb.append("<div class=\"form-group\">");
+		sb.append("<div class=\"row\">");
 		for (SurveyOptionInfo info : surveyOptionList) {
-			sb.append("<div class=\"col-md-3\">");
+			sb.append("<div class=\"col-sm-4 col-lg-4\">");
 			sb.append("<label class=\"btn btn-primary\">");
 			sb.append("<img src=\""+info.getImage()+"\" alt=\"...\" class=\"img-thumbnail img-check\">");
 			sb.append("<input type=\"checkbox\" name=\"option\" id=\"option_"+info.getId()+"\" value="+info.getId()+" class=\"d-none\" autocomplete=\"off\">");
-			sb.append("<span>"+info.getName()+"</span>");
 			sb.append("</label>");
+			sb.append("<span>"+info.getName()+"</span>");
 			sb.append("</div>");
 		}
 		sb.append("</div>");
-		sb.append("</form>");
 		sb.append("</div>");
+		sb.append("</form>");
 		sb.append("<div class=\"text-center\">");
 		sb.append("<button type=\"submit\" onClick=\"sendVote(); this.blur; return false;\" class=\"btn btn-success\">Submit</button>");
 		sb.append("</div>");
-		str += sb.toString();
-		addModel("options", str);
+		addModel("options", sb.toString());
 	}
 	
-	private void renderResult(List<SurveyResultInfo> resultInfos, String userID) {
-		if (resultInfos == null || resultInfos.isEmpty()) {
+	private void renderResult(SurveyResultInfo resultInfo, Long surveyId) {
+		if (resultInfo == null) {
 			return;
 		}
-		String str = "";
+		String result = resultInfo.getResult();
+		List<SurveyOptionInfo> optionInfos = SurveyService.getSurveyOptionListWithResult(result);
 		StringBuilder sb = new StringBuilder();
 		sb.append("<div>");
-		sb.append("Result test");
-		sb.append("</div>");
-//		for (SurveyResultInfo info : resultInfos) {
-//			
-//		}
-		SurveyResultInfo resultInfo = SurveyService.getSurveyResultByUser(userID);
-		if (resultInfo != null) {
-			if (resultInfo.getRetryRemain() > 0 ) {
-				sb.append("<div class=\"text-center\">");
-				sb.append("<button type=\"submit\" onClick=\"sendRetry(); this.blur; return false;\" class=\"btn btn-success\">Retry</button>");
-				sb.append("</div>");
-			}
+		for (SurveyOptionInfo info : optionInfos) {
+//			sb.append("<div class=\"\">");
 		}
-		str += sb.toString();
-		addModel("options", str);
+		sb.append("</div>");
+		if (resultInfo.getRetryRemain() > 0 ) {
+			sb.append("<div class=\"text-center\">");
+			sb.append("<button type=\"submit\" onClick=\"sendRetry(); this.blur; return false;\" class=\"btn btn-success\">Retry</button>");
+			sb.append("</div>");
+		}
+		addModel("options", sb.toString());
 	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })

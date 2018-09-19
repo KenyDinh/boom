@@ -2,12 +2,14 @@ package dev.boom.connect;
 
 import java.util.Properties;
 
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.service.ServiceRegistry;
 
 import dev.boom.core.BoomProperties;
+import dev.boom.core.GameLog;
 
 public class HibernateSessionFactory {
 	
@@ -68,6 +70,25 @@ public class HibernateSessionFactory {
 	
 	public static SessionFactory getSessionFactory() {
 		return sessionFactory;
+	}
+	
+	public static Session openSession() {
+		GameLog.getInstance().debug("[HibernateSessionFactory] Session open!");
+		return getSessionFactory().openSession();
+	}
+	
+	public static void closeSession(Session session) {
+		if (session == null || !session.isOpen()) {
+			GameLog.getInstance().debug("[HibernateSessionFactory] Session is null or not open yet!");
+			return;
+		}
+		try {
+			session.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+			GameLog.getInstance().debug("[HibernateSessionFactory] Session closing error!");
+		}
+		GameLog.getInstance().debug("[HibernateSessionFactory] Session close!");
 	}
 	
 	public static void shutdown() {
