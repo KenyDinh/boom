@@ -14,6 +14,7 @@ import dev.boom.common.milktea.MilkTeaItemOptionType;
 import dev.boom.common.milktea.MilkTeaOrderFlag;
 import dev.boom.common.milktea.MilkTeaSocketMessage;
 import dev.boom.common.milktea.MilkTeaSocketType;
+import dev.boom.common.milktea.MilkteaMenuFlag;
 import dev.boom.core.GameLog;
 import dev.boom.dao.core.DaoValue;
 import dev.boom.milktea.object.MenuItem;
@@ -93,6 +94,7 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 				return;
 			}
 			if (!menuInfo.isAvailableForUser(getUserInfo())) {
+				GameLog.getInstance().error("[MilkTeaManageOrder] Menu is not available for user!");
 				error = true;
 				return;
 			}
@@ -195,14 +197,20 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 				}
 			}
 		}
-		MenuItemSelectionLimit limitSelectOption = null;
+		MenuItemSelectionLimit limitSelectOption = menuItem.getLimit_select();
 		if (limitSelectOption == null) {
+			GameLog.getInstance().warn("[MilkTeaManageOrder] No limit selection, use the default one!");
 			limitSelectOption = new MenuItemSelectionLimit();
 		}
 		OrderInfo orderInfo = new OrderInfo();
 		for (MilkTeaItemOptionType optionType : MilkTeaItemOptionType.values()) {
 			if (optionType == MilkTeaItemOptionType.NONE) {
 				continue;
+			}
+			if (optionType == MilkTeaItemOptionType.TOPPING || optionType == MilkTeaItemOptionType.ADDITION) {
+				if (menuInfo.isActiveFlag(MilkteaMenuFlag.IGNORE_VALIDATION)) {
+					continue;
+				}
 			}
 			int minselect = limitSelectOption.getMinSelect(optionType);
 			int maxselect = limitSelectOption.getMaxSelect(optionType);

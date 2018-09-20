@@ -4,6 +4,7 @@ import java.util.Date;
 
 import dev.boom.common.CommonDefine;
 import dev.boom.common.CommonMethod;
+import dev.boom.common.enums.UserFlagEnum;
 import dev.boom.common.milktea.MilkTeaMenuStatus;
 import dev.boom.common.milktea.MilkteaMenuFlag;
 import dev.boom.tbl.info.TblMenuInfo;
@@ -96,12 +97,12 @@ public class MenuInfo {
 		this.info.setStatus(status);
 	}
 
-	public int getShowFlag() {
-		return this.info.getShow_flag();
+	public int getFlag() {
+		return this.info.getFlag();
 	}
 
-	public void setShowFlag(int show_flag) {
-		this.info.setShow_flag(show_flag);
+	public void setFlag(int flag) {
+		this.info.setFlag(flag);
 	}
 	
 	public Date getCreated() {
@@ -156,19 +157,19 @@ public class MenuInfo {
 		return (this.info.getStatus() == MilkTeaMenuStatus.CANCELED.ordinal());
 	}
 	
-	public void addShowFlag(MilkteaMenuFlag mmf) {
+	public void addFlag(MilkteaMenuFlag mmf) {
 		if (mmf == MilkteaMenuFlag.INVALID) {
 			return;
 		}
-		int newFlag = getShowFlag() | mmf.getFlag();
-		setShowFlag(newFlag);
+		int newFlag = getFlag() | mmf.getFlag();
+		setFlag(newFlag);
 	}
 	
-	public boolean isActiveShowFlag(MilkteaMenuFlag mmf) {
+	public boolean isActiveFlag(MilkteaMenuFlag mmf) {
 		if (mmf == MilkteaMenuFlag.INVALID) {
 			return false;
 		}
-		return mmf.isValid(getShowFlag());
+		return mmf.isValidFlag(getFlag());
 	}
 	
 	public boolean isAvailableForUser(UserInfo userInfo) {
@@ -182,7 +183,10 @@ public class MenuInfo {
 			if (mmf == MilkteaMenuFlag.INVALID) {
 				continue;
 			}
-			if (!mmf.isValid(getShowFlag())) {
+			if (mmf.getUserFlag() == UserFlagEnum.INVALID) {
+				continue;
+			}
+			if (!mmf.isValidFlag(getFlag())) {
 				return false;
 			}
 		}

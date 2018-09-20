@@ -60,7 +60,10 @@ public class UserInfo {
 			if (mmf == MilkteaMenuFlag.INVALID) {
 				continue;
 			}
-			if (mmf.isValid(menuInfo.getShowFlag()) && mmf.isValidUserFlag(getFlag())) {
+			if (mmf.getUserFlag() == UserFlagEnum.INVALID) {
+				continue;
+			}
+			if (mmf.isValidFlag(menuInfo.getFlag()) && mmf.isValidUserFlag(getFlag())) {
 				return true;
 			}
 		}

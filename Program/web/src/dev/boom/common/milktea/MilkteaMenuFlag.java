@@ -8,6 +8,7 @@ public enum MilkteaMenuFlag {
 	DEV_SHOW(0x00001,UserFlagEnum.DEV_DP,"MSG_MILK_TEA_MENU_SHOW_DEV","DEV"),
 	QA_SHOW(0x00002,UserFlagEnum.QA_DP,"MSG_MILK_TEA_MENU_SHOW_QA","QA"),
 	CG_SHOW(0x00004,UserFlagEnum.CG_DP,"MSG_MILK_TEA_MENU_SHOW_CG","CG"),
+	IGNORE_VALIDATION(0x00008,UserFlagEnum.INVALID,"MSG_MILK_TEA_MENU_IGNORE_VALIDATION","No Validate"),
 	;
 	
 	private int flag;
@@ -26,6 +27,10 @@ public enum MilkteaMenuFlag {
 		return flag;
 	}
 	
+	public UserFlagEnum getUserFlag() {
+		return userFlag;
+	}
+	
 	public String getLabel() {
 		return label;
 	}
@@ -34,7 +39,7 @@ public enum MilkteaMenuFlag {
 		return name;
 	}
 	
-	public boolean isValid(int flag) {
+	public boolean isValidFlag(int flag) {
 		return (this.flag & flag) > 0;
 	}
 	
@@ -51,10 +56,13 @@ public enum MilkteaMenuFlag {
 		return MilkteaMenuFlag.INVALID;
 	}
 	
-	public static int combineAllFlag() {
+	public static int combineShowFlag() {
 		int ret = 0;
 		for (MilkteaMenuFlag mmf : MilkteaMenuFlag.values()) {
 			if (mmf == MilkteaMenuFlag.INVALID) {
+				continue;
+			}
+			if (mmf.getUserFlag() == UserFlagEnum.INVALID) {
 				continue;
 			}
 			ret |= mmf.getFlag();

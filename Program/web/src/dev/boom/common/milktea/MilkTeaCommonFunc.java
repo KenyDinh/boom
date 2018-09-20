@@ -165,15 +165,15 @@ public class MilkTeaCommonFunc {
 							sb.append("</div>");
 							sb.append("<div style=\"max-height:19.375rem;min-height:1.875rem;;overflow:auto;overflow-x:hidden;\">");
 							// -------------------- //
-							sb.append(getGroupInputFormItemOption(item, MilkTeaItemOptionType.SIZE, item.getList_size(), messages));
+							sb.append(getGroupInputFormItemOption(menuInfo, item, MilkTeaItemOptionType.SIZE, item.getList_size(), messages));
 							// -------------------- //
-							sb.append(getGroupInputFormItemOption(item, MilkTeaItemOptionType.ICE, item.getList_ice(), messages));
+							sb.append(getGroupInputFormItemOption(menuInfo, item, MilkTeaItemOptionType.ICE, item.getList_ice(), messages));
 							// -------------------- //
-							sb.append(getGroupInputFormItemOption(item, MilkTeaItemOptionType.SUGAR, item.getList_sugar(), messages));
+							sb.append(getGroupInputFormItemOption(menuInfo, item, MilkTeaItemOptionType.SUGAR, item.getList_sugar(), messages));
 							// -------------------- //
-							sb.append(getGroupInputFormItemOption(item, MilkTeaItemOptionType.TOPPING, item.getList_topping(), messages));
+							sb.append(getGroupInputFormItemOption(menuInfo, item, MilkTeaItemOptionType.TOPPING, item.getList_topping(), messages));
 							// -------------------- //
-							sb.append(getGroupInputFormItemOption(item, MilkTeaItemOptionType.ADDITION, item.getList_addition(), messages));
+							sb.append(getGroupInputFormItemOption(menuInfo, item, MilkTeaItemOptionType.ADDITION, item.getList_addition(), messages));
 							// -------------------- //
 							sb.append("</div>");
 							sb.append("<div class=\"form-group\">");
@@ -195,7 +195,7 @@ public class MilkTeaCommonFunc {
 	}
 	
 	@SuppressWarnings("rawtypes")
-	private static String getGroupInputFormItemOption(MenuItem item, MilkTeaItemOptionType optionType, MenuItemOption[] listItemOption, Map messages) {
+	private static String getGroupInputFormItemOption(MenuInfo menuInfo, MenuItem item, MilkTeaItemOptionType optionType, MenuItemOption[] listItemOption, Map messages) {
 		if (listItemOption == null || listItemOption.length == 0) {
 			return "";
 		}
@@ -240,20 +240,24 @@ public class MilkTeaCommonFunc {
 			inputName = "topping";
 			label = "MSG_MILK_TEA_OPTION_TOPPING";
 			inputType = "checkbox";
-			minSelect = limit.getTopping_min();
-			maxSelect = limit.getTopping_max();
-			if (minSelect == maxSelect && minSelect == 1) {
-				inputType = "radio";
+			if (!menuInfo.isActiveFlag(MilkteaMenuFlag.IGNORE_VALIDATION)) {
+				minSelect = limit.getTopping_min();
+				maxSelect = limit.getTopping_max();
+				if (minSelect == maxSelect && minSelect == 1) {
+					inputType = "radio";
+				}
 			}
 			break;
 		case ADDITION:
 			inputName = "addition";
 			label = "MSG_MILK_TEA_OPTION_ADDITION";
 			inputType = "checkbox";
-			minSelect = limit.getAddition_min();
-			maxSelect = limit.getAddition_max();
-			if (minSelect == maxSelect && minSelect == 1) {
-				inputType = "radio";
+			if (!menuInfo.isActiveFlag(MilkteaMenuFlag.IGNORE_VALIDATION)) {
+				minSelect = limit.getAddition_min();
+				maxSelect = limit.getAddition_max();
+				if (minSelect == maxSelect && minSelect == 1) {
+					inputType = "radio";
+				}
 			}
 			break;
 		default:
@@ -596,13 +600,16 @@ public class MilkTeaCommonFunc {
 		String options = null;
 		int validFalg = 0;
 		if (userInfo == null) {
-			validFalg = MilkteaMenuFlag.combineAllFlag();
+			validFalg = MilkteaMenuFlag.combineShowFlag();
 			if (validFalg > 0) {
-				options = "show_flag & " + validFalg + " = " + validFalg;
+				options = "flag & " + validFalg + " = " + validFalg;
 			}
 		} else if (!UserFlagEnum.ADMINISTRATOR.isValid(userInfo.getFlag())){
 			for (MilkteaMenuFlag mmf : MilkteaMenuFlag.values()) {
 				if (mmf == MilkteaMenuFlag.INVALID) {
+					continue;
+				}
+				if (mmf.getUserFlag() == UserFlagEnum.INVALID) {
 					continue;
 				}
 				if (mmf.isValidUserFlag(userInfo.getFlag())) {
@@ -610,7 +617,7 @@ public class MilkTeaCommonFunc {
 				}
 			}
 			if (validFalg > 0) {
-				options = "show_flag & " + validFalg + " > 0 ";
+				options = "flag & " + validFalg + " > 0 ";
 			}
 		}
 		List<MenuInfo> menuList = MenuService.getMenuListByStatusList(statusList, options);

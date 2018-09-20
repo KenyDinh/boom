@@ -21,7 +21,7 @@ public class TblMenuInfo extends DaoValueInfo implements IDaoValue {
 	private long shipping_fee;
 	private String description;
 	private byte status;
-	private int show_flag;
+	private int flag;
 	private Date created;
 	private Date expired;
 	private Date updated;
@@ -36,7 +36,7 @@ public class TblMenuInfo extends DaoValueInfo implements IDaoValue {
 		this.shipping_fee = 0;
 		this.description = "";
 		this.status = 0;
-		this.show_flag = 0;
+		this.flag = 0;
 		this.created = new Date();
 		this.expired = new Date(this.created.getTime() + CommonDefine.MILLION_SECOND_DAY);
 		this.updated = this.created;
@@ -115,12 +115,12 @@ public class TblMenuInfo extends DaoValueInfo implements IDaoValue {
 		this.status = status;
 	}
 
-	public int getShow_flag() {
-		return show_flag;
+	public int getFlag() {
+		return flag;
 	}
 
-	public void setShow_flag(int show_flag) {
-		this.show_flag = show_flag;
+	public void setFlag(int flag) {
+		this.flag = flag;
 	}
 
 	public Date getCreated() {

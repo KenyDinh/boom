@@ -134,7 +134,7 @@ public class MilkTeaManageMenu extends ManagePageBase {
 						update = true;
 					}
 				}
-				menuInfo.setShowFlag(0);
+				menuInfo.setFlag(0);
 				update = true;
 				String[] showFlags = getContext().getRequestParameterValues("show_flag");
 				if (showFlags != null && showFlags.length > 0) {
@@ -144,7 +144,7 @@ public class MilkTeaManageMenu extends ManagePageBase {
 							if (mmf == MilkteaMenuFlag.INVALID) {
 								continue;
 							}
-							menuInfo.addShowFlag(mmf);
+							menuInfo.addFlag(mmf);
 						}
 					}
 				}
@@ -198,7 +198,7 @@ public class MilkTeaManageMenu extends ManagePageBase {
 						continue;
 					}
 					display.append("<div class=\"custom-control custom-checkbox\">");
-					display.append("<input type=\"checkbox\" class=\"custom-control-input\" name=\"show_flag\" id=\"show-flag-" + mmf.ordinal() + "\" value=\"" + mmf.getFlag() + "\" " + (menuInfo.isActiveShowFlag(mmf) ? "checked" : "") + "/>");
+					display.append("<input type=\"checkbox\" class=\"custom-control-input\" name=\"show_flag\" id=\"show-flag-" + mmf.ordinal() + "\" value=\"" + mmf.getFlag() + "\" " + (menuInfo.isActiveFlag(mmf) ? "checked" : "") + "/>");
 					display.append("<label class=\"custom-control-label\" for=\"show-flag-" + mmf.ordinal() + "\">").append(getMessage(mmf.getLabel())).append("</label>");
 					display.append("</div>");
 				}
@@ -255,7 +255,7 @@ public class MilkTeaManageMenu extends ManagePageBase {
 						if (mmf == MilkteaMenuFlag.INVALID) {
 							continue;
 						}
-						if (mmf.isValid(menu.getShowFlag())) {
+						if (mmf.isValidFlag(menu.getFlag())) {
 							if (show.length() > 0) {
 								show += ",";
 							}
