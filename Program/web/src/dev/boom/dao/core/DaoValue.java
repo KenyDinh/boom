@@ -2,6 +2,7 @@ package dev.boom.dao.core;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -30,7 +31,7 @@ public abstract class DaoValue implements Cloneable, Serializable {
 
 	@Transient
 	protected List<String> selectedFields;
-
+	
 	// ------------------------------------------------------- //
 
 	public final void Sync() {
@@ -76,28 +77,23 @@ public abstract class DaoValue implements Cloneable, Serializable {
 	}
 
 	public final DaoValue getOriginal() {
+		if (original == null) {
+			throw new NullPointerException("Object is not sync yet!");
+		}
 		return original;
-	}
-
-	public String getRealTableName() {
-		return getTableName();
-	}
-	
-	public String getTableKey() {
-		return getPrimaryKey();
 	}
 
 	// ------------------------------------------------------- //
 
-	protected List<String> getSubKey() {
+	public List<String> getSubKey() {
 		return null;
 	}
 
-	protected String getPrimaryKey() {
+	public String getPrimaryKey() {
 		return null;
 	}
 
-	protected String getTableName() {
+	public String getTableName() {
 		return null;
 	}
 	
@@ -166,7 +162,8 @@ public abstract class DaoValue implements Cloneable, Serializable {
 		Field[] allFields = this.getClass().getDeclaredFields();
 		for (Field field : allFields) {
 			field.setAccessible(true);
-			if (field.getName().equals("TABLE_NAME") || field.getName().equals("PRIMARY_KEY") || field.getName().equals("serialVersionUID")) {
+			int mod = field.getModifiers();
+			if (Modifier.isStatic(mod) && Modifier.isFinal(mod)) {
 				continue;
 			}
 			ret.add(field);

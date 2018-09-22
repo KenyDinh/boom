@@ -2,9 +2,9 @@ package dev.boom.tbl.info;
 
 import java.util.List;
 
-import dev.boom.dao.core.IDaoValue;
+import dev.boom.dao.core.DaoValueInfo;
 
-public class TblSurveyOptionInfo extends DaoValueInfo implements IDaoValue {
+public class TblSurveyOptionInfo extends DaoValueInfo {
 
 	private static final long serialVersionUID = 1L;
 	private static final String TABLE_NAME = "survey_option_info";

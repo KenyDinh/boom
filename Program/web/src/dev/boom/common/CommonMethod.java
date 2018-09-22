@@ -6,6 +6,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class CommonMethod {
+	
+	private CommonMethod() {
+	}
 
 	public static String getEncryptMD5(String text) {
 		MessageDigest md;

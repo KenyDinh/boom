@@ -1,7 +1,10 @@
 package dev.boom.services;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -14,9 +17,18 @@ import dev.boom.connect.HibernateSessionFactory;
 import dev.boom.connect.MySQLDialect;
 import dev.boom.core.GameLog;
 import dev.boom.dao.core.DaoValue;
+import dev.boom.dao.core.DaoValueData;
 import dev.boom.dao.core.IDaoFactory;
+import dev.boom.dao.fix.FixData;
+import dev.boom.dao.fix.FixDataBase;
 
 public class CommonDaoService {
+
+	private static Map<String, IDaoFactory> daoData = new LinkedHashMap<>();
+	private static Object _lock = new Object();
+
+	private CommonDaoService() {
+	}
 
 	public static Object insert(DaoValue dao) {
 		try {
@@ -85,7 +97,7 @@ public class CommonDaoService {
 		}
 		return null;
 	}
-	
+
 	public static long count(DaoValue dao) {
 		try {
 			IDaoFactory factory = getDaoFactory(dao);
@@ -99,7 +111,7 @@ public class CommonDaoService {
 		}
 		return 0;
 	}
-	
+
 	public static long max(DaoValue dao) {
 		try {
 			IDaoFactory factory = getDaoFactory(dao);
@@ -113,7 +125,7 @@ public class CommonDaoService {
 		}
 		return 0;
 	}
-	
+
 	public static long min(DaoValue dao) {
 		try {
 			IDaoFactory factory = getDaoFactory(dao);
@@ -127,13 +139,9 @@ public class CommonDaoService {
 		}
 		return 0;
 	}
-	
+
 	// ---------------------------------------------------------------------------- //
-	// ---------------------------------------------------------------------------- //
-	// ---------------------------------------------------------------------------- //
-	// ---------------------------------------------------------------------------- //
-	// ---------------------------------------------------------------------------- //
-	
+
 	/*
 	 * 
 	 */
@@ -173,7 +181,7 @@ public class CommonDaoService {
 		Transaction tx = null;
 		try {
 			tx = session.beginTransaction();
-			GameLog.getInstance().info(String.format("UPDATE %s %s", dao.getRealTableName(), updateClause));
+			GameLog.getInstance().info(String.format("UPDATE %s %s", dao.getTableName(), updateClause));
 			int ret = session.createQuery(String.format("UPDATE %s %s", dao.getClass().getSimpleName(), updateClause)).executeUpdate();
 			if (ret <= 0) {
 				tx.rollback();
@@ -214,7 +222,7 @@ public class CommonDaoService {
 				option += " OFFSET " + dao.getOffset();
 				query.setFirstResult(dao.getOffset());
 			}
-			GameLog.getInstance().info(String.format("SELECT * FROM %s", (dao.getRealTableName() + whereClause + option)));
+			GameLog.getInstance().info(String.format("SELECT * FROM %s", (dao.getTableName() + whereClause + option)));
 			List list = query.list();
 			tx.commit();
 			if (list != null && !list.isEmpty()) {
@@ -246,7 +254,7 @@ public class CommonDaoService {
 		Transaction tx = null;
 		try {
 			tx = session.beginTransaction();
-			GameLog.getInstance().info(String.format("DELETE FROM %s", dao.getRealTableName() + deleteClause));
+			GameLog.getInstance().info(String.format("DELETE FROM %s", dao.getTableName() + deleteClause));
 			int ret = session.createQuery(String.format("DELETE FROM %s", dao.getClass().getSimpleName() + deleteClause)).executeUpdate();
 			if (ret <= 0) {
 				tx.rollback();
@@ -265,7 +273,7 @@ public class CommonDaoService {
 		}
 		return result;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public static long _Count(DaoValue dao) {
 		long count = 0;
@@ -280,7 +288,7 @@ public class CommonDaoService {
 			}
 		}
 		if (sf.isEmpty()) {
-			sf = dao.getTableKey();
+			sf = dao.getPrimaryKey();
 			if (sf.isEmpty()) {
 				sf = "*";
 			}
@@ -290,7 +298,7 @@ public class CommonDaoService {
 		Transaction tx = null;
 		try {
 			tx = session.beginTransaction();
-			GameLog.getInstance().info(String.format("SELECT COUNT(%s) FROM %s", sf, (dao.getRealTableName() + whereClause)));
+			GameLog.getInstance().info(String.format("SELECT COUNT(%s) FROM %s", sf, (dao.getTableName() + whereClause)));
 			String sql = "SELECT COUNT(" + sf + ") FROM " + dao.getClass().getSimpleName() + dao.getUpdateWhereClause();
 			List<Long> list = session.createQuery(sql).list();
 			if (list != null && list.size() > 0) {
@@ -304,10 +312,10 @@ public class CommonDaoService {
 		} finally {
 			HibernateSessionFactory.closeSession(session);
 		}
-		
+
 		return count;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public static long _Max(DaoValue dao) {
 		long count = 0;
@@ -329,7 +337,7 @@ public class CommonDaoService {
 		Transaction tx = null;
 		try {
 			tx = session.beginTransaction();
-			GameLog.getInstance().info(String.format("SELECT MAX(%s) FROM %s", sf, (dao.getRealTableName() + whereClause)));
+			GameLog.getInstance().info(String.format("SELECT MAX(%s) FROM %s", sf, (dao.getTableName() + whereClause)));
 			String sql = "SELECT MAX(" + sf + ") FROM " + dao.getClass().getSimpleName() + dao.getUpdateWhereClause();
 			List<Long> list = session.createQuery(sql).list();
 			if (list != null && list.size() > 0) {
@@ -343,10 +351,10 @@ public class CommonDaoService {
 		} finally {
 			HibernateSessionFactory.closeSession(session);
 		}
-		
+
 		return count;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public static long _Min(DaoValue dao) {
 		long count = 0;
@@ -368,7 +376,7 @@ public class CommonDaoService {
 		Transaction tx = null;
 		try {
 			tx = session.beginTransaction();
-			GameLog.getInstance().info(String.format("SELECT MIN(%s) FROM %s", sf, (dao.getRealTableName() + whereClause)));
+			GameLog.getInstance().info(String.format("SELECT MIN(%s) FROM %s", sf, (dao.getTableName() + whereClause)));
 			String sql = "SELECT MIN(" + sf + ") FROM " + dao.getClass().getSimpleName() + dao.getUpdateWhereClause();
 			List<Long> list = session.createQuery(sql).list();
 			if (list != null && list.size() > 0) {
@@ -382,9 +390,47 @@ public class CommonDaoService {
 		} finally {
 			HibernateSessionFactory.closeSession(session);
 		}
-		
+
 		return count;
 	}
+
+	// ---------------------------------------------------------------------------- //
+	
+	public static List<DaoValue> _SelectFix(DaoValue dao) {
+		FixData fixData = (FixData) FixDataBase.getInstance(dao.getClass().getSimpleName().substring(3));
+		Map<Integer, DaoValue> mapData = fixData.getData();
+		try {
+			List<Field> fieldList = dao.getFieldList();
+			List<DaoValue> ret = new ArrayList<>();
+			for (Integer key : mapData.keySet()) {
+				DaoValue daoValue = mapData.get(key);
+				boolean valid = true;
+				for (Field field : fieldList) {
+					field.setAccessible(true);
+					Object o1 = field.get(dao.getOriginal());
+					Object o2 = field.get(dao);
+					
+					if (o1.equals(o2)) {
+						continue;
+					}
+					if (!field.get(daoValue).equals(o2)) {
+						valid = false;
+						break;
+					}
+				}
+				if (valid) {
+					ret.add(daoValue);
+				}
+			}
+			return ret;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+	
+	// ---------------------------------------------------------------------------- //
 	
 	@SuppressWarnings("unchecked")
 	public static List<Object> executeQuery(String sqlQuery) {
@@ -403,10 +449,10 @@ public class CommonDaoService {
 		} finally {
 			HibernateSessionFactory.closeSession(session);
 		}
-		
+
 		return list;
 	}
-	
+
 	@SuppressWarnings({ "unchecked", "unused" })
 	private static List<Object> selectWithFields(DaoValue dao) {
 		List<Object> list = null;
@@ -424,7 +470,7 @@ public class CommonDaoService {
 		Transaction tx = null;
 		try {
 			tx = session.beginTransaction();
-			GameLog.getInstance().info(String.format("SELECT %s FROM %s", sf, (dao.getRealTableName() + whereClause)));
+			GameLog.getInstance().info(String.format("SELECT %s FROM %s", sf, (dao.getTableName() + whereClause)));
 			String sql = "SELECT " + sf + " FROM " + dao.getClass().getSimpleName() + dao.getUpdateWhereClause();
 			list = session.createQuery(correctBitwiseOperation(sql)).list();
 		} catch (Exception e) {
@@ -435,10 +481,10 @@ public class CommonDaoService {
 		} finally {
 			HibernateSessionFactory.closeSession(session);
 		}
-		
+
 		return list;
 	}
-	
+
 	public static boolean _Transactions(List<DaoValue> list) {
 		Session session = HibernateSessionFactory.openSession();
 		Transaction tx = null;
@@ -461,7 +507,7 @@ public class CommonDaoService {
 						continue;
 					}
 					String query = String.format("DELETE FROM %s", dao.getClass().getSimpleName() + del);
-					GameLog.getInstance().info(String.format("DELETE FROM %s", dao.getRealTableName() + del));
+					GameLog.getInstance().info(String.format("DELETE FROM %s", dao.getTableName() + del));
 					ret = session.createQuery(query).executeUpdate();
 				} else {
 					String upd = dao.getUpdateClause();
@@ -469,7 +515,7 @@ public class CommonDaoService {
 						continue;
 					}
 					String query = String.format("UPDATE %s %s", dao.getClass().getSimpleName(), upd);
-					GameLog.getInstance().info(String.format("UPDATE %s %s", dao.getRealTableName(), upd));
+					GameLog.getInstance().info(String.format("UPDATE %s %s", dao.getTableName(), upd));
 					ret = session.createQuery(query).executeUpdate();
 				}
 				if (ret <= 0) {
@@ -500,7 +546,7 @@ public class CommonDaoService {
 		String reg = "(FROM|from|JOIN|join|UPDATE|update)\\s\\w+";
 		Pattern pattern = Pattern.compile(reg);
 		Matcher matcher = pattern.matcher(sql);
-		while(matcher.find()) {
+		while (matcher.find()) {
 			String tbl_name = matcher.group().replaceAll("(FROM|from|JOIN|join|UPDATE|update)\\s", "");
 			String info_name = "";
 			if (tbl_name.indexOf("_") > 0) {
@@ -514,28 +560,37 @@ public class CommonDaoService {
 		}
 		return correctBitwiseOperation(hql);
 	}
-	
+
 	private static String correctBitwiseOperation(String sql) {
 		if (sql.indexOf("&") <= 0) {
 			return sql;
 		}
 		return sql.replaceAll("(?<=\\W)(\\w+)\\s*&\\s*(\\w+)(?=(\\W|$))", MySQLDialect.BITWISE_FUNCTION_AND + "($1,$2)");
 	}
-	
+
 	private static IDaoFactory getDaoFactory(DaoValue dao) {
-		String className = "dev.boom.dao.info.Dao" + dao.getClass().getSimpleName().substring(3);
-		try {
-			Class<? extends Object> clazz = Class.forName(className);
-			IDaoFactory o = (IDaoFactory) clazz.newInstance();
-			return o;
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		} catch (InstantiationException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
+		if (dao instanceof DaoValueData) {
+			return (IDaoFactory) FixDataBase.getInstance(dao.getClass().getSimpleName().substring(3));
 		}
-		return null;
+		synchronized (_lock) {
+			String strName = dao.getClass().getSimpleName();
+			IDaoFactory daoFactory = daoData.get(strName);
+			if (daoFactory == null) {
+				String className = "dev.boom.dao.info.Dao" + strName.substring(3);
+				try {
+					Class<? extends Object> clazz = Class.forName(className);
+					daoFactory = (IDaoFactory) clazz.newInstance();
+					daoData.put(strName, daoFactory);
+				} catch (ClassNotFoundException e) {
+					e.printStackTrace();
+				} catch (InstantiationException e) {
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					e.printStackTrace();
+				}
+			}
+			return daoFactory;
+		}
 	}
 
 }

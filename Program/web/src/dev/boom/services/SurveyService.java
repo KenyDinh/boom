@@ -5,6 +5,7 @@ import java.util.List;
 
 import dev.boom.core.GameLog;
 import dev.boom.dao.core.DaoValue;
+import dev.boom.tbl.data.TblSurveyValidCodeData;
 import dev.boom.tbl.info.TblSurveyInfo;
 import dev.boom.tbl.info.TblSurveyOptionInfo;
 import dev.boom.tbl.info.TblSurveyResultInfo;
@@ -101,6 +102,12 @@ public class SurveyService {
 	}
 	
 	public static boolean isValidUserCode(String userCode) {
+		TblSurveyValidCodeData infoData = new TblSurveyValidCodeData();
+		infoData.setCode(userCode);
+		List<DaoValue> list = CommonDaoService.select(infoData);
+		if (list == null || list.isEmpty()) {
+			return false;
+		}
 		return true;
 	}
 }

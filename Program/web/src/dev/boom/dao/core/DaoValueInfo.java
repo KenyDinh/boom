@@ -1,4 +1,4 @@
-package dev.boom.tbl.info;
+package dev.boom.dao.core;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -6,7 +6,6 @@ import java.util.Date;
 import java.util.List;
 
 import dev.boom.common.CommonMethod;
-import dev.boom.dao.core.DaoValue;
 
 public class DaoValueInfo extends DaoValue {
 
