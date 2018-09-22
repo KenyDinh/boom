@@ -4,9 +4,9 @@ import java.util.Date;
 import java.util.List;
 
 import dev.boom.common.CommonDefine;
-import dev.boom.dao.core.IDaoValue;
+import dev.boom.dao.core.DaoValueInfo;
 
-public class TblSurveyInfo extends DaoValueInfo implements IDaoValue {
+public class TblSurveyInfo extends DaoValueInfo {
 
 	private static final long serialVersionUID = 1L;
 	private static final String TABLE_NAME = "survey_info";

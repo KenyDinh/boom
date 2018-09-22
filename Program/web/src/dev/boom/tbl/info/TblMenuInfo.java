@@ -4,9 +4,9 @@ import java.util.Date;
 import java.util.List;
 
 import dev.boom.common.CommonDefine;
-import dev.boom.dao.core.IDaoValue;
+import dev.boom.dao.core.DaoValueInfo;
 
-public class TblMenuInfo extends DaoValueInfo implements IDaoValue {
+public class TblMenuInfo extends DaoValueInfo {
 
 	private static final long serialVersionUID = 1L;
 	private static final String TABLE_NAME = "menu_info";

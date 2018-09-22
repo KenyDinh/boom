@@ -58,6 +58,10 @@ public class Survey extends PageBase {
 		if (surveySession == null || surveySession.isExpired(now.getTime())) {
 			String strCode = getContext().getRequestParameter("user_code");
 			if (strCode != null && strCode.length() == CODE_LENGTH && strCode.matches("[0-9]+")) {
+				if (!SurveyService.isValidUserCode(strCode)) {
+					GameLog.getInstance().error("[Survey] user code is invalid!, code:" + strCode);
+					return;
+				}
 				long timeout = new Date().getTime() + SURVEY_SESSION_TIMEOUT;
 				surveySession = new SurveySession(strCode, timeout);
 				getContext().setSessionAttribute(SURVEY_SESSION, surveySession);

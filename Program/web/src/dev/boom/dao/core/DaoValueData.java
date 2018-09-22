@@ -1,8 +1,6 @@
-package dev.boom.dao.data;
+package dev.boom.dao.core;
 
 import java.util.List;
-
-import dev.boom.dao.core.DaoValue;
 
 public class DaoValueData extends DaoValue{
 
