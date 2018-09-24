@@ -44,10 +44,19 @@ public class SurveyService {
 		return ret;
 	}
 	
-	public static List<SurveyOptionInfo> getSurveyOptionListWithResult(String result) {
+	public static List<SurveyOptionInfo> getSurveyOptionList(List<Long> ids) {
+		if (ids == null || ids.isEmpty()) {
+			return null;
+		}
+		String option = "";
+		for (Long id : ids) {
+			if (!option.isEmpty()) {
+				option += ",";
+			}
+			option += id;
+		}
 		TblSurveyOptionInfo info = new TblSurveyOptionInfo();
-		String option = "WHERE id IN(" + result + ")";
-		info.setSelectOption(option);
+		info.setSelectOption("WHERE id IN(" + option + ")");
 		
 		List<DaoValue> list = CommonDaoService.select(info);
 		if (list == null || list.isEmpty()) {
@@ -79,9 +88,10 @@ public class SurveyService {
 		return ret;
 	}
 	
-	public static SurveyResultInfo getSurveyResultByUser(String user) {
+	public static SurveyResultInfo getSurveyResult(String user, long survey_id) {
 		TblSurveyResultInfo info = new TblSurveyResultInfo();
 		info.setUser(user);
+		info.setSurvey_id(survey_id);
 		
 		List<DaoValue> list = CommonDaoService.select(info);
 		if (list == null || list.size() != 1) {
@@ -90,6 +100,37 @@ public class SurveyService {
 		
 		return new SurveyResultInfo((TblSurveyResultInfo) list.get(0));
 		
+	}
+	
+	public static List<SurveyOptionInfo> calculateSurveyResult(long survey_id) {
+		List<SurveyOptionInfo> listOptions = getSurveyOptionList(survey_id);
+		if (listOptions == null || listOptions.isEmpty()) {
+			return null;
+		}
+		String sql = "SELECT GROUP_CONCAT(result SEPARATOR ',') AS results from survey_result_info where survey_id = " + survey_id;
+		List<String> commands = new ArrayList<>();
+		commands.add(new String("SET SESSION group_concat_max_len = 2048"));
+		List<Object> results = CommonDaoService.executeNativeSQLQuery(sql, commands);
+		if (results != null && !results.isEmpty()) {
+			String strResults = (String) results.get(0);
+			System.out.println(strResults);
+			if (strResults != null) {
+				String[] ids = strResults.split(",");
+				for (String optId : ids) {
+					if (!optId.matches("^[0-9]+$")) {
+						continue;
+					}
+					for (SurveyOptionInfo surveyOption : listOptions) {
+						if (surveyOption.getId() == Long.parseLong(optId)) {
+							surveyOption.setSelectedCount(surveyOption.getSelectedCount() + 1);
+							break;
+						}
+					}
+				}
+			}
+		}
+		
+		return listOptions;
 	}
 	
 	public static boolean isExistSurveyResult(String user) {

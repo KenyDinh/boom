@@ -1,6 +1,5 @@
 package dev.boom.pages;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -21,7 +20,7 @@ public class Survey extends PageBase {
 	private static final long serialVersionUID = 1L;
 	private static final String SURVEY_SESSION = "servey_session";
 	private static final int CODE_LENGTH = 6;
-	private static final long SURVEY_SESSION_TIMEOUT = CommonDefine.MILLION_SECOND_MINUTE;
+	private static final long SURVEY_SESSION_TIMEOUT = CommonDefine.MILLION_SECOND_MINUTE * 5;
 	
 	
 	private SurveyInfo activeSurvey = null;
@@ -57,7 +56,7 @@ public class Survey extends PageBase {
 		super.onPost();
 		if (surveySession == null || surveySession.isExpired(now.getTime())) {
 			String strCode = getContext().getRequestParameter("user_code");
-			if (strCode != null && strCode.length() == CODE_LENGTH && strCode.matches("[0-9]+")) {
+			if (strCode != null && strCode.length() == CODE_LENGTH && strCode.matches("^[0-9]+$")) {
 				if (!SurveyService.isValidUserCode(strCode)) {
 					GameLog.getInstance().error("[Survey] user code is invalid!, code:" + strCode);
 					return;
@@ -67,6 +66,7 @@ public class Survey extends PageBase {
 				getContext().setSessionAttribute(SURVEY_SESSION, surveySession);
 				GameLog.getInstance().info("regist session!");
 			}
+			setRedirect(this.getClass());
 			return;
 		}
 		if (surveySession != null ) {
@@ -80,7 +80,7 @@ public class Survey extends PageBase {
 				GameLog.getInstance().error("No active survey!");
 				return;
 			}
-			SurveyResultInfo surveyResultInfo = SurveyService.getSurveyResultByUser(surveySession.getCode());
+			SurveyResultInfo surveyResultInfo = SurveyService.getSurveyResult(surveySession.getCode(), activeSurvey.getId());
 			boolean isInsert = false;
 			if (surveyResultInfo != null) {
 				if (surveyResultInfo.getRetryRemain() <= 0) {
@@ -133,65 +133,151 @@ public class Survey extends PageBase {
 		}
 		addModel("survey", activeSurvey);
 		Long surveyId = activeSurvey.getId();
-		List<SurveyOptionInfo> surveyOptionList = new ArrayList<>();
-		surveyOptionList = SurveyService.getSurveyOptionList(activeSurvey.getId());
-		if (surveyOptionList == null) {
-			return;
-		}
-		String strMode = getContext().getRequestParameter("mode");
-		SurveyResultInfo resultInfo = SurveyService.getSurveyResultByUser(surveySession.getCode());
+		SurveyResultInfo resultInfo = SurveyService.getSurveyResult(surveySession.getCode(), activeSurvey.getId());
 		if (resultInfo == null) {
-			renderOptions(surveyOptionList);
+			renderOptions(resultInfo);
 		} else {
-			if (strMode == null || strMode.isEmpty()) {
-				renderResult(resultInfo, surveyId);
-			} else if (strMode.equals("retry")) {
-				renderOptions(surveyOptionList);
-			} 
+			if (resultInfo.getRetryRemain() > 0) {
+				if (getContext().getRequestParameter("retry") != null) {
+					renderResult(resultInfo, surveyId, true);
+					renderOptions(resultInfo);
+					addModel("retry", "1");
+					return;
+				}
+			}
+			renderResult(resultInfo, surveyId, false);
 		}
 	}
 	
-	private void renderOptions(List<SurveyOptionInfo> surveyOptionList) {
+	private void renderOptions(SurveyResultInfo resultInfo) {
+		List<SurveyOptionInfo> surveyOptionList = SurveyService.getSurveyOptionList(activeSurvey.getId());
+		if (surveyOptionList == null || surveyOptionList.isEmpty()) {
+			return;
+		}
 		StringBuilder sb = new StringBuilder();
-		sb.append("<form method=\"post\" name=\"optionForm\">");
-		sb.append("<div class=\"form-group\">");
-		sb.append("<div class=\"row\">");
-		for (SurveyOptionInfo info : surveyOptionList) {
-			sb.append("<div class=\"col-sm-4 col-lg-4\">");
-			sb.append("<label class=\"btn btn-primary\">");
-			sb.append("<img src=\""+info.getImage()+"\" alt=\"...\" class=\"img-thumbnail img-check\">");
-			sb.append("<input type=\"checkbox\" name=\"option\" id=\"option_"+info.getId()+"\" value="+info.getId()+" class=\"d-none\" autocomplete=\"off\">");
-			sb.append("</label>");
-			sb.append("<span>"+info.getName()+"</span>");
+		List<Long> ids = (resultInfo == null ? null : resultInfo.getResultList());
+		sb.append("<div class=\"\">");
+			sb.append("<div class=\"row\">");
+			for (SurveyOptionInfo info : surveyOptionList) {
+				sb.append("<div class=\"col-6 col-lg-3\">");
+				boolean checked = (Boolean)(ids != null && ids.contains(info.getId()));
+				sb.append(getOptionPreview(info, true, checked));
+				sb.append("</div>");
+			}
+			sb.append("</div>");
+		sb.append("</div>");
+		if (resultInfo == null) {
+			sb.append("<div class=\"text-center\" style=\"margin-top:1rem;\">");
+			sb.append("<div class=\"row\">");
+			sb.append("<div class=\"col-sm-12 col-lg-3\" style=\"margin:0 auto;\">");
+			sb.append("<button type=\"submit\" onclick=\"sendVote(); this.blur; return false;\" class=\"btn btn-success\" style=\"width:100%;\">Submit</button>");
+			sb.append("</div>");
+			sb.append("</div>");
+			sb.append("</div>");
+		} else {
+			sb.append("<div class=\"text-center\" style=\"margin-top:1rem;\">");
+			sb.append("<div class=\"row\">");
+				sb.append("<div class=\"col-6 col-lg-3\" style=\"margin:0 auto;\">");
+				sb.append("<button type=\"submit\" onclick=\"sendVote(); this.blur; return false;\" class=\"btn btn-success\" style=\"width:100%;\">Submit</button>");
+				sb.append("</div>");
+				sb.append("<div class=\"col-6 col-lg-3\" style=\"margin:0 auto;\">");
+				sb.append("<a href=\"" + getContextPath() + getContext().getPagePath(getClass()) + "\">");
+				sb.append("<button type=\"submit\" class=\"btn btn-danger\" style=\"width:100%;\">Cancel</button>");
+				sb.append("</a>");
+				sb.append("</div>");
+			sb.append("</div>");
 			sb.append("</div>");
 		}
-		sb.append("</div>");
-		sb.append("</div>");
-		sb.append("</form>");
-		sb.append("<div class=\"text-center\">");
-		sb.append("<button type=\"submit\" onClick=\"sendVote(); this.blur; return false;\" class=\"btn btn-success\">Submit</button>");
-		sb.append("</div>");
 		addModel("options", sb.toString());
 	}
 	
-	private void renderResult(SurveyResultInfo resultInfo, Long surveyId) {
+	private void renderResult(SurveyResultInfo resultInfo, Long surveyId, boolean retryMode) {
 		if (resultInfo == null) {
 			return;
 		}
-		String result = resultInfo.getResult();
-		List<SurveyOptionInfo> optionInfos = SurveyService.getSurveyOptionListWithResult(result);
-		StringBuilder sb = new StringBuilder();
-		sb.append("<div>");
-		for (SurveyOptionInfo info : optionInfos) {
-//			sb.append("<div class=\"\">");
+		List<Long> ids = resultInfo.getResultList();
+		if (ids == null || ids.isEmpty()) {
+			return;
 		}
-		sb.append("</div>");
-		if (resultInfo.getRetryRemain() > 0 ) {
-			sb.append("<div class=\"text-center\">");
-			sb.append("<button type=\"submit\" onClick=\"sendRetry(); this.blur; return false;\" class=\"btn btn-success\">Retry</button>");
+		List<SurveyOptionInfo> optionInfos = SurveyService.getSurveyOptionList(ids);
+		if (optionInfos == null || optionInfos.isEmpty()) {
+			GameLog.getInstance().error("[Survey] Result's option list is null!");
+			return;
+		}
+		if (optionInfos.size() > activeSurvey.getMaxChoice()) {
+			GameLog.getInstance().error("[Survey] Result's option list is invalid!");
+			return;
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append("<div class=\"\">");
+		sb.append("<div class=\"row\">");
+		int size = (retryMode ? activeSurvey.getMaxChoice() :optionInfos.size());
+		int n = size - size % 3; // 12/4
+		int l = (n == size ? 0 : n + 3 - size);
+		int i = 0;
+		for (; i < n; i++) {
+			sb.append("<div class=\"col-4 col-lg-4\" style=\"padding:0.5rem;\">");
+			if (i < optionInfos.size()) {
+				sb.append(getOptionPreview(optionInfos.get(i), false, false));
+			} else {
+				sb.append(getOptionPreview(null, false, false));
+			}
 			sb.append("</div>");
 		}
-		addModel("options", sb.toString());
+		if (l > 0) {
+			sb.append(String.format("<div class=\"col-%d col-lg-%d\">", 2 * l, 2 * l));
+			sb.append("</div>");
+		}
+		for (; i < size; i++) {
+			sb.append("<div class=\"col-4 col-lg-4\" style=\"padding:0.5rem;\">");
+			if (i < optionInfos.size()) {
+				sb.append(getOptionPreview(optionInfos.get(i), false, false));
+			} else {
+				sb.append(getOptionPreview(null, false, false));
+			}
+			sb.append("</div>");
+		}
+		if (l > 0) {
+			sb.append(String.format("<div class=\"col-%d col-lg-%d\">", 2 * l, 2 * l));
+			sb.append("</div>");
+		}
+		sb.append("</div>");
+		sb.append("</div>");
+		if (!retryMode && resultInfo.getRetryRemain() > 0 ) {
+			sb.append("<div class=\"row\">");
+			sb.append("<div class=\"col-lg-12 text-center\">");
+			sb.append("<label class=\"text-info\" style=\"\">");
+			sb.append("You have " + resultInfo.getRetryRemain() + " times to change your choices, would you wanna do?");
+			sb.append("</label>");
+			sb.append("</div>");
+			sb.append("</div>");
+			sb.append("<div class=\"text-center\">");
+			sb.append("<a href=\"" + getContextPath() + getContext().getPagePath(getClass()) + "?retry=1\">");
+			sb.append("<button type=\"submit\" class=\"btn btn-info\">Change</button>");
+			sb.append("</a>");
+			sb.append("</div>");
+		}
+		addModel("results", sb.toString());
+	}
+	
+	private String getOptionPreview(SurveyOptionInfo info, boolean selectable, boolean checked) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("<div class=\"survey-option-wrapper" + ((info == null && !selectable) ? " result-empty" : "") + "\">");
+		if (info != null) {
+			sb.append("<div style=\"position:relative;\" data=\"option-" + info.getId() + "\" class=\"survey-option option-" + (selectable ? "select-" + info.getId() : "result-" + info.getId()) + "\">");
+				sb.append("<img src=\"" + getHostURL() + getContextPath() + "/img/vote/" + info.getImage() + "\" alt=\"" + info.getName() + "\" class=\"survey-opt-image" + (checked ? " check" : "") + "\">");
+				sb.append("<label class=\"font-weight-bold\" data-toggle=\"tooltip\" data-placement=\"bottom\" style=\"text-overflow:ellipsis;overflow:hidden;white-space:nowrap;width:100%;\" title=\"" + info.getName() + "\">");
+					sb.append(info.getName());
+				sb.append("</label>");
+				if (selectable) {
+					sb.append("<div class=\"option-checked\" style=\"display:" + (checked ? "block" : "none") + ";\">");
+					sb.append("<img src=\"" + getHostURL() + getContextPath() + "/img/vote/check_icon_c.png" + "\" style=\"width:90%;\" />");
+					sb.append("</div>");
+				}
+			sb.append("</div>");
+		}
+		sb.append("</div>");
+		return sb.toString();
 	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })

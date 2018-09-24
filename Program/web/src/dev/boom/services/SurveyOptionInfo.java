@@ -4,6 +4,7 @@ import dev.boom.tbl.info.TblSurveyOptionInfo;
 
 public class SurveyOptionInfo {
 
+	private int selectedCount = 0;
 	private TblSurveyOptionInfo info = null;
 
 	public SurveyOptionInfo() {
@@ -16,6 +17,14 @@ public class SurveyOptionInfo {
 
 	public TblSurveyOptionInfo getInfo() {
 		return info;
+	}
+
+	public int getSelectedCount() {
+		return selectedCount;
+	}
+
+	public void setSelectedCount(int selectedCount) {
+		this.selectedCount = selectedCount;
 	}
 
 	public long getId() {
