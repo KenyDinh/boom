@@ -1,34 +1,67 @@
 var $j = jQuery.noConflict();
-$j(document).ready(function(e){
-	$j(".img-check").click(function(){
-		$j(this).toggleClass("check");
-	});
-});
-function sendVote() {
-	let listOption = $j('input[name="option"]:checked');
-	let count = 0;
-	if (listOption.length) {
-		let options = "";
-		for (let i = 0; i < listOption.length; i++) {
-			if (options.length > 0) {
-				options += ",";
+$j(document).ready(function(e) {
+	$j('div[class*="option-select-"]').click(function() {
+		let checkedElem = $j(this).find('div.option-checked');
+		if (checkedElem.length) {
+			let id = $j(this).attr('data').replace('option-','');
+			if (checkedElem.is(':visible')) {
+				let rsElem = $j('div.option-result-' + id);
+				if (rsElem.length) {
+					rsElem.addClass('result-empty');
+					rsElem.html('');
+				}
+				checkedElem.hide();
+				$j(this).find('img.survey-opt-image').removeClass('check');
+			} else {
+				let limit = parseInt($j('#max_choice').text());
+				let cur = getSelectedOption();
+				if (cur.length >= limit) {
+					alert("exceed limit!");
+					return;
+				}
+				let rsEmptyList = $j('div.result-empty');
+				if (rsEmptyList.length) {
+					let rsElem = rsEmptyList.eq(0);
+					rsElem.removeClass('result-empty');
+					let obj = $j(this).clone();
+					obj.removeClass('option-select-' + id).addClass('option-result-' + id);
+					rsElem.html(obj);
+				}
+				checkedElem.show();
+				$j(this).find('img.survey-opt-image').addClass('check');
 			}
-			options += listOption.eq(i).attr('value');
-			++count;
 		}
-		let maxChoice = parseInt($j('span#maxChoice').text());
-		if (count > maxChoice) {
-			let opCount = "You can only choose max " + maxChoice + " options!";
-			$j('#error').text(opCount);
-			return;
+	});
+	$j('[data-toggle="tooltip"]').tooltip();
+});
+function getSelectedOption() {
+	let ret = [];
+	let option_list = $j('div.survey-option');
+	if (option_list.length) {
+		for (let i = 0; i < option_list.length; i++) {
+			let checkedElem = option_list.eq(i).find('div.option-checked');
+			if (checkedElem.length) {
+				if (checkedElem.is(':visible')) {
+					ret.push(option_list.eq(i).attr('data').replace('option-',''));
+				}
+			}
 		}
-		$j('#options').val(options);
-		$j('#vote_form').submit();
+	}
+	console.log(JSON.stringify(ret));
+	return ret;
+}
+function sendVote() {
+	let limit = parseInt($j('#max_choice').text());
+	let cur = getSelectedOption();
+	if (cur.length <= 0) {
+		//$j('#error').text('Please choose at least 1 option!');
+		alert("Please choose at least 1 option!");
 		return;
 	}
-	$j('#error').text('Please choose at least 1 option!');
-}
-function sendRetry() {
-	$j('#mode').val("retry");
+	if (cur >= limit) {
+		alert("exceed limit!");
+		return;
+	}
+	$j('#options').val(cur.join(','));
 	$j('#vote_form').submit();
 }

@@ -52,18 +52,18 @@ public class SurveyResultInfo {
 		return this.info.getResult();
 	}
 
-	public List<Integer> getResultList() {
-		List<Integer> ret = null;
+	public List<Long> getResultList() {
+		List<Long> ret = null;
 		String results = getResult();
 		if (results != null && !results.isEmpty()) {
 			for (String result : results.split(",")) {
-				if (CommonMethod.isValidNumeric(result, 0, Byte.MAX_VALUE)) {
+				if (CommonMethod.isValidNumeric(result, 0, Long.MAX_VALUE)) {
 					if (ret == null) {
 						ret = new ArrayList<>();
 					}
-					ret.add(Integer.parseInt(result));
+					ret.add(Long.parseLong(result));
 				} else {
-					GameLog.getInstance().error("[getResultArray] survey's result is invalid!");
+					GameLog.getInstance().error("[getResultList] survey's result is invalid!");
 				}
 			}
 		}

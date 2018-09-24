@@ -452,9 +452,40 @@ public class CommonDaoService {
 
 		return list;
 	}
+	
+	public static List<Object> executeNativeSQLQuery(String sqlQuery) {
+		return executeNativeSQLQuery(sqlQuery, null);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static List<Object> executeNativeSQLQuery(String sqlQuery, List<String> commands) {
+		List<Object> list = null;
+		Session session = HibernateSessionFactory.openSession();
+		Transaction tx = null;
+		try {
+			tx = session.beginTransaction();
+			if (commands != null && !commands.isEmpty()) {
+				for (String command : commands) {
+					GameLog.getInstance().info(command);
+					session.createSQLQuery(command).executeUpdate();
+				}
+			}
+			GameLog.getInstance().info(sqlQuery);
+			list = session.createSQLQuery(sqlQuery).list();
+		} catch (Exception e) {
+			e.printStackTrace();
+			if (tx != null) {
+				tx.rollback();
+			}
+		} finally {
+			HibernateSessionFactory.closeSession(session);
+		}
 
-	@SuppressWarnings({ "unchecked", "unused" })
-	private static List<Object> selectWithFields(DaoValue dao) {
+		return list;
+	}
+
+	@SuppressWarnings({ "unchecked" })
+	public static List<Object> selectWithFields(DaoValue dao) {
 		List<Object> list = null;
 		String sf = "";
 		if (dao.getSelectedField() != null) {
