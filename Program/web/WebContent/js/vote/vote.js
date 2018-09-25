@@ -7,8 +7,8 @@ $j(document).ready(function(e) {
 			if (checkedElem.is(':visible')) {
 				let rsElem = $j('div.option-result-' + id);
 				if (rsElem.length) {
-					rsElem.addClass('result-empty');
-					rsElem.html('');
+					rsElem.parent().addClass('result-empty');
+					rsElem.remove();
 				}
 				checkedElem.hide();
 				$j(this).find('img.survey-opt-image').removeClass('check');
@@ -16,7 +16,7 @@ $j(document).ready(function(e) {
 				let limit = parseInt($j('#max_choice').text());
 				let cur = getSelectedOption();
 				if (cur.length >= limit) {
-					alert("exceed limit!");
+					alert("Exceed limit!");
 					return;
 				}
 				let rsEmptyList = $j('div.result-empty');
@@ -32,6 +32,9 @@ $j(document).ready(function(e) {
 			}
 		}
 	});
+	if ($j('div#result-frame').length) {
+		$j('div#result-frame').css('height',$j('div#result-frame').outerHeight() + 'px')
+	}
 	$j('[data-toggle="tooltip"]').tooltip();
 });
 function getSelectedOption() {
@@ -47,7 +50,6 @@ function getSelectedOption() {
 			}
 		}
 	}
-	console.log(JSON.stringify(ret));
 	return ret;
 }
 function sendVote() {
@@ -58,8 +60,8 @@ function sendVote() {
 		alert("Please choose at least 1 option!");
 		return;
 	}
-	if (cur >= limit) {
-		alert("exceed limit!");
+	if (cur.length > limit) {
+		alert("Exceed limit!");
 		return;
 	}
 	$j('#options').val(cur.join(','));

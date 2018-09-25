@@ -12,10 +12,12 @@ public class TblSurveyValidCodeData extends DaoValueData {
 
 	private int id;
 	private String code;
+	private String name;
 	
 	public TblSurveyValidCodeData() {
 		this.id = 0;
 		this.code = "";
+		this.name = "";
 		Sync();
 	}
 	
@@ -33,6 +35,14 @@ public class TblSurveyValidCodeData extends DaoValueData {
 
 	public void setCode(String code) {
 		this.code = code;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	public List<String> getSubKey() {

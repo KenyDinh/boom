@@ -94,8 +94,11 @@ public class SurveyService {
 		info.setSurvey_id(survey_id);
 		
 		List<DaoValue> list = CommonDaoService.select(info);
-		if (list == null || list.size() != 1) {
+		if (list == null || list.isEmpty()) {
 			return null;
+		}
+		if (list.size() > 1) {
+			GameLog.getInstance().error("There are more than one result record!");
 		}
 		
 		return new SurveyResultInfo((TblSurveyResultInfo) list.get(0));
@@ -133,6 +136,23 @@ public class SurveyService {
 		return listOptions;
 	}
 	
+	public static long getCountValidSurveyOption(List<Long> ids) {
+		if (ids == null || ids.isEmpty()) {
+			return 0;
+		}
+		String options = "";
+		for (long id : ids) {
+			if (!options.isEmpty()) {
+				options += ",";
+			}
+			options += id;
+		}
+		TblSurveyOptionInfo info = new TblSurveyOptionInfo();
+		info.setSelectOption("WHERE id IN(" + options + ")");
+		
+		return CommonDaoService.count(info);
+	}
+	
 	public static boolean isExistSurveyResult(String user) {
 		TblSurveyResultInfo info = new TblSurveyResultInfo();
 		info.setUser(user);
@@ -150,5 +170,16 @@ public class SurveyService {
 			return false;
 		}
 		return true;
+	}
+	
+	public static TblSurveyValidCodeData getSurveyValidData(String code) {
+		TblSurveyValidCodeData infoData = new TblSurveyValidCodeData();
+		infoData.setCode(code);
+		List<DaoValue> list = CommonDaoService.select(infoData);
+		if (list == null || list.size() != 1) {
+			return null;
+		}
+		
+		return (TblSurveyValidCodeData) list.get(0);
 	}
 }
