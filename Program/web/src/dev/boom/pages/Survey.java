@@ -1,5 +1,6 @@
 package dev.boom.pages;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -7,6 +8,7 @@ import org.apache.click.element.CssImport;
 import org.apache.click.element.JsImport;
 
 import dev.boom.common.CommonDefine;
+import dev.boom.common.CommonMethod;
 import dev.boom.core.GameLog;
 import dev.boom.core.SurveySession;
 import dev.boom.services.CommonDaoService;
@@ -14,6 +16,8 @@ import dev.boom.services.SurveyInfo;
 import dev.boom.services.SurveyOptionInfo;
 import dev.boom.services.SurveyResultInfo;
 import dev.boom.services.SurveyService;
+import dev.boom.tbl.data.TblSurveyValidCodeData;
+import dev.boom.tbl.info.TblSurveyResultInfo;
 
 public class Survey extends PageBase {
 
@@ -48,6 +52,17 @@ public class Survey extends PageBase {
 			getContext().removeSessionAttribute(SURVEY_SESSION);
 			setRedirect(this.getClass());
 			return;
+		} else if (getContext().getRequestParameter("clear") != null) {
+			if (surveySession != null) {
+				TblSurveyResultInfo resultInfo = new TblSurveyResultInfo();
+				resultInfo.setUser(surveySession.getCode());
+				resultInfo.setDelete();
+				if (!CommonDaoService.delete(resultInfo)) {
+					GameLog.getInstance().error("[onInit] clear result failed!");
+				}
+				setRedirect(this.getClass());
+				return;
+			}
 		}
 	}
 
@@ -73,6 +88,21 @@ public class Survey extends PageBase {
 			String strOptionList = getContext().getRequestParameter("options");
 			if (strOptionList == null || strOptionList.isEmpty()) {
 				GameLog.getInstance().error("No option selected!");
+				return;
+			}
+			if (!strOptionList.matches("[0-9]+(,[0-9]+)*")) {
+				GameLog.getInstance().error("Option is invalid format!");
+				return;
+			}
+			String[] arr = strOptionList.split(",");
+			List<Long> ids = new ArrayList<>();
+			for (String strId : arr) {
+				if (CommonMethod.isValidNumeric(strId, 1, Long.MAX_VALUE)) {
+					ids.add(Long.parseLong(strId));
+				}
+			}
+			if (SurveyService.getCountValidSurveyOption(ids) != arr.length) {
+				GameLog.getInstance().error("Option list in invalid!");
 				return;
 			}
 			activeSurvey = SurveyService.getActiveSurveyInfo();
@@ -127,11 +157,16 @@ public class Survey extends PageBase {
 		if (surveySession == null) {
 			return;
 		}
+		TblSurveyValidCodeData userData = SurveyService.getSurveyValidData(surveySession.getCode());
+		if (userData == null) {
+			return;
+		}
 		activeSurvey = SurveyService.getActiveSurveyInfo();
 		if (activeSurvey == null) {
 			return;
 		}
 		addModel("survey", activeSurvey);
+		addModel("userData", getUserInfo(userData));
 		Long surveyId = activeSurvey.getId();
 		SurveyResultInfo resultInfo = SurveyService.getSurveyResult(surveySession.getCode(), activeSurvey.getId());
 		if (resultInfo == null) {
@@ -209,7 +244,7 @@ public class Survey extends PageBase {
 			return;
 		}
 		StringBuilder sb = new StringBuilder();
-		sb.append("<div class=\"\">");
+		sb.append("<div id=\"result-frame\">");
 		sb.append("<div class=\"row\">");
 		int size = (retryMode ? activeSurvey.getMaxChoice() :optionInfos.size());
 		int n = size - size % 3; // 12/4
@@ -280,14 +315,32 @@ public class Survey extends PageBase {
 		return sb.toString();
 	}
 	
+	private String getUserInfo(TblSurveyValidCodeData userData) {
+		if (userData == null) {
+			return "";
+		}
+		String userName = userData.getName();
+		StringBuilder sb = new StringBuilder();
+		sb.append("<div class=\"row\">");
+			sb.append("<div class=\"col-lg-12 text-center\">");
+				sb.append("<label class=\"font-weight-bold text-info\" style=\"margin-top:0.8rem;font-size:" + (userName.length() > 24 ? "1" : "1.125") + "rem;\" >");
+					sb.append("Welcome, " + userName);
+					sb.append("<a href=\"" + getContextPath() + getContext().getPagePath(getClass()) + "?out=1\">");
+					sb.append("<img src=\"" + getContextPath() + "/img/vote/logout-3.png" + "\" style=\"transform:scale(0.5,0.5);\"/>");
+				sb.append("</label>");
+			sb.append("</div>");
+		sb.append("</div>");
+		return sb.toString();
+	}
+	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public List getHeadElements() {
 		if (headElements == null) {
 			headElements = super.getHeadElements();
 		}
-		headElements.add(new CssImport("/css/vote/vote.css"));
-		headElements.add(new JsImport("/js/vote/vote.js"));
+		headElements.add(new CssImport("/css/vote/vote.css?@vote.css@"));
+		headElements.add(new JsImport("/js/vote/vote.js?@vote.js@"));
 
 		return headElements;
 	}
