@@ -2,8 +2,8 @@ const MAX_TOPPING = 3;
 
 $j(document).ready(function() {
 	initEvent();
-	var elem = $j('div#on-scroll-dish-type');
-	var mainNav = $j('#main-nav-bar');
+	let elem = $j('div#on-scroll-dish-type');
+	let mainNav = $j('#main-nav-bar');
 	if (elem.length) {
 		if ($j(window).outerWidth() >= 992) {
 			scrollDishType(elem,mainNav,$j(window));
@@ -32,19 +32,19 @@ $j(document).ready(function() {
 	}
 	$j('img.dish-image').hover(function() {
 		if($j('div#dish-image-overlay').length == 0) {
-			var size = $j(this).outerHeight();
-			var img_size = 360;
-			var top = $j(this).offset().top - $j(window).scrollTop();
-			var realTop = top;
+			let size = $j(this).outerHeight();
+			let img_size = 360;
+			let top = $j(this).offset().top - $j(window).scrollTop();
+			let realTop = top;
 			if (mainNav.length) {
 				realTop =  Math.max(0, top - mainNav.outerHeight());
 			}
-			var bottom = Math.max(0,$j(window).outerHeight() - top - size);
-			var overlayOffTop = top;
+			let bottom = Math.max(0,$j(window).outerHeight() - top - size);
+			let overlayOffTop = top;
 			if (bottom < realTop && realTop > img_size) {
 				overlayOffTop = top - img_size + size;
 			}
-			var overlayOffLeft = $j(this).offset().left + size;
+			let overlayOffLeft = $j(this).offset().left + size;
 			$j('body').append('<div id="dish-image-overlay" style="display:none;position:fixed;z-index:99;top:' + overlayOffTop + 'px;left:' + overlayOffLeft + 'px;"><img src="' + $j(this).attr('src') + '" height="' + img_size + '" /></div>');
 		} 
 		$j('div#dish-image-overlay').show();
@@ -77,7 +77,7 @@ $j(document).ready(function() {
 });
 function onMessage(event) {
 	if (event.data) {
-		var obj = JSON.parse(event.data);
+		let obj = JSON.parse(event.data);
 		switch(obj.message_type) {
 		case 'update':
 			sendMilkTeaUpdateRequest(obj.data);
@@ -136,12 +136,15 @@ function initEvent() {
 			$j(this).tooltip('hide');
 		}
 	});
+	$j('span.follow-item').click(function() {
+		viewItemByName($j(this).text());
+	});
 }
 function scrollDishType(elem, mainNav, scrollWrap) {
-	var scroll = scrollWrap.scrollTop();
+	let scroll = scrollWrap.scrollTop();
 	if (scrollWrap.outerWidth() >= 992) {
-		var marginTop = parseInt(elem.css('margin-top'),10);
-		var eTop = elem.offset().top - mainNav.outerHeight() - marginTop;
+		let marginTop = parseInt(elem.css('margin-top'),10);
+		let eTop = elem.offset().top - mainNav.outerHeight() - marginTop;
 		if (scroll >= eTop) {
 			elem.css('margin-top',((scroll - eTop) / 16) + 'rem');
 		} else {
@@ -160,29 +163,29 @@ function placeTheOrder(menuId,itemId) {
 	if (itemId == undefined || itemId == null || itemId == 0) {
 		return;
 	}
-	var placeOrderModal = $j('div#place-order-modal-' + itemId);
+	let placeOrderModal = $j('div#place-order-modal-' + itemId);
 	if (placeOrderModal.length == 0) {
 		return;
 	}
-	var form = $j('form#place-order-form-' + itemId);
+	let form = $j('form#place-order-form-' + itemId);
 	if (form.length) {
-		var params = "menu_id=" + menuId + "&menu_item_id=" + itemId;
-		var quantity = 1;
+		let params = "menu_id=" + menuId + "&menu_item_id=" + itemId;
+		let quantity = 1;
 		if (form.find('input#quantity-item-' + itemId).length) {
 			params += "&quantity=" + form.find('input#quantity-item-' + itemId).val();
 		}
 		params += "&mode=1";
-		var listCheckedOption = form.find('input:checked');
-		var listSize = form.find('input[name="item-option-size"]');
-		var listIce = form.find('input[name="item-option-size"]');
-		var listSugar = form.find('input[name="item-option-sugar"]');
-		var listTopping = form.find('input[name="item-option-topping"]');
-		var listAddition = form.find('input[name="item-option-addition"]');
+		let listCheckedOption = form.find('input:checked');
+		let listSize = form.find('input[name="item-option-size"]');
+		let listIce = form.find('input[name="item-option-size"]');
+		let listSugar = form.find('input[name="item-option-sugar"]');
+		let listTopping = form.find('input[name="item-option-topping"]');
+		let listAddition = form.find('input[name="item-option-addition"]');
 		if (listCheckedOption.length > 0) {
-			var countSize = 0, countIce = 0, countSugar = 0, countTopping = 0, countAddition = 0;
-			for (var i = 0; i < listCheckedOption.length; i++) {
-				var name = listCheckedOption.eq(i).attr('name');
-				var value = listCheckedOption.eq(i).attr('value');
+			let countSize = 0, countIce = 0, countSugar = 0, countTopping = 0, countAddition = 0;
+			for (let i = 0; i < listCheckedOption.length; i++) {
+				let name = listCheckedOption.eq(i).attr('name');
+				let value = listCheckedOption.eq(i).attr('value');
 				if (name == 'item-option-size') {
 					params += "&menu_item_option_2=" + encodeURIComponent(value);
 					countSize++;
@@ -249,7 +252,7 @@ function deleteTheOrder(menuId,orderId) {
 	if (orderId == undefined || orderId == null) {
 		return;
 	}
-	var deleteOrderModal = $j('div#confirm-delete-order-' + orderId);
+	let deleteOrderModal = $j('div#confirm-delete-order-' + orderId);
 	if (deleteOrderModal.length <= 0) {
 		return;
 	}
@@ -276,21 +279,44 @@ function deleteTheOrder(menuId,orderId) {
 	});
 }
 
+function viewItemByName(name) {
+	if (name == undefined || name == null || name.length == 0) {
+		return;
+	}
+	let item = $j('span.item-findable:contains("' + name + '")');
+	if (item.length <= 0) {
+		return;
+	}
+	let top = item.offset().top - $j('#menu-item-group-1').offset().top + $j('#milktea-intro').outerHeight();
+	if ($j(window).outerWidth() <= 576) {
+		top += $j('#on-scroll-dish-type').outerHeight();
+	}
+	$j('html').animate({
+		scrollTop:top
+	}, function() {
+		item.fadeOut(100,function(){item.addClass('text-danger')}).fadeIn(100).fadeOut(100,function(){item.removeClass('text-danger')}).fadeIn(100);
+	});
+	//$j(window).scrollTop(top);
+}
+
 function viewMenuItemGroup(groupId) {
 	if (groupId == undefined || groupId == null || groupId == 0) {
 		groupId = 1;
 	}
-	var item_group = $j('#menu-item-group-' + groupId);
+	let item_group = $j('#menu-item-group-' + groupId);
 	if (item_group.length <= 0) {
 		return;
 	}
-	var top = item_group.offset().top - $j('#menu-item-group-1').offset().top + $j('#milktea-intro').outerHeight();
+	let top = item_group.offset().top - $j('#menu-item-group-1').offset().top + $j('#milktea-intro').outerHeight();
+	if ($j(window).outerWidth() <= 576) {
+		top += $j('#on-scroll-dish-type').outerHeight();
+	}
 	$j(window).scrollTop(top);
 }
 
 function resizePreimageMenu() {
 	$j('img.menu-pre-image').each(function() {
-		var width = parseInt($j(this).css('width'));
+		let width = parseInt($j(this).css('width'));
 		$j(this).css('height',(width * 458 / 800) + 'px');
 	});
 }

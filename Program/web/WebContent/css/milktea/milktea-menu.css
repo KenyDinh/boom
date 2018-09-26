@@ -18,3 +18,9 @@
 .stars span.star.half {
     background-position: -5px -21px;
 }
+.follow-item {
+	cursor:pointer;
+}
+.follow-item:hover {
+	text-decoration:underline;
+}

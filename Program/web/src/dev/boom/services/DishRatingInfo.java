@@ -1,5 +1,6 @@
 package dev.boom.services;
 
+import java.text.DecimalFormat;
 import java.util.Date;
 
 import dev.boom.tbl.info.TblDishRatingInfo;
@@ -66,6 +67,15 @@ public class DishRatingInfo {
 
 	public void setStarCount(long star_count) {
 		this.info.setStar_count(star_count);;
+	}
+	
+	public String getFormatRating() {
+		if (getOrderCount() <= 0 || getStarCount() <= 0) {
+			return null;
+		}
+		double rate = (double) getStarCount() / getOrderCount();
+		DecimalFormat df= new DecimalFormat("#.#");
+		return df.format(rate);
 	}
 
 	public Date getUpdated() {

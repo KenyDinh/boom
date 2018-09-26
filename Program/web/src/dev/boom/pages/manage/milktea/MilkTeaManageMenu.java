@@ -241,11 +241,11 @@ public class MilkTeaManageMenu extends ManagePageBase {
 				table.append("<td>").append(menu.getSale() > 0 ? (menu.getSale() + "%") : "0").append("</td>");
 				table.append("<td>").append(menu.getCode()).append("</td>");
 				if (menu.getMaxDiscount() > 0) {
-					table.append("<td>").append(MilkTeaCommonFunc.getShowPriceWithUnit(menu.getMaxDiscount(), "", getMessages())).append("</td>");
+					table.append("<td>").append(MilkTeaCommonFunc.getShowPriceWithUnit(menu.getMaxDiscount(), getMessages())).append("</td>");
 				} else {
 					table.append("<td>-</td>");
 				}
-				table.append("<td>").append(MilkTeaCommonFunc.getShowPriceWithUnit(menu.getShippingFee(), "", getMessages())).append("</td>");
+				table.append("<td>").append(MilkTeaCommonFunc.getShowPriceWithUnit(menu.getShippingFee(), getMessages())).append("</td>");
 				String desc = StringEscapeUtils.escapeHtml(menu.getDescription());
 				table.append("<td><div data-toggle=\"tooltip\" data-placement=\"bottom\" style=\"width:200px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;\" title=\"").append(desc).append("\">").append(desc).append("</div></td>");
 				table.append("<td>").append(MilkTeaMenuStatus.valueOf(menu.getStatus()).name()).append("</td>");
