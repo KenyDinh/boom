@@ -87,7 +87,7 @@ public class BoomMainPage extends Template {
 						sb.append("</div>");
 						sb.append("<div class=\"my-2 my-sm-0 dropdown\" style=\"margin-left:1rem;\">");
 							sb.append(String.format("<img src=\"%s\" style=\"cursor:pointer;width:48px;\" data-toggle=\"dropdown\"/>", contextPath + "/img/page/common-user.png"));
-							sb.append("<div class=\"dropdown-menu\" style=\"right:0;left:unset;\">");
+							sb.append("<div class=\"dropdown-menu\" id=\"user-operate-menu\">");
 								sb.append("<a class=\"dropdown-item\" href=\"#\">" + getMessage("MSG_GENERAL_MY_PROFILE") + "</a>");
 								sb.append("<a class=\"dropdown-item\" href=\"#\">" + getMessage("MSG_GENERAL_MY_ACCOUNT") + "</a>");
 								sb.append("<a class=\"dropdown-item\" href=\"#\" data-toggle=\"modal\" data-target=\"#change-password-modal\">" + getMessage("MSG_ACCOUNT_CHANGE_PASSWORD") + "</a>");

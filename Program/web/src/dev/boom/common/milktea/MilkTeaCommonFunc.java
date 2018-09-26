@@ -19,6 +19,8 @@ import dev.boom.core.GameLog;
 import dev.boom.milktea.object.MenuItem;
 import dev.boom.milktea.object.MenuItemOption;
 import dev.boom.milktea.object.MenuItemSelectionLimit;
+import dev.boom.services.DishRatingInfo;
+import dev.boom.services.DishRatingService;
 import dev.boom.services.MenuInfo;
 import dev.boom.services.MenuService;
 import dev.boom.services.OrderInfo;
@@ -40,10 +42,22 @@ public class MilkTeaCommonFunc {
 			return "";
 		}
 		sortListMenuItemByType(listMenuItem);
+		Map<Integer, DishRatingInfo> dishRatingMap = null;
+		if (menuInfo != null) {
+			dishRatingMap = DishRatingService.getDishRatingInfoMap(menuInfo.getShopId());
+		}
 		StringBuilder sb = new StringBuilder();
 		String type = null;
 		int groupType = 0;
 		for (MenuItem item : listMenuItem) {
+			int itemCode = item.getName().hashCode();
+			String strRating = null;
+			if (dishRatingMap != null && dishRatingMap.containsKey(itemCode)) {
+				String rating = dishRatingMap.get(itemCode).getFormatRating();
+				if (rating != null) {
+					strRating = MessageFormat.format((String)messages.get("MSG_MILK_TEA_DISH_RATING"), rating, CommonDefine.MAX_MILKTEA_VOTING_STAR, dishRatingMap.get(itemCode).getOrderCount());
+				}
+			}
 			if (type == null || !type.equals(item.getType())) {
 				if (type != null) {
 					sb.append("</div>");
@@ -56,52 +70,42 @@ public class MilkTeaCommonFunc {
 					sb.append("</div>");
 			}
 			sb.append(String.format("<div class=\"row menu-item bg-light text-info\" style=\"min-height:3.75rem;border-bottom:0.0625rem solid %s;\" >", DISH_BORDER_COLOR));
-				sb.append("<div class=\"col-lg-2 col-md-3 col-sm-12\">");
+				String itemPriceBlock = getItemPriceBlock(item, menuInfo, userInfo, messages);
+				sb.append("<div class=\"col-lg-2 col-md-3 col-8\">");
 					String imgSrc = item.getImage_url();
 					if (imgSrc == null || !imgSrc.startsWith("http")) {
 						imgSrc = contextPath + "/img/milktea/no_image.png?@no_image.png@";
 					}
 					sb.append(String.format("<img src=\"%s\" class=\"dish-image\" title=\"\" alt=\"\" style=\"height:3.125rem;padding-left:0;margin-top:0.3125rem;\"/>", imgSrc));
+					if (strRating != null) {
+						sb.append("<span class=\"text-warning d-sm-none\" style=\"font-size:0.8125rem;margin-left:0.25rem;\">").append(strRating).append("</span>");
+					}
+				sb.append("</div>");
+				
+				sb.append("<div class=\"col-4 d-lg-none d-md-none\">");
+					sb.append(itemPriceBlock);
 				sb.append("</div>");
 				
 				sb.append("<div class=\"col-lg-7 col-md-6 col-sm-12\">");
-					sb.append("<div class=\"row\" style=\"position:relative;\">");
-						sb.append("<span style=\"\">").append(item.getName()).append("</span>");
-					sb.append("</div>");
+					sb.append("<div class=\"row\" style=\"position:relative;\"><div class=\"col-lg-12\" style=\"padding:0;margin-left:0.125rem;margin-right:0.125rem;\">");
+						sb.append("<span class=\"item-findable\" style=\"\">").append(item.getName()).append("</span>");
+					sb.append("</div></div>");
 					if (item.getDesc() != null && item.getDesc().length() > 0) {
-						sb.append("<div class=\"row font-italic\" style=\"position:relative;font-size:0.8rem;color:lightgray;\">");
-						sb.append("<span style=\"line-height:1;\">").append(item.getDesc()).append("</span>");
+						sb.append("<div class=\"row font-italic\" style=\"font-size:0.8rem;color:lightgray;\">");
+						sb.append("<div class=\"col-lg-12\" style=\"padding:0;margin-left:0.125rem;margin-right:0.125rem;line-height:1.15;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;\">");
+						sb.append("<span data-toggle=\"tooltip\" data-placement=\"bottom\" title=\"" + item.getDesc() + "\">").append(item.getDesc()).append("</span>");
 						sb.append("</div>");
+						sb.append("</div>");
+					}
+					if (strRating != null) {
+						sb.append("<div class=\"row\" style=\"position:relative;\"><div class=\"col-lg-12\" style=\"font-size:0.8125rem;padding:0;margin-left:0.125rem;margin-right:0.125rem;margin-top:0.25rem;\">");
+						sb.append("<span class=\"text-warning d-none d-sm-block\" style=\"font-size:0.8125rem;\">").append(strRating).append("</span>");
+						sb.append("</div></div>");
 					}
 				sb.append("</div>");
 				
-				sb.append("<div class=\"col-lg-3 col-md-3 col-sm-12\">");
-					sb.append("<div class=\"row\"><div class=\"col-sm-12\" style=\"text-align:right;\">");
-						sb.append(getShowPriceWithUnit(item.getPrice(), "height:100%;", messages));
-					sb.append("</div></div>");
-					sb.append("<div class=\"row\"><div class=\"col-sm-12\" style=\"position:relative;height:1.6875rem;\">");
-					if (menuInfo != null && menuInfo.isOpening()) {
-						if (userInfo != null) {
-							if (!UserFlagEnum.ACTIVE.isValid(userInfo.getFlag())) {
-								sb.append("<div data-toggle=\"tooltip\" data-placement=\"bottom\" title=\"Can not order!\" style=\"position:absolute;cursor:pointer;right:1.25rem;bottom:0;\" >");
-								sb.append(String.format("<i style=\"color:%s;font-size:1.25rem;\" class=\"fas fa-plus-circle\" data-toggle=\"modal\" data-target=\"#account-not-active-modal\" ></i>", BootStrapColorEnum.WARNING.getColorCode(), item.getId()));
-								sb.append("</div>");
-							} else if (UserFlagEnum.MILKTEA_BANNED.isValid(userInfo.getFlag())) {
-								sb.append("<div data-toggle=\"tooltip\" data-placement=\"bottom\" title=\"Banned!\" style=\"position:absolute;cursor:pointer;right:1.25rem;bottom:0;\" >");
-								sb.append(String.format("<i style=\"color:%s;font-size:1.25rem;\" class=\"fas fa-plus-circle\" data-toggle=\"modal\" data-target=\"#account-banned-modal\" ></i>", BootStrapColorEnum.DANGER.getColorCode(), item.getId()));
-								sb.append("</div>");
-							} else {
-								sb.append("<div data-toggle=\"tooltip\" data-placement=\"bottom\" title=\"Place the order\" style=\"position:absolute;cursor:pointer;right:1.25rem;bottom:0;\" >");
-								sb.append(String.format("<i style=\"color:%s;font-size:1.25rem;\" class=\"fas fa-plus-circle\" data-toggle=\"modal\" data-target=\"#place-order-modal-%d\" ></i>", BootStrapColorEnum.INFO.getColorCode(), item.getId()));
-								sb.append("</div>");
-							}
-						} else {
-							sb.append("<div data-toggle=\"tooltip\" data-placement=\"bottom\" title=\"Login\" style=\"position:absolute;cursor:pointer;right:1.25rem;bottom:0;\" >");
-							sb.append(String.format("<i style=\"color:%s;font-size:1.25rem;\" class=\"fas fa-plus-circle\" data-toggle=\"modal\" data-target=\"#login-form-modal\" ></i>", BootStrapColorEnum.INFO.getColorCode()));
-							sb.append("</div>");
-						}
-					}
-					sb.append("</div></div>");
+				sb.append("<div class=\"col-lg-3 col-md-3 d-none d-lg-block d-md-block\">");
+					sb.append(itemPriceBlock);
 				sb.append("</div>");
 			sb.append("</div>");
 		}
@@ -129,6 +133,38 @@ public class MilkTeaCommonFunc {
 	}
 	
 	@SuppressWarnings("rawtypes")
+	private static String getItemPriceBlock(MenuItem item, MenuInfo menuInfo, UserInfo userInfo, Map messages) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("<div class=\"row\"><div class=\"col-sm-12\" style=\"text-align:right;\">");
+		sb.append(getShowPriceWithUnit(item.getPrice(), "height:100%;", "class=\"d-sm-none d-lg-block\"", messages));
+		sb.append("</div></div>");
+		sb.append("<div class=\"row\"><div class=\"col-sm-12\" style=\"position:relative;height:1.6875rem;\">");
+		if (menuInfo != null && menuInfo.isOpening()) {
+			if (userInfo != null) {
+				if (!UserFlagEnum.ACTIVE.isValid(userInfo.getFlag())) {
+					sb.append("<div data-toggle=\"tooltip\" data-placement=\"bottom\" title=\"Can not order!\" style=\"position:absolute;cursor:pointer;right:1.25rem;bottom:0;\" >");
+					sb.append(String.format("<i style=\"color:%s;font-size:1.25rem;\" class=\"fas fa-plus-circle\" data-toggle=\"modal\" data-target=\"#account-not-active-modal\" ></i>", BootStrapColorEnum.WARNING.getColorCode(), item.getId()));
+					sb.append("</div>");
+				} else if (UserFlagEnum.MILKTEA_BANNED.isValid(userInfo.getFlag())) {
+					sb.append("<div data-toggle=\"tooltip\" data-placement=\"bottom\" title=\"Banned!\" style=\"position:absolute;cursor:pointer;right:1.25rem;bottom:0;\" >");
+					sb.append(String.format("<i style=\"color:%s;font-size:1.25rem;\" class=\"fas fa-plus-circle\" data-toggle=\"modal\" data-target=\"#account-banned-modal\" ></i>", BootStrapColorEnum.DANGER.getColorCode(), item.getId()));
+					sb.append("</div>");
+				} else {
+					sb.append("<div data-toggle=\"tooltip\" data-placement=\"bottom\" title=\"Place the order\" style=\"position:absolute;cursor:pointer;right:1.25rem;bottom:0;\" >");
+					sb.append(String.format("<i style=\"color:%s;font-size:1.25rem;\" class=\"fas fa-plus-circle\" data-toggle=\"modal\" data-target=\"#place-order-modal-%d\" ></i>", BootStrapColorEnum.INFO.getColorCode(), item.getId()));
+					sb.append("</div>");
+				}
+			} else {
+				sb.append("<div data-toggle=\"tooltip\" data-placement=\"bottom\" title=\"Login\" style=\"position:absolute;cursor:pointer;right:1.25rem;bottom:0;\" >");
+				sb.append(String.format("<i style=\"color:%s;font-size:1.25rem;\" class=\"fas fa-plus-circle\" data-toggle=\"modal\" data-target=\"#login-form-modal\" ></i>", BootStrapColorEnum.INFO.getColorCode()));
+				sb.append("</div>");
+			}
+		}
+		sb.append("</div></div>");
+		return sb.toString();
+	}
+	
+	@SuppressWarnings("rawtypes")
 	private static String getPlaceOrderModal(MenuInfo menuInfo, MenuItem item, Map messages, String contextPath) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(String.format("<div class=\"modal fade\" id=\"place-order-modal-%d\">", item.getId()));
@@ -144,20 +180,20 @@ public class MilkTeaCommonFunc {
 						sb.append(String.format("<form id=\"place-order-form-%d\">", item.getId()));
 							sb.append("<div class=\"form-group\">");
 							sb.append("<div class=\"row\">");
-								sb.append("<div class=\"col-sm-4\" >");
+								sb.append("<div class=\"col-4 col-sm-4\" >");
 								String imgSrc = item.getImage_url();
 									if (imgSrc == null || !imgSrc.startsWith("http")) {
 										imgSrc = contextPath + "/img/milktea/no_image.png?@no_image.png@";
 									}
 									sb.append(String.format("<img src=\"%s\" title=\"\" alt=\"\" style=\"height:3.125rem;\"/>", imgSrc));
 								sb.append("</div>");
-								sb.append("<div class=\"col-sm-8\">");
-									sb.append("<label class=\"font-weight-bold text-info\" style=\"font-size:1.25rem;\">").append(item.getName()).append(" + ").append(getShowPriceWithUnit(item.getPrice(), "", messages)).append("</label>");
+								sb.append("<div class=\"col-8 col-sm-8\">");
+									sb.append("<label class=\"font-weight-bold text-info\" style=\"font-size:1.25rem;\">").append(item.getName()).append(" + ").append(getShowPriceWithUnit(item.getPrice(), messages)).append("</label>");
 								sb.append("</div>");
 							sb.append("</div>");
 							if (item.getDesc() != null && item.getDesc().length() > 0) {
 								sb.append("<div class=\"row\">");
-								sb.append("<div class=\"col-sm-12 text-center font-italic\" style=\"font-size:0.9375rem;color:lightgray;\">");
+								sb.append("<div class=\"col-sm-12 text-center font-italic\" style=\"font-size:0.9375rem;color:lightgray;margin-top:0.5rem;padding:0 10%;\">");
 								sb.append(item.getDesc());
 								sb.append("</div>");
 								sb.append("</div>");
@@ -290,7 +326,7 @@ public class MilkTeaCommonFunc {
 					sb.append(String.format("<label class=\"custom-control-label text-success\" for=\"item-option-%s\">", (item.getId() + "-" + inputName + "-" + (2 * i + j))));
 					sb.append(itemOption.getName());
 					if (itemOption.getPrice() != 0) {
-						sb.append(" + ").append(getShowPriceWithUnit(itemOption.getPrice(), "", messages));
+						sb.append(" + ").append(getShowPriceWithUnit(itemOption.getPrice(), messages));
 					}
 					sb.append("</label>");
 					sb.append("</div>");
@@ -424,7 +460,7 @@ public class MilkTeaCommonFunc {
 					sb.append("</td>");
 				}
 					sb.append(String.format("<td style=\"border-top:0.0625rem solid %s;%s\">", ORDER_BORDER_COLOR, (MilkTeaOrderFlag.CANCELED.isValidFlag(order.getFlag()) ? "text-decoration:line-through;" : "")));
-						sb.append(order.getDishName());
+						sb.append("<span class=\"follow-item\">").append(order.getDishName()).append("</span>");
 						if (order.getSize() != null && order.getSize().length() > 0) {
 							String size = order.getSize().toUpperCase();
 							if (size.matches(".*SIZE ([A-Z]).*")) {
@@ -456,7 +492,7 @@ public class MilkTeaCommonFunc {
 						sb.append(tdStyle);
 							sb.append("<div class=\"row\" style=\"margin-left:0;\">");
 							long orderOriginalCost = (order.getDishPrice() + order.getAttrPrice()) * Math.max(1, order.getQuantity());
-							sb.append(getShowPriceWithUnit(orderOriginalCost, "", messages));
+							sb.append(getShowPriceWithUnit(orderOriginalCost, messages));
 							sb.append("</div>");
 						sb.append("</td>");
 					}
@@ -464,7 +500,7 @@ public class MilkTeaCommonFunc {
 						sb.append("<div class=\"row\" style=\"margin-left:0;\">");
 						long orderCost = getFinalCost(totalMoney, orderList.size(), menuInfo, order);
 						totalRealCost += orderCost;
-						sb.append(getShowPriceWithUnit(orderCost, "", messages));
+						sb.append(getShowPriceWithUnit(orderCost, messages));
 						sb.append("</div>");
 					sb.append("</td>");
 					if (isManagement && userInfo != null && UserFlagEnum.ADMINISTRATOR.isValid(userInfo.getFlag())) {
@@ -722,7 +758,7 @@ public class MilkTeaCommonFunc {
 					sb.append("</span>");
 					if (menuInfo.getMaxDiscount() > 0) {
 						sb.append("<span style=\"margin-left:1rem;\">");
-						sb.append(MessageFormat.format((String)messages.get("MSG_MILK_TEA_MENU_INFO_SALE_MAX_DISCOUNT"), getShowPriceWithUnit(menuInfo.getMaxDiscount(), "", messages)));
+						sb.append(MessageFormat.format((String)messages.get("MSG_MILK_TEA_MENU_INFO_SALE_MAX_DISCOUNT"), getShowPriceWithUnit(menuInfo.getMaxDiscount(), messages)));
 						sb.append("</span>");
 						sb.append("</div>");
 						sb.append("<div style=\"margin-bottom:0.5rem;\">");
@@ -730,7 +766,7 @@ public class MilkTeaCommonFunc {
 					} else {
 						sb.append("<span style=\"margin-left:1rem;\">");
 					}
-						sb.append(MessageFormat.format((String)messages.get("MSG_MILK_TEA_MENU_INFO_SHIPPING_FEE"), getShowPriceWithUnit(menuInfo.getShippingFee(), "", messages)));
+						sb.append(MessageFormat.format((String)messages.get("MSG_MILK_TEA_MENU_INFO_SHIPPING_FEE"), getShowPriceWithUnit(menuInfo.getShippingFee(), messages)));
 					sb.append("</span>");
 				sb.append("</div>");
 				sb.append("<div style=\"margin-bottom:0.5rem;\">");
@@ -880,7 +916,7 @@ public class MilkTeaCommonFunc {
 					}
 					sb.append("</td>");
 					sb.append(tdStyle);
-						sb.append(getShowPriceWithUnit(menuInfo.getShippingFee(), "", messages));
+						sb.append(getShowPriceWithUnit(menuInfo.getShippingFee(), messages));
 					sb.append("</td>");
 					sb.append(tdStyle);
 						sb.append(CommonMethod.getFormatDateString(menuInfo.getCreated(), CommonDefine.DATE_FORMAT_PATTERN));
@@ -953,11 +989,21 @@ public class MilkTeaCommonFunc {
 	}
 	
 	@SuppressWarnings("rawtypes")
-	public static String getShowPriceWithUnit(long price, String option, Map messages) {
+	public static String getShowPriceWithUnit(long price, Map messages) {
+		return getShowPriceWithUnit(price, "", messages);
+	}
+	
+	@SuppressWarnings("rawtypes")
+	public static String getShowPriceWithUnit(long price, String optionStyle, Map messages) {
+		return getShowPriceWithUnit(price, optionStyle, "", messages);
+	}
+	
+	@SuppressWarnings("rawtypes")
+	public static String getShowPriceWithUnit(long price, String optionStyle, String unitOption, Map messages) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(String.format("<span style=\"position:relative;text-align:right;padding-right:0.625rem;%s\">",option));
+		sb.append(String.format("<span style=\"position:relative;text-align:right;padding-right:0.625rem;%s\">",optionStyle));
 		sb.append("<span style=\"\">").append(CommonMethod.getFormatNumberThousandComma(price)).append("</span>");
-		sb.append("<span style=\"position:absolute;top:0;right:0;font-size:0.75rem;\">").append(messages.get("MSG_MILK_TEA_PRICE_UNIT")).append("</span>");
+		sb.append("<span style=\"position:absolute;top:0;right:0;font-size:0.75rem;\" " + unitOption + ">").append(messages.get("MSG_MILK_TEA_PRICE_UNIT")).append("</span>");
 		sb.append("</span>");
 		return sb.toString();
 	}

@@ -1,7 +1,13 @@
-
 .none-select {
 	user-select: none;
 	-ms-user-select: none;
 	-moz-user-select: none;
 	-webkit-user-select: none;
+}
+
+@media (min-width: 992px) {
+#user-operate-menu{
+	right: 0;
+    left: unset;
+}
 }

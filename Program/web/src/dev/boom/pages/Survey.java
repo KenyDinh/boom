@@ -17,7 +17,6 @@ import dev.boom.services.SurveyOptionInfo;
 import dev.boom.services.SurveyResultInfo;
 import dev.boom.services.SurveyService;
 import dev.boom.tbl.data.TblSurveyValidCodeData;
-import dev.boom.tbl.info.TblSurveyResultInfo;
 
 public class Survey extends PageBase {
 
@@ -48,20 +47,22 @@ public class Survey extends PageBase {
 	@Override
 	public void onInit() {
 		super.onInit();
+		activeSurvey = SurveyService.getActiveSurveyInfo();
 		if (getContext().getRequestParameter("out") != null) {
 			getContext().removeSessionAttribute(SURVEY_SESSION);
 			setRedirect(this.getClass());
 			return;
 		} else if (getContext().getRequestParameter("clear") != null) {
-			if (surveySession != null) {
-				TblSurveyResultInfo resultInfo = new TblSurveyResultInfo();
-				resultInfo.setUser(surveySession.getCode());
-				resultInfo.setDelete();
-				if (!CommonDaoService.delete(resultInfo)) {
-					GameLog.getInstance().error("[onInit] clear result failed!");
+			if (surveySession != null && activeSurvey != null) {
+				SurveyResultInfo resultInfo = SurveyService.getSurveyResult(surveySession.getCode(), activeSurvey.getId());
+				if (resultInfo != null) {
+					resultInfo.getInfo().setDelete();
+					if (!CommonDaoService.delete(resultInfo.getInfo())) {
+						GameLog.getInstance().error("[onInit] clear result failed!");
+					}
+					setRedirect(this.getClass());
+					return;
 				}
-				setRedirect(this.getClass());
-				return;
 			}
 		}
 	}
@@ -154,15 +155,11 @@ public class Survey extends PageBase {
 			addModel("valid_form", 1);
 			return;
 		}
-		if (surveySession == null) {
+		if (activeSurvey == null) {
 			return;
 		}
 		TblSurveyValidCodeData userData = SurveyService.getSurveyValidData(surveySession.getCode());
 		if (userData == null) {
-			return;
-		}
-		activeSurvey = SurveyService.getActiveSurveyInfo();
-		if (activeSurvey == null) {
 			return;
 		}
 		addModel("survey", activeSurvey);
@@ -341,6 +338,7 @@ public class Survey extends PageBase {
 		}
 		headElements.add(new CssImport("/css/vote/vote.css?@vote.css@"));
 		headElements.add(new JsImport("/js/vote/vote.js?@vote.js@"));
+		headElements.add(new JsImport("/js/lib/random-color.min.js?@random-color.min.js@"));
 
 		return headElements;
 	}
