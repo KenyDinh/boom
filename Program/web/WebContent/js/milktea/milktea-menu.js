@@ -1,35 +1,30 @@
 const MAX_TOPPING = 3;
-
 $j(document).ready(function() {
 	initEvent();
-	let elem = $j('div#on-scroll-dish-type');
-	let mainNav = $j('#main-nav-bar');
-	if (elem.length) {
-		if ($j(window).outerWidth() >= 992) {
-			scrollDishType(elem,mainNav,$j(window));
-		} else if ($j(window).outerWidth() <= 576) {
-			$j('div#milktea-intro').css('height','');
-		}
-		$j(window).on('scroll resize', function() {
-			scrollDishType(elem,mainNav,$j(this));
-		});
-	}
-	if ($j('#milktea-intro > div#menu-detail').length || $j('#milktea-intro > div#shop-detail').length) {
-		if ($j(window).outerWidth() <= 1700) {
-			$j('div#milktea-intro').css('height','');
-		}
-		$j(window).on('scroll resize', function() {
-			if ($j(window).outerWidth() <= 1700) {
-				$j('div#milktea-intro').css('height','');
-			}
-		});
-	}
+	scrollDishType();
+	adjustIntroBannerHeight();
+	let scrollHeight = Math.max(
+			document.body.scrollHeight, document.documentElement.scrollHeight,
+			document.body.offsetHeight, document.documentElement.offsetHeight,
+			document.body.clientHeight, document.documentElement.clientHeight
+	);
+	showArrowIconScrollUp(scrollHeight);
+	$j(window).on('scroll resize', function() {
+		scrollDishType();
+		adjustIntroBannerHeight();
+		showArrowIconScrollUp(scrollHeight);
+	});
 	if ($j('img.menu-pre-image').length) {
 		resizePreimageMenu();
 		$j(window).on('resize', function() {
 			resizePreimageMenu();
 		});
 	}
+	$j('#btn-scroll-up > img').click(function() {
+		$j('html').animate({
+			scrollTop:0
+		},"slow");
+	});
 	$j('img.dish-image').hover(function() {
 		if($j('div#dish-image-overlay').length == 0) {
 			let size = $j(this).outerHeight();
@@ -87,6 +82,7 @@ function onMessage(event) {
 		}
 	}
 }
+
 function sendMilkTeaUpdateRequest(data) {
 	if (data === undefined || data === null) {
 		return;
@@ -121,6 +117,24 @@ function sendMilkTeaUpdateRequest(data) {
 	});
 }
 
+function adjustIntroBannerHeight() {
+	if ($j('#milktea-intro > div#menu-detail').length || $j('#milktea-intro > div#shop-detail').length) {
+		if ($j(window).outerWidth() <= 1700) {
+			$j('div#milktea-intro').css('height','');
+		}
+	}
+}
+
+function showArrowIconScrollUp(scrollHeight) {
+	if ($j('#btn-scroll-up').length > 0 && $j(window).outerWidth() <= 576 ) {
+		if ($j(window).scrollTop() > scrollHeight/2) {
+			$j('#btn-scroll-up').css('opacity','0.6');
+		} else {
+			$j('#btn-scroll-up').css('opacity','0');
+		}
+	}
+}
+
 function initEvent() {
 	$j('div[id^="delete-order-"]').unbind('mouseenter mouseleave');
 	$j('div[id^="delete-order-"]').hover(function() {
@@ -140,9 +154,15 @@ function initEvent() {
 		viewItemByName($j(this).text());
 	});
 }
-function scrollDishType(elem, mainNav, scrollWrap) {
-	let scroll = scrollWrap.scrollTop();
-	if (scrollWrap.outerWidth() >= 992) {
+
+function scrollDishType() {
+	let elem = $j('div#on-scroll-dish-type');
+	if (elem.length <= 0) {
+		return;
+	}
+	let mainNav = $j('#main-nav-bar');
+	let scroll = $j(window).scrollTop();
+	if ($j(window).outerWidth() >= 992) {
 		let marginTop = parseInt(elem.css('margin-top'),10);
 		let eTop = elem.offset().top - mainNav.outerHeight() - marginTop;
 		if (scroll >= eTop) {
