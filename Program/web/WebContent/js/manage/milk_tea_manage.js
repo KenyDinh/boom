@@ -69,3 +69,20 @@ function forceResetState() {
 		mmtSocket.sendMessage("FORCE_RESET_STATE");
 	}
 }
+
+function confirmDeleteOrder(obj) {
+	if (typeof obj == "undefined") {
+		return;
+	}
+	let answ = confirm("Confirm delete order?");
+	if (answ == false) {
+		return;
+	}
+	let _form = $j(obj).closest('form');
+	if (_form.length) {
+		_form.append('<input type="hidden" name="mode" value="Delete" />');
+		_form.submit();
+		return;
+	}
+	alert("Form not found!");
+}
