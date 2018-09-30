@@ -6,20 +6,46 @@
 	</p>
 #else ##if (${error})
 	#if (${menuInfo})
-	<div class="row">
-		<div class="col-lg-12 text-center">
-			<h4 class="text-info">${menuInfo.getName()}</h4>
-		</div>
-		#if (${orderList})
-			<div class="col-lg-12">
-				${orderList}
-				<button class="btn btn-primary" id="place_order">PlaceOrder</button>
-				<p style="margin:1rem 0;">
-					<a href="${context}/manage/milktea/milk_tea_manage_menu.htm">Back</a>
-				</p>
+		<div class="row">
+			<div class="col-lg-12 text-center">
+				<h4 class="text-info">${menuInfo.getName()}</h4>
 			</div>
-		#end ##if (${orderList})
-	</div>
+			#if (${orderList})
+				<div class="col-lg-12">
+					${orderList}
+					<button class="btn btn-primary" id="place_order">PlaceOrder</button>
+					<p style="margin:1rem 0;">
+						<a href="${context}/manage/milktea/milk_tea_manage_menu.htm">Back</a>
+					</p>
+				</div>
+			#end ##if (${orderList})
+		</div>
+	#else ##if (${menuInfo})
+		#if (${orderInfo})
+			<div class="col-lg-4 col-md-6 col-sm-12" style="margin-top:1rem;">
+			<h3 class="control-label text-info" >${orderInfo.getDishName()}</h3>
+			<form method="post" action="${context}/manage/milktea/milk_tea_manage_order.htm">
+				<input type="hidden" name="order_id" value="${orderInfo.getId()}"/>
+				<div class="form-group">
+				  <fieldset>
+				    <label class="control-label" for="username">Username</label>
+				    <input class="form-control" id="username" type="text" name="username" value="${orderInfo.getUsername()}">
+				  </fieldset>
+				</div>
+				<div class="form-group">
+				  <fieldset>
+				    <label class="control-label" >Flags</label>
+				    $!{flags}
+				  </fieldset>
+				</div>
+				<input type="submit" class="btn btn-primary" name="mode" value="Update" style="margin-right:1rem;"/>
+				<button type="button" class="btn btn-danger" onclick="confirmDeleteOrder(this);this.blur();return false;" >Delete</button>
+			</form>
+			<p style="margin-top:2rem;">
+				<a href="${context}/manage/milktea/milk_tea_manage_order.htm?menu_id=${orderInfo.getMenuId()}">Back</a>
+			</p>
+			</div>
+		#end ##if (${editForm})
 	#end ##if (${menuInfo})
 	#if (${socket_url})
 		##<input type="button" id="socket_test" value="SocketTest"/>

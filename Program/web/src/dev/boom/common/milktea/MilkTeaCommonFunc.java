@@ -97,11 +97,11 @@ public class MilkTeaCommonFunc {
 						sb.append("</div>");
 						sb.append("</div>");
 					}
+					sb.append("<div class=\"row\" style=\"position:relative;\"><div class=\"col-lg-12\" style=\"font-size:0.8125rem;padding:0;margin-left:0.125rem;margin-right:0.125rem;margin-top:0.25rem;\">");
 					if (strRating != null) {
-						sb.append("<div class=\"row\" style=\"position:relative;\"><div class=\"col-lg-12\" style=\"font-size:0.8125rem;padding:0;margin-left:0.125rem;margin-right:0.125rem;margin-top:0.25rem;\">");
 						sb.append("<span class=\"text-warning d-none d-sm-block\" style=\"font-size:0.8125rem;\">").append(strRating).append("</span>");
-						sb.append("</div></div>");
 					}
+					sb.append("</div></div>");
 				sb.append("</div>");
 				
 				sb.append("<div class=\"col-lg-3 col-md-3 d-none d-lg-block d-md-block\">");
@@ -506,7 +506,7 @@ public class MilkTeaCommonFunc {
 					if (isManagement && userInfo != null && UserFlagEnum.ADMINISTRATOR.isValid(userInfo.getFlag())) {
 						if (menuInfo.getStatus() < MilkTeaMenuStatus.COMPLETED.ordinal()) {
 							sb.append(tdStyle);
-							sb.append(String.format("<a href=\"%s\">%s</a>", contextPath + "/manage/milktea/milk_tea_manage_order.htm?menu_id=" + menuInfo.getId() + "&order_id=" + order.getId(), messages.get("MSG_GENERAL_EDIT")));
+							sb.append(String.format("<a href=\"%s\">%s</a>", contextPath + "/manage/milktea/milk_tea_manage_order.htm?order_id=" + order.getId(), messages.get("MSG_GENERAL_EDIT")));
 							sb.append("</td>");
 						}
 					} else if (isMenuOpening && userId == order.getUserId()) { 

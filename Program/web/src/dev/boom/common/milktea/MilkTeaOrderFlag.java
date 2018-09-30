@@ -20,4 +20,13 @@ public enum MilkTeaOrderFlag {
 	public int getBitMask() {
 		return (1 << this.ordinal());
 	}
+	
+	public static MilkTeaOrderFlag valueOf(int flag) {
+		for (MilkTeaOrderFlag orderFlag : MilkTeaOrderFlag.values()) {
+			if (orderFlag.getBitMask() == flag) {
+				return orderFlag;
+			}
+		}
+		return null;
+	}
 }

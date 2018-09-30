@@ -34,6 +34,7 @@ public class MilkTeaMenu extends MilkTeaMainPage {
 			headElements = super.getHeadElements();
 		}
 		headElements.add(new JsImport("/js/milktea/milktea-menu.js"));
+		headElements.add(new JsImport("/js/milktea/milktea-order.js"));
 		headElements.add(new CssImport("/css/milktea/milktea-menu.css"));
 		return headElements;
 	}

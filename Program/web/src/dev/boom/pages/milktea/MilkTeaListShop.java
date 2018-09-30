@@ -65,7 +65,10 @@ public class MilkTeaListShop extends MilkTeaMainPage {
 		String contextPath = getHostURL() + getContextPath();
 		List<MenuItem> listMenuItem = MenuService.getMenuItemListByShopId(shopInfo.getId());
 		if (listMenuItem != null) {
-			addModel("dish_list", MilkTeaCommonFunc.getHtmlListMenuItem(null, listMenuItem, contextPath, getUserInfo(), getMessages()));
+			MenuInfo menuInfo = new MenuInfo();
+			menuInfo.setExpired(menuInfo.getCreated());
+			menuInfo.setShopId(shopInfo.getId());
+			addModel("dish_list", MilkTeaCommonFunc.getHtmlListMenuItem(menuInfo, listMenuItem, contextPath, getUserInfo(), getMessages()));
 			addModel("dish_type", MilkTeaCommonFunc.getHtmlListMenuItemType(listMenuItem, contextPath));
 		}
 		List<MenuInfo> menuList = MenuService.getMenuListByShopId(shopInfo.getId());
