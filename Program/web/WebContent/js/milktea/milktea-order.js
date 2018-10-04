@@ -17,6 +17,7 @@ function placeTheOrder(menuId,itemId) {
 		if (form.find('input#quantity-item-' + itemId).length) {
 			params += "&quantity=" + form.find('input#quantity-item-' + itemId).val();
 		}
+		params += "&ticket=" + form.find('input#free-ticket-' + itemId).is(':checked');
 		params += "&mode=1";
 		let listCheckedOption = form.find('input:checked');
 		let listSize = form.find('input[name="item-option-size"]');
@@ -74,9 +75,12 @@ function placeTheOrder(menuId,itemId) {
 			dataType:"json",
 			success:function(result) {
 				if (result) {
+					placeOrderModal.on('hide.bs.modal', function(e) {
+						$j('div#menu-item-place-modal').html(result.model_list);
+						$j('div#order-list').html($j(result.order_list).html());
+						initEvent();
+					});
 					placeOrderModal.modal('hide');
-//					$j('div#order-list').html(result);
-//					initEvent();
 				} else {
 					window.location.reload();
 				}
@@ -106,12 +110,13 @@ function deleteTheOrder(menuId,orderId) {
 		dataType:"json",
 		data:"mode=2&menu_id=" + menuId + "&order_id=" + orderId,
 		success:function(result) {
-			deleteOrderModal.modal('hide');
 			if (result) {
-//				deleteOrderModal.on('hide.bs.modal', function(e) {
-//					$j('div#order-list').html(result);
-//					initEvent();
-//				});
+				deleteOrderModal.on('hide.bs.modal', function(e) {
+					$j('div#menu-item-place-modal').html(result.model_list);
+					$j('div#order-list').html($j(result.order_list).html());
+					initEvent();
+				});
+				deleteOrderModal.modal('hide');
 			} else {
 				window.location.reload();
 			}

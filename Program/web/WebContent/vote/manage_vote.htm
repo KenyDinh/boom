@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>KTV Gala Vote</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="shortcut icon" href="${context}/img/vote/vote-icon.png">
+##<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/solid.css" integrity="sha384-Rw5qeepMFvJVEZdSo1nDQD5B6wX0m7c5Z/pLNvjkB14W6Yki1hKbSEQaX9ffUbWe" crossorigin="anonymous">
+##<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/fontawesome.css" integrity="sha384-GVa9GOgVQgOk+TNYXu7S/InPTfSDTtBalSgkgqQ7sCik56N9ztlkoTr2f/T44oKV" crossorigin="anonymous">
+$!{headElements}
+</head>
+<body style="background-color:#333;">
+	<div id="content" class="container" style="padding-bottom:10rem;">
+	<div class="row">
+
+		<div class="col-lg-12">
+			<div class="row justify-content-md-center">
+				<div class="col-lg-10 col-12">
+					#if (${activeSurvey})
+						$!{table}
+					#end ##if (${activeSurvey})
+				</div>
+			</div>
+			<div class="row justify-content-md-center">
+				<div class="col-lg-10 col-12">
+				<canvas id="vote_chart"></canvas>
+				</div>
+			</div>
+		</div>
+	</div>
+	</div>
+	$!{jsElements}
+	<script type="text/javascript">
+	//<![CDATA[
+	#if(${context})
+		var CONTEXT = '${context}';
+	#end
+	//]]>
+	</script>
+</body>
+</html>

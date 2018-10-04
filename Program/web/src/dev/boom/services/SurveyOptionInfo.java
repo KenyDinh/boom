@@ -1,5 +1,7 @@
 package dev.boom.services;
 
+import java.text.DecimalFormat;
+
 import dev.boom.tbl.info.TblSurveyOptionInfo;
 
 public class SurveyOptionInfo {
@@ -25,6 +27,15 @@ public class SurveyOptionInfo {
 
 	public void setSelectedCount(int selectedCount) {
 		this.selectedCount = selectedCount;
+	}
+	
+	public String getFormatVoteRating(long totalVote) {
+		if (totalVote <= 0) {
+			return "";
+		}
+		DecimalFormat df = new DecimalFormat("#.##");
+		double rate = (double) (selectedCount * 100) / totalVote;
+		return df.format(rate) + "%";
 	}
 
 	public long getId() {

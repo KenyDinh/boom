@@ -104,7 +104,7 @@ public class OrderInfo {
 	public void setFinalPrice(long final_price) {
 		this.info.setFinal_price(final_price);
 	}
-
+	
 	public int getDishCode() {
 		return this.info.getDish_code();
 	}
@@ -219,7 +219,14 @@ public class OrderInfo {
 			if (optionList == null || optionList.isEmpty()) {
 				return 0;
 			}
-			return optionList.split(",").length;
+			int count = 0;
+			for (String name : optionList.split(",")) {
+				if (name.trim().isEmpty()) {
+					continue;
+				}
+				count++;
+			}
+			return count;
 		default:
 			return 0;
 		}

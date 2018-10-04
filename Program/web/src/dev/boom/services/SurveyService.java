@@ -105,6 +105,13 @@ public class SurveyService {
 		
 	}
 	
+	public static long getCountSurveyResult(long survey_id) {
+		TblSurveyResultInfo info = new TblSurveyResultInfo();
+		info.setSurvey_id(survey_id);
+		
+		return CommonDaoService.count(info);
+	}
+	
 	public static List<SurveyOptionInfo> calculateSurveyResult(long survey_id) {
 		List<SurveyOptionInfo> listOptions = getSurveyOptionList(survey_id);
 		if (listOptions == null || listOptions.isEmpty()) {
@@ -116,7 +123,6 @@ public class SurveyService {
 		List<Object> results = CommonDaoService.executeNativeSQLQuery(sql, commands);
 		if (results != null && !results.isEmpty()) {
 			String strResults = (String) results.get(0);
-			System.out.println(strResults);
 			if (strResults != null) {
 				String[] ids = strResults.split(",");
 				for (String optId : ids) {
@@ -172,7 +178,7 @@ public class SurveyService {
 		return true;
 	}
 	
-	public static TblSurveyValidCodeData getSurveyValidData(String code) {
+	public static SurveyValidCodeData getSurveyValidData(String code) {
 		TblSurveyValidCodeData infoData = new TblSurveyValidCodeData();
 		infoData.setCode(code);
 		List<DaoValue> list = CommonDaoService.select(infoData);
@@ -180,6 +186,6 @@ public class SurveyService {
 			return null;
 		}
 		
-		return (TblSurveyValidCodeData) list.get(0);
+		return new SurveyValidCodeData((TblSurveyValidCodeData) list.get(0));
 	}
 }

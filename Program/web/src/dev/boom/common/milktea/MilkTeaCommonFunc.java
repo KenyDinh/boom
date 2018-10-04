@@ -23,6 +23,8 @@ import dev.boom.services.DishRatingInfo;
 import dev.boom.services.DishRatingService;
 import dev.boom.services.MenuInfo;
 import dev.boom.services.MenuService;
+import dev.boom.services.MilkTeaUserInfo;
+import dev.boom.services.MilkTeaUserService;
 import dev.boom.services.OrderInfo;
 import dev.boom.services.ShopInfo;
 import dev.boom.services.ShopService;
@@ -115,14 +117,15 @@ public class MilkTeaCommonFunc {
 		// modal
 		if (menuInfo != null && menuInfo.isOpening()) {
 			if (userInfo != null) {
+				MilkTeaUserInfo milkteaUser = MilkTeaUserService.getMilkTeaUserInfoById(userInfo.getId());
 				if (!UserFlagEnum.ACTIVE.isValid(userInfo.getFlag())) {
 					sb.append(CommonHtmlFunc.getModalAlertWithMessage("account-not-active-modal", "warning", (String)messages.get("MSG_ACCOUNT_INACTIVE")));
 				} else if (UserFlagEnum.MILKTEA_BANNED.isValid(userInfo.getFlag())) {
 					sb.append(CommonHtmlFunc.getModalAlertWithMessage("account-banned-modal", "danger", (String)messages.get("MSG_ACCOUNT_MILKTEA_BANNED")));
 				} else {
-					sb.append("<div>");
+					sb.append("<div id=\"menu-item-place-modal\">");
 					for (MenuItem item : listMenuItem) {
-						sb.append(getPlaceOrderModal(menuInfo, item, messages, contextPath));
+						sb.append(getPlaceOrderModal(milkteaUser, menuInfo, item, messages, contextPath));
 					}
 					sb.append("</div>");
 				}
@@ -165,7 +168,7 @@ public class MilkTeaCommonFunc {
 	}
 	
 	@SuppressWarnings("rawtypes")
-	private static String getPlaceOrderModal(MenuInfo menuInfo, MenuItem item, Map messages, String contextPath) {
+	public static String getPlaceOrderModal(MilkTeaUserInfo milkteaUser, MenuInfo menuInfo, MenuItem item, Map messages, String contextPath) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(String.format("<div class=\"modal fade\" id=\"place-order-modal-%d\">", item.getId()));
 			sb.append("<div class=\"modal-dialog modal-dialog-centered modal-lg\" >");
@@ -213,9 +216,24 @@ public class MilkTeaCommonFunc {
 							// -------------------- //
 							sb.append("</div>");
 							sb.append("<div class=\"form-group\">");
-							sb.append(String.format("<label for=\"quantity-item-%d\" class=\"font-weight-bold\" style=\"font-size:1.125rem;\">", item.getId()));
-							sb.append(messages.get("MSG_MILK_TEA_ORDER_COLUMN_QUANTITY")).append("</label>");
-							sb.append(String.format("<input type=\"number\" id=\"quantity-item-%d\" class=\"form-control\" style=\"width:22%%;\" min=\"1\" max=\"15\" value=\"1\"/>", item.getId()));
+							sb.append("<div class=\"row\">");
+								sb.append("<div class=\"col-md-6\">");
+								sb.append(String.format("<label for=\"quantity-item-%d\" class=\"font-weight-bold\" style=\"font-size:1.125rem;\">", item.getId()));
+								sb.append(messages.get("MSG_MILK_TEA_ORDER_COLUMN_QUANTITY")).append("</label>");
+								sb.append(String.format("<input type=\"number\" id=\"quantity-item-%d\" class=\"form-control\" style=\"width:50%%;\" min=\"1\" max=\"15\" value=\"1\"/>", item.getId()));
+								sb.append("</div>");
+								
+								sb.append("<div class=\"col-md-6\">");
+								if (milkteaUser != null && milkteaUser.getFreeTicket() > 0) {
+									sb.append(String.format("<label class=\"font-weight-bold\" style=\"font-size:1.125rem;\" data-toggle=\"tooltip\" data-placement=\"bottom\" title=\"%s\">", messages.get("MSG_MILK_TEA_FREE_TICKET_EXPLANE")));
+									sb.append(MessageFormat.format((String)messages.get("MSG_MILK_TEA_FREE_TICKET_REMAIN"), milkteaUser.getFreeTicket())).append("</label>");
+									sb.append("<div class=\"custom-control custom-checkbox\">");
+									sb.append(String.format("<input type=\"checkbox\" class=\"custom-control-input\" id=\"free-ticket-%d\"/>", item.getId()));
+									sb.append(String.format("<label class=\"custom-control-label\" for=\"free-ticket-%d\">%s</label>", item.getId(), messages.get("MSG_MILK_TEA_FREE_TICKET_USE_LABEL")));
+									sb.append("</div>");
+								}
+								sb.append("</div>");
+							sb.append("</div>");
 							sb.append("</div>");
 						sb.append(String.format("<button type=\"button\" class=\"btn btn-primary\" onclick=\"placeTheOrder(%d,%d);this.blur();return false;\">", menuInfo.getId(), item.getId())).append(messages.get("MSG_GENERAL_SUBMIT")).append("</button>");
 					sb.append("</form>");
@@ -449,7 +467,13 @@ public class MilkTeaCommonFunc {
 			long totalRealCost = 0;
 			long dishcount = 0;
 			for (OrderInfo order : orderList) {
-				sb.append(String.format("<tr %s>", ((userId == order.getUserId() && !isManagement) ? "class=\"bg-primary text-success\"" : "style=\"color:#C5C5C5;\"")));
+				String trHighlight = "style=\"color:#C5C5C5;\"";
+				if (userId == order.getUserId() && !isManagement) {
+					trHighlight = "class=\"bg-primary text-success\"";
+				} else if (MilkTeaOrderFlag.FREE_TICKET_ORDER.isValidFlag(order.getFlag())) {
+					trHighlight = "class=\"text-warning order-highlight\"";
+				}
+				sb.append(String.format("<tr %s>", trHighlight));
 				if (isManagement && userInfo != null && UserFlagEnum.ADMINISTRATOR.isValid(userInfo.getFlag()) && menuInfo.getStatus() == MilkTeaMenuStatus.DELIVERING.ordinal()) {
 					sb.append(tdStyle);
 					if (MilkTeaOrderFlag.PLACED.isValidFlag(order.getFlag())) {
@@ -1020,6 +1044,9 @@ public class MilkTeaCommonFunc {
 	}
 	
 	public static long getFinalCost(long totalMoney, int totalOrder, MenuInfo menuInfo, OrderInfo order) {
+		if (MilkTeaOrderFlag.FREE_TICKET_ORDER.isValidFlag(order.getFlag())) {
+			return 0;
+		}
 		int sale = 100;
 		if (menuInfo.getSale() > 0 && menuInfo.getSale() < 100) {
 			sale = 100 - menuInfo.getSale();
