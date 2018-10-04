@@ -1,1 +1,1 @@
-ALTER TABLE menu_info CHANGE COLUMN show_flag flag INT NOT NULL;
+ALTER TABLE milktea_user_info ADD COLUMN free_ticket TINYINT NOT NULL AFTER total_topping;
