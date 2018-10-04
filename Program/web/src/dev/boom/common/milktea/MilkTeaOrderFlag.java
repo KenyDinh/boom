@@ -7,6 +7,7 @@ public enum MilkTeaOrderFlag {
 	VOTE,
 	VOTE_CRON,
 	CANCELED,
+	FREE_TICKET_ORDER,
 	;
 	
 	public boolean isValidFlag(int flag) {

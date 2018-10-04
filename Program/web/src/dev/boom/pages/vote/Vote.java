@@ -1,4 +1,4 @@
-package dev.boom.pages;
+package dev.boom.pages.vote;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -11,14 +11,15 @@ import dev.boom.common.CommonDefine;
 import dev.boom.common.CommonMethod;
 import dev.boom.core.GameLog;
 import dev.boom.core.SurveySession;
+import dev.boom.pages.PageBase;
 import dev.boom.services.CommonDaoService;
 import dev.boom.services.SurveyInfo;
 import dev.boom.services.SurveyOptionInfo;
 import dev.boom.services.SurveyResultInfo;
 import dev.boom.services.SurveyService;
-import dev.boom.tbl.data.TblSurveyValidCodeData;
+import dev.boom.services.SurveyValidCodeData;
 
-public class Survey extends PageBase {
+public class Vote extends PageBase {
 
 	private static final long serialVersionUID = 1L;
 	private static final String SURVEY_SESSION = "servey_session";
@@ -30,7 +31,7 @@ public class Survey extends PageBase {
 	private SurveySession surveySession = null;
 	private Date now = new Date();
 	
-	public Survey() {
+	public Vote() {
 	}
 	
 	@Override
@@ -158,7 +159,7 @@ public class Survey extends PageBase {
 		if (activeSurvey == null) {
 			return;
 		}
-		TblSurveyValidCodeData userData = SurveyService.getSurveyValidData(surveySession.getCode());
+		SurveyValidCodeData userData = SurveyService.getSurveyValidData(surveySession.getCode());
 		if (userData == null) {
 			return;
 		}
@@ -312,7 +313,7 @@ public class Survey extends PageBase {
 		return sb.toString();
 	}
 	
-	private String getUserInfo(TblSurveyValidCodeData userData) {
+	private String getUserInfo(SurveyValidCodeData userData) {
 		if (userData == null) {
 			return "";
 		}
@@ -324,6 +325,7 @@ public class Survey extends PageBase {
 					sb.append("Welcome, " + userName);
 					sb.append("<a href=\"" + getContextPath() + getContext().getPagePath(getClass()) + "?out=1\">");
 					sb.append("<img src=\"" + getContextPath() + "/img/vote/logout-3.png" + "\" style=\"transform:scale(0.5,0.5);\"/>");
+					sb.append("</a>");
 				sb.append("</label>");
 			sb.append("</div>");
 		sb.append("</div>");

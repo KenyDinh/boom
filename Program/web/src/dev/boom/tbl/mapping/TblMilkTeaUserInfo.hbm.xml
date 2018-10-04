@@ -28,6 +28,9 @@
         <property name="total_topping" type="java.lang.Long">
             <column name="total_topping" not-null="true" />
         </property>
+        <property name="free_ticket" type="java.lang.Byte">
+            <column name="free_ticket" not-null="true" />
+        </property>
         <property name="latest_order_id" type="java.lang.Long">
             <column name="latest_order_id" not-null="true" />
         </property>

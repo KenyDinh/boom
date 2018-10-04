@@ -83,6 +83,20 @@ public class MilkTeaUserInfo {
 	public void setTotalTopping(long total_topping) {
 		this.info.setTotal_topping(total_topping);
 	}
+	
+	public byte getFreeTicket() {
+		return this.info.getFree_ticket();
+	}
+	
+	public void setFreeTicket(byte free_ticket) {
+		if (free_ticket < 0) {
+			free_ticket = 0;
+		}
+		if (free_ticket > Byte.MAX_VALUE) {
+			free_ticket = Byte.MAX_VALUE;
+		}
+		this.info.setFree_ticket(free_ticket);
+	}
 
 	public long getLatestOrderId() {
 		return this.info.getLatest_order_id();

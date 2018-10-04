@@ -25,6 +25,8 @@ import dev.boom.services.DishRatingInfo;
 import dev.boom.services.DishRatingService;
 import dev.boom.services.MenuInfo;
 import dev.boom.services.MenuService;
+import dev.boom.services.MilkTeaUserInfo;
+import dev.boom.services.MilkTeaUserService;
 import dev.boom.services.OrderInfo;
 import dev.boom.services.OrderService;
 import dev.boom.services.ShopInfo;
@@ -45,6 +47,7 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 	private int mode = 0;
 	private boolean error = false;
 	private MenuInfo menuInfo = null;
+	private MilkTeaUserInfo milkteaUser = null;
 
 	public MilkTeaManageOrder() {
 	}
@@ -76,7 +79,7 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 		if (strMenuId != null && CommonMethod.isValidNumeric(strMenuId, 1, Long.MAX_VALUE)) {
 			menuInfo = MenuService.getMenuById(Long.parseLong(strMenuId));
 		}
-
+		milkteaUser = MilkTeaUserService.getMilkTeaUserInfoById(getUserInfo().getId());
 	}
 
 	@Override
@@ -108,6 +111,7 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 			} else {
 				doDeleteOrder();
 			}
+			returnDetail();
 			break;
 		case MODE_RATING:
 			doRatingOrder();
@@ -126,6 +130,7 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 		long menuItemId = 0;
 		List<MenuItemOption> listItemOptions = null;
 		int quantity = 1;
+		boolean isTicket = false;
 		for (String key : mapParams.keySet()) {
 			String[] values = mapParams.get(key);
 			if (key.equals("menu_item_id")) {
@@ -165,7 +170,22 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 						quantity = Integer.parseInt(values[0]);
 					}
 				}
+			} else if (key.equals("ticket")) {
+				if (values != null && values.length > 0) {
+					if (values[0].equals("true")) {
+						isTicket = true;
+					}
+				}
 			}
+		}
+		if (isTicket) {
+			byte ticket = (milkteaUser == null ? 0 : milkteaUser.getFreeTicket());
+			if (ticket < quantity) {
+				GameLog.getInstance().error("[MilkTeaManageOrder] Not enough free ticket, ticket:" + ticket + ",quantity:" + quantity);
+				error = true;
+				return;
+			}
+			GameLog.getInstance().info("[MilkTeaManageOrder] Order with free ticket!");
 		}
 		MenuItem menuItem = MenuService.getMenuItemById(menuItemId);
 		if (menuItem == null) {
@@ -197,6 +217,8 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 				}
 			}
 		}
+		List<DaoValue> updates = new ArrayList<>();
+		
 		MenuItemSelectionLimit limitSelectOption = menuItem.getLimit_select();
 		if (limitSelectOption == null) {
 			GameLog.getInstance().warn("[MilkTeaManageOrder] No limit selection, use the default one!");
@@ -270,11 +292,18 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 		orderInfo.setAttrPrice(plusPrice);
 		orderInfo.setDishCode(menuItem.getName().hashCode());
 		orderInfo.setQuantity(quantity);
-		if (CommonDaoService.insert(orderInfo.getTblInfo()) == null) {
+		if (isTicket) {
+			orderInfo.setFlag(MilkTeaOrderFlag.FREE_TICKET_ORDER.getValidFlag(orderInfo.getFlag()));
+			milkteaUser.setFreeTicket((byte)(milkteaUser.getFreeTicket() - quantity));
+			updates.add(milkteaUser.getTblInfo());
+		}
+		updates.add(orderInfo.getTblInfo());
+		if (!CommonDaoService.update(updates)) {
 			GameLog.getInstance().error("[MilkTeaManageOrder] Create order failed!");
 			error = true;
 			return;
 		}
+		
 	}
 
 	private void doDeleteOrder() {
@@ -295,7 +324,18 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 			error = true;
 			return;
 		}
-		if (!CommonDaoService.delete(orderInfo.getTblInfo())) {
+		orderInfo.getTblInfo().setDelete();
+		List<DaoValue> updates = new ArrayList<>();
+		updates.add(orderInfo.getTblInfo());
+		if (MilkTeaOrderFlag.FREE_TICKET_ORDER.isValidFlag(orderInfo.getFlag())) {
+			if (milkteaUser == null) {
+				GameLog.getInstance().error("[MilkTeaManageOrder] Delete free order without MilkteUserInfo!!!");
+			} else {
+				milkteaUser.setFreeTicket((byte)(milkteaUser.getFreeTicket() + orderInfo.getQuantity()));
+				updates.add(milkteaUser.getTblInfo());
+			}
+		}
+		if (!CommonDaoService.update(updates)) {
 			GameLog.getInstance().error("[MilkTeaManageOrder] Delete order failed!");
 			error = true;
 			return;
@@ -388,9 +428,28 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 			super.onRender();
 			return;
 		}
-		putJsonData("success", 1);
-		MilkTeaEndPoint.sendSocketUpdate(menuInfo.getId(), MilkTeaSocketType.MENU_DETAIL, MilkTeaSocketMessage.UPDATE_ORDER_LIST);
+		MilkTeaEndPoint.sendSocketUpdate(menuInfo.getId(), MilkTeaSocketType.MENU_DETAIL, MilkTeaSocketMessage.UPDATE_ORDER_LIST, getUserInfo().getId());
 		super.onRender();
 	}
 
+	private void returnDetail() {
+		if (error) {
+			return;
+		}
+		if (menuInfo == null || getUserInfo() == null) {
+			return;
+		}
+		List<MenuItem> listMenuItem = MenuService.getMenuItemListByShopId(menuInfo.getShopId());
+		if (listMenuItem == null || listMenuItem.isEmpty()) {
+			return;
+		}
+		StringBuilder sb = new StringBuilder();
+		for (MenuItem item : listMenuItem) {
+			sb.append(MilkTeaCommonFunc.getPlaceOrderModal(milkteaUser, menuInfo, item, getMessages(), getHostURL() + getContextPath()));
+		}
+		putJsonData("model_list", sb.toString());
+		List<OrderInfo> listOrder = OrderService.getOrderInfoListByMenuId(menuInfo.getId());
+		putJsonData("order_list", MilkTeaCommonFunc.getHtmlListOrder(listOrder, menuInfo, userInfo, getHostURL() + getContextPath(), getMessages()));
+	}
+	
 }

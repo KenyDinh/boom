@@ -43,7 +43,7 @@ public class MilkTeaUserService {
 		return ret;
 	}
 	
-	public static List<MilkTeaUserInfo> getAll(String option) {
+	public static List<MilkTeaUserInfo> getMilkteaUserInfo(String option) {
 		TblMilkTeaUserInfo info = new TblMilkTeaUserInfo();
 		if (option != null && option.length() > 0) {
 			info.setSelectOption(option);
