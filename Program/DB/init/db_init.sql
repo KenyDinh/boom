@@ -204,3 +204,26 @@ CREATE TABLE survey_result_info (
 	INDEX(user),
 	INDEX(survey_id)
 ) ENGINE INNODB;
+
+DROP TABLE IF EXiSTS cannon_block_info;
+CREATE TABLE cannon_block_info (
+	id INT UNSIGNED NOT  NULL PRIMARY KEY AUTO_INCREMENT,
+	user_id INT UNSIGNED NOT NULL,        # userID...
+	user_board VARCHAR(128) NOT NULL,
+	bot_board VARCHAR(128) NOT NULL,
+	user_hp INT UNSIGNED NOT NULL,
+	bot_hp INT UNSIGNED NOT NULL,
+	status TINYINT NOT NULL DEFAULT 0
+) ENGINE INNODB;
+
+DROP TABLE IF EXISTS cannon_player_info;
+CREATE TABLE cannon_player_info (
+	user_id INT UNSIGNED NOT NULL,  
+	username VARCHAR(32) NOT NULL,
+	score INT NOT NULL,
+	status TINYINT NOT NULL DEFAULT 0,
+	created DATETIME NOT NULL,
+	updated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	INDEX(user_id),
+	INDEX(username)
+) ENGINE INNODB;

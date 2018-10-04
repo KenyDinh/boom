@@ -4,6 +4,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Random;
 
 public class CommonMethod {
 	
@@ -115,6 +116,13 @@ public class CommonMethod {
 		int minute = (int)(timeMili / 60) % 60;
 		int hour = (int)(timeMili - minute * 60 - second) / 3600;
 		return String.format("%02d:%02d:%02d", hour, minute, second);
+	}
+	
+	public static int randomNumber(int min, int max) {
+		Random rn = new Random();
+		int range = max - min + 1;
+		int randomNum = rn.nextInt(range) + min;
+		return randomNum;
 	}
 	
 }

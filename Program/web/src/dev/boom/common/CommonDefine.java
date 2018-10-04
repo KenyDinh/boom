@@ -15,4 +15,5 @@ public class CommonDefine {
 	public static final long MILLION_SECOND_DAY = 24 * MILLION_SECOND_HOUR;
 	public static final long SOCKET_SESSION_INTERVAL = MILLION_SECOND_DAY;
 	
+	
 }

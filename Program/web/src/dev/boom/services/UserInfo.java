@@ -52,6 +52,10 @@ public class UserInfo {
 		this.info.setFlag(flag);
 	}
 	
+	public TblUserInfo getTblUserInfo() {
+		return info;
+	}
+	
 	public boolean isMenuAvailable(MenuInfo menuInfo) {
 		if (UserFlagEnum.ADMINISTRATOR.isValid(getFlag())) {
 			return true;

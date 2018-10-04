@@ -42,6 +42,12 @@
   	<!-- Game -->
   	<page classname="game.Nihongo" path="game/nihongo.htm"/>
   	<page classname="game.json.NihongoJson" path="game/json/nihongo_json.json"/>
+  	
+  	<page classname="game.cannon.CannonBlockMenu" path="game/cannon_block/cannon_block_menu.htm"/>
+  	<page classname="game.cannon.CannonBlockPlay" path="game/cannon_block/cannon_block_play.htm"/>
+  	<page classname="game.json.cannon.CannonSwapJson" path="game/json/cannon_swap_json.json"/>
+  	<page classname="game.json.cannon.CannonFireJson" path="game/json/cannon_fire_json.json"/>
+  	
   	<!-- Manage Pages -->
   	<page classname="manage.milktea.MilkTeaManageMenu" path="manage/milktea/milk_tea_manage_menu.htm"/>
   	<page classname="manage.ManageEvent" path="manage/manage_event.htm"/>

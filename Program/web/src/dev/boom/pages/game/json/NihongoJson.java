@@ -31,11 +31,9 @@ public class NihongoJson extends JsonPageBase {
 		if (!super.onSecurityCheck()) {
 			return false;
 		}
-		
 		if (!initUserInfo()) {
 			return false;
 		}
-		
 		nihonUser = NihongoUserService.getNihongoUserInfo(userInfo.getId());
 		if (nihonUser == null) {
 			nihonUser = new TblNihongoUserInfo();

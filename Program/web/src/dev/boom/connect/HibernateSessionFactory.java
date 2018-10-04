@@ -35,6 +35,9 @@ public class HibernateSessionFactory {
 			"TblSurveyOptionInfo",
 			"TblSurveyResultInfo",
 			//_/_/_/_/_/_/_/_/_/_/_/_//
+			"TblCannonPlayerInfo",
+			"TblCannonBlockInfo",
+			//_/_/_/_/_/_/_/_/_/_/_/_//
 	};
 
 	private static SessionFactory sessionFactory = buildSessionFactory();
