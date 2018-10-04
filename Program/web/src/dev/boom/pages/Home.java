@@ -48,6 +48,8 @@ public class Home extends BoomMainPage {
 		if (getRedirect() != null) {
 			return;
 		}
+		
+		
 	}
 
 	@Override

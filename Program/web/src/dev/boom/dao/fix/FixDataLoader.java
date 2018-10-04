@@ -11,6 +11,7 @@ public class FixDataLoader {
 	private static final String[][] fixDataClassNames = {
 			// { ClassName, DataFileName[.csv] }
 			{ "SurveyValidCodeData", "survey_valid_code_data" },
+			{ "CannonBlockData", "cannon_block_data" },
 
 	};
 

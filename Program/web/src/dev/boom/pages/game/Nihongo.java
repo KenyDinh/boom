@@ -1,5 +1,6 @@
 package dev.boom.pages.game;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.click.element.CssImport;
@@ -36,7 +37,6 @@ public class Nihongo extends Game {
 		if (headElements == null) {
 			headElements = super.getHeadElements();
 		}
-
 		headElements.add(new CssImport("/css/game/nihongo.css"));
 		headElements.add(new JsImport("/js/lib/angular-1.6.4.min.js"));
 		headElements.add(new JsImport("/js/game/nihongo.js"));
