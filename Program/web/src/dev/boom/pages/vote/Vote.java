@@ -23,9 +23,8 @@ public class Vote extends PageBase {
 
 	private static final long serialVersionUID = 1L;
 	private static final String SURVEY_SESSION = "servey_session";
-	private static final int CODE_LENGTH = 6;
+	private static final int CODE_LENGTH = 10;
 	private static final long SURVEY_SESSION_TIMEOUT = CommonDefine.MILLION_SECOND_MINUTE * 5;
-	
 	
 	private SurveyInfo activeSurvey = null;
 	private SurveySession surveySession = null;
@@ -73,7 +72,7 @@ public class Vote extends PageBase {
 		super.onPost();
 		if (surveySession == null || surveySession.isExpired(now.getTime())) {
 			String strCode = getContext().getRequestParameter("user_code");
-			if (strCode != null && strCode.length() == CODE_LENGTH && strCode.matches("^[0-9]+$")) {
+			if (strCode != null && strCode.length() >= CODE_LENGTH && strCode.matches("^[0-9]+$")) {
 				if (!SurveyService.isValidUserCode(strCode)) {
 					GameLog.getInstance().error("[Survey] user code is invalid!, code:" + strCode);
 					return;

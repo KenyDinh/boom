@@ -262,7 +262,7 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 				if (strOption.length() > 0) {
 					strOption += ",";
 				}
-				strOption += name;
+				strOption += name.replace(",", "&#44;");
 			}
 			switch (optionType) {
 			case ICE:

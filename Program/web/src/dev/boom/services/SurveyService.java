@@ -118,9 +118,9 @@ public class SurveyService {
 			return null;
 		}
 		String sql = "SELECT GROUP_CONCAT(result SEPARATOR ',') AS results from survey_result_info where survey_id = " + survey_id;
-		List<String> commands = new ArrayList<>();
-		commands.add(new String("SET SESSION group_concat_max_len = 2048"));
-		List<Object> results = CommonDaoService.executeNativeSQLQuery(sql, commands);
+//		List<String> commands = new ArrayList<>();
+//		commands.add(new String("SET SESSION group_concat_max_len = 2048"));
+		List<Object> results = CommonDaoService.executeNativeSQLQuery(sql);
 		if (results != null && !results.isEmpty()) {
 			String strResults = (String) results.get(0);
 			if (strResults != null) {

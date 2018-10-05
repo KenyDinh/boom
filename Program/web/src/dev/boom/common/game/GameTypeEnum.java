@@ -6,7 +6,7 @@ import java.util.List;
 public enum GameTypeEnum {
 	NONE(0, 0, "", "", ""), 
 	NIHONGO(1, 1, "MSG_GAME_TYPE_NIHONGO", "img/game/nihongo/nihongo_game.jpg", "game/nihongo.htm"),
-	CANNONBLOCK(1, 1, "MSG_GAME_TYPE_CANNONBLOCK", "img/game/nihongo/nihongo_game.jpg", "game/cannon_block/cannon_block_menu.htm"),
+	CANNONBLOCK(1, 1, "MSG_GAME_TYPE_CANNONBLOCK", "img/game/cannon/cannon_block_game.png", "game/cannon_block/cannon_block_menu.htm"),
 	;
 
 	private int index;

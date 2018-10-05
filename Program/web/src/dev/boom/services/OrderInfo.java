@@ -12,6 +12,7 @@ import dev.boom.tbl.info.TblOrderInfo;
 public class OrderInfo {
 
 	private TblOrderInfo info = null;
+	private int limitSplitOption = 0;
 
 	public OrderInfo(TblOrderInfo info) {
 		this.info = info;
@@ -25,6 +26,14 @@ public class OrderInfo {
 		return this.info;
 	}
 	
+	public int getLimitSplitOption() {
+		return limitSplitOption;
+	}
+
+	public void setLimitSplitOption(int limitSplitOption) {
+		this.limitSplitOption = limitSplitOption;
+	}
+
 	public long getId() {
 		return this.info.getId();
 	}
@@ -209,7 +218,11 @@ public class OrderInfo {
 				return 100;
 			}
 			int total = 0;
-			for (String name : optionList.split(",")) {
+			for (String name : optionList.split(",", getLimitSplitOption())) {
+				if (name.isEmpty()) {
+					total += 100;
+					continue;
+				}
 				total += MilkTeaCommonFunc.calcOptionAmount(name);
 			}
 			return total;
@@ -220,7 +233,7 @@ public class OrderInfo {
 				return 0;
 			}
 			int count = 0;
-			for (String name : optionList.split(",")) {
+			for (String name : optionList.split(",", getLimitSplitOption())) {
 				if (name.trim().isEmpty()) {
 					continue;
 				}
