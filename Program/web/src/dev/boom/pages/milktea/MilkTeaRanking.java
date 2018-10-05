@@ -2,6 +2,8 @@ package dev.boom.pages.milktea;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -9,6 +11,7 @@ import java.util.Map;
 
 import org.apache.click.element.JsImport;
 
+import dev.boom.common.CommonDefine;
 import dev.boom.common.CommonMethod;
 import dev.boom.common.milktea.MilkTeaItemOptionType;
 import dev.boom.common.milktea.MilkTeaTabEnum;
@@ -107,10 +110,16 @@ public class MilkTeaRanking extends MilkTeaMainPage {
 			sb.append("<tbody>");
 			if (listData != null && !listData.isEmpty()) {
 				for (Map<String, String> map : listData) {
-					sb.append(String.format("<tr role=\"row\" class=\"%s\">", ((getUserInfo() != null && getUserInfo().getUsername().equals(map.get("username"))) ? "bg-success" : "")));
+					String highlight = "";
+					if (getUserInfo() != null && getUserInfo().getUsername().equals(map.get("username"))) {
+						highlight = "class=\"bg-success\"";
+					} else if (map.get("king_of_chasua") != null) {
+						highlight = "class=\"font-weight-bold data-highlight\" style=\"background-color:#903b76;\"";
+					}
+					sb.append(String.format("<tr role=\"row\" %s>", highlight));
 						sb.append("<td>").append(map.get("username")).append("</td>");
 						sb.append("<td>").append(map.get("order_count")).append("</td>");
-						sb.append("<td>").append(map.get("total_money")).append("</td>");
+						sb.append("<td>").append(CommonMethod.getFormatNumberThousandComma(Long.parseLong(map.get("total_money")))).append("</td>");
 						sb.append("<td>").append(map.get("ice") + "%").append("</td>");
 						sb.append("<td>").append(map.get("sugar") + "%").append("</td>");
 						sb.append("<td>").append(map.get("topping")).append("</td>");
@@ -118,7 +127,7 @@ public class MilkTeaRanking extends MilkTeaMainPage {
 				}
 			} else {
 				sb.append("<tr role=\"row\">");
-				sb.append("<td colspan=\"6\">").append("No records found!").append("</td>");
+				sb.append("<td colspan=\"6\" id=\"no-data\">").append("No records found!").append("</td>");
 				sb.append("</tr>");
 			}
 			sb.append("</tbody>");
@@ -145,10 +154,11 @@ public class MilkTeaRanking extends MilkTeaMainPage {
 		switch (mode) {
 		case MODE_LAST_MONTH:
 		case MODE_THIS_MONTH:
+		case MODE_KING_OF_CHASUA:
 			Calendar cal = Calendar.getInstance();
 			Date now = new Date();
 			cal.setTime(now);
-			if (mode == MODE_LAST_MONTH) {
+			if (mode == MODE_LAST_MONTH || mode == MODE_KING_OF_CHASUA) {
 				cal.add(Calendar.MONTH, -1);
 			}
 			cal.set(Calendar.DAY_OF_MONTH, 1);
@@ -156,13 +166,20 @@ public class MilkTeaRanking extends MilkTeaMainPage {
 			cal.set(Calendar.MINUTE, 0);
 			cal.set(Calendar.SECOND, 0);
 			start = CommonMethod.getFormatDateString(cal.getTime());
+			String query;
 			cal.set(Calendar.DAY_OF_MONTH, cal.getActualMaximum(Calendar.DAY_OF_MONTH));
 			cal.set(Calendar.HOUR_OF_DAY, 23);
 			cal.set(Calendar.MINUTE, 59);
 			cal.set(Calendar.SECOND, 59);
 			end = CommonMethod.getFormatDateString(cal.getTime());
-			String query = "SELECT username, COUNT(user_id), SUM(final_price), GROUP_CONCAT(ice SEPARATOR ',') AS total_ice, GROUP_CONCAT(sugar SEPARATOR ',') AS total_sugar, GROUP_CONCAT(option_list SEPARATOR ',') AS total_topping "
-					+ "FROM order_info WHERE final_price > 0 AND created >= '" + start + "' AND created <= '" + end + "' GROUP BY user_id;";
+			if (mode == MODE_KING_OF_CHASUA) {
+				query = "SELECT temp.username, COUNT(temp.username), SUM(temp.max_price), GROUP_CONCAT(temp.ice SEPARATOR ',') AS total_ice, GROUP_CONCAT(temp.sugar SEPARATOR ',') AS total_sugar, GROUP_CONCAT(temp.option_list SEPARATOR ',') AS total_topping "
+						+ "FROM (SELECT username, menu_id, MAX(final_price) AS max_price, ice, sugar, option_list FROM order_info WHERE final_price > 0 AND created >= '" + start + "' AND created <= '" + end + "' GROUP BY username, menu_id) AS temp "
+						+ "GROUP BY username ORDER BY (CASE WHEN COUNT(temp.username) >= " + CommonDefine.KING_OF_CHASUA_MIN_ORDER_NUM + " THEN SUM(temp.max_price) ELSE COUNT(temp.username) END) DESC LIMIT 10";
+			} else {
+				query = "SELECT username, COUNT(user_id), SUM(final_price), GROUP_CONCAT(ice SEPARATOR ',') AS total_ice, GROUP_CONCAT(sugar SEPARATOR ',') AS total_sugar, GROUP_CONCAT(option_list SEPARATOR ',') AS total_topping "
+						+ "FROM order_info WHERE final_price > 0 AND created >= '" + start + "' AND created <= '" + end + "' GROUP BY user_id;";
+			}
 			List<Object> listObject = CommonDaoService.executeNativeSQLQuery(query);
 			if (listObject != null && !listObject.isEmpty()) {
 				try {
@@ -172,8 +189,9 @@ public class MilkTeaRanking extends MilkTeaMainPage {
 							Map<String, String> map = new HashMap<>();
 							map.put("username", arrObj[0].toString());
 							map.put("order_count", arrObj[1].toString());
-							map.put("total_money", CommonMethod.getFormatNumberThousandComma(Long.parseLong(arrObj[2].toString())));
+							map.put("total_money", arrObj[2].toString());
 							OrderInfo orderInfo = new OrderInfo();
+							orderInfo.setLimitSplitOption(Integer.parseInt(map.get("order_count")));
 							orderInfo.setIce(arrObj[3].toString());
 							orderInfo.setSugar(arrObj[4].toString());
 							orderInfo.setOptionList(arrObj[5].toString());
@@ -190,10 +208,10 @@ public class MilkTeaRanking extends MilkTeaMainPage {
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
+				if (mode == MODE_KING_OF_CHASUA) {
+					sortKingOfChasua(listData);
+				}
 			}
-			break;
-		case MODE_KING_OF_CHASUA:
-			
 			break;
 		default:
 			List<MilkTeaUserInfo> list = MilkTeaUserService.getMilkteaUserInfo("ORDER BY total_money DESC");
@@ -202,7 +220,7 @@ public class MilkTeaRanking extends MilkTeaMainPage {
 					Map<String, String> map = new HashMap<>();
 					map.put("username", mku.getUsername());
 					map.put("order_count", String.valueOf(mku.getOrderCount()));
-					map.put("total_money", CommonMethod.getFormatNumberThousandComma(mku.getTotalMoney()));
+					map.put("total_money", String.valueOf(mku.getTotalMoney()));
 					map.put("ice", mku.getFormatAverageIce());
 					map.put("sugar", mku.getFormatAverageSugar());
 					map.put("topping", String.valueOf(mku.getTotalTopping()));
@@ -212,6 +230,47 @@ public class MilkTeaRanking extends MilkTeaMainPage {
 			break;
 		}
 		return listData;
+	}
+	
+	private void sortKingOfChasua(List<Map<String, String>> listData) {
+		if (listData == null || listData.isEmpty()) {
+			return;
+		}
+		List<Map<String, String>> listEligible = new ArrayList<>();
+		List<Map<String, String>> listInsufficient = new ArrayList<>();
+		for (Map<String, String> mapData : listData) {
+			if (Integer.parseInt(mapData.get("order_count")) < CommonDefine.KING_OF_CHASUA_MIN_ORDER_NUM) {
+				listInsufficient.add(mapData);
+			} else {
+				listEligible.add(mapData);
+			}
+		}
+		if (!listEligible.isEmpty()) {
+			Collections.sort(listEligible, new RankingDataSorting());
+			listEligible.get(0).put("king_of_chasua", "1");
+		}
+		if (!listInsufficient.isEmpty()) {
+			Collections.sort(listInsufficient, new RankingDataSorting());
+		}
+		listData.clear();
+		listData.addAll(listEligible);
+		listData.addAll(listInsufficient);
+	}
+	
+	class RankingDataSorting implements Comparator<Map<String, String>> {
+
+		@Override
+		public int compare(Map<String, String> o1, Map<String, String> o2) {
+			long m1 = Long.parseLong(o1.get("total_money"));
+			long m2 = Long.parseLong(o2.get("total_money"));
+			int c1 = Integer.parseInt(o1.get("order_count"));
+			int c2 = Integer.parseInt(o2.get("order_count"));
+			if (m1 == m2) {
+				return c2 - c1;
+			}
+			return (int)(m2 - m1);
+		}
+		
 	}
 	
 }

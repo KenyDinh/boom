@@ -96,6 +96,11 @@ function drawVoteData(option_list) {
 		                ticks: {
 		                    beginAtZero:true
 		                }
+		            }],
+		            xAxes: [{
+		                ticks: {
+		                    beginAtZero:true
+		                }
 		            }]
 		        }
 		    }

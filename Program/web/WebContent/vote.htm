@@ -23,8 +23,8 @@ $!{headElements}
 		<div style="margin-top:1rem;">
 			<form action="" method="post">
 				<div class="form-group text-center">
-			    <label for="user_code">Employee ID:</label>
-			    <input type="text" maxlength="6" minlength="6" pattern="[0-9]+" class="form-control" id="user_code" name="user_code" required style="text-align:center;max-width:30rem;margin:0 auto;" placeholder="Enter your employee ID">
+			    <label for="user_code">Your phone number:</label>
+			    <input type="text" maxlength="11" minlength="10" pattern="[0-9]+" class="form-control" id="user_code" name="user_code" required style="text-align:center;max-width:30rem;margin:0 auto;" placeholder="Enter your phone number">
 			  	</div>
 			  	<div class="text-center">
 			  		<button type="submit" class="btn btn-success">Submit</button>
@@ -56,7 +56,7 @@ $!{headElements}
 					</div>
 ##					<label class="text-danger" id="error"></label>
 					${options}
-					<form id="vote_form" action="survey.htm" method="post">
+					<form id="vote_form" action="vote.htm" method="post">
 						<input type="hidden" name="options" id="options"/>
 						#if (${retry})
 						<input type="hidden" name="retry" value="${retry}"/>

@@ -11,3 +11,44 @@
     left: unset;
 }
 }
+
+.data-highlight {
+    -webkit-animation-name: highlight;
+    -webkit-animation-duration: 1s;
+    -webkit-animation-timing-function: linear;
+    -webkit-animation-iteration-count: infinite;
+    
+    -moz-animation-name: highlight;
+    -moz-animation-duration: 1s;
+    -moz-animation-timing-function: linear;
+    -moz-animation-iteration-count: infinite;
+    
+    animation-name: highlight;
+    animation-duration: 1s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+}
+
+@-moz-keyframes highlight {  
+    0% { color:#F39C12; }
+    25% { color:#00bc8c; }
+    50% { color:#d6ea17; }
+    75% { color:#E74C3C; }
+    100% { color:#F39C12; }
+}
+
+@-webkit-keyframes highlight {  
+    0% { color:#F39C12; }
+    25% { color:#00bc8c; }
+    50% { color:#d6ea17; }
+    75% { color:#E74C3C; }
+    100% { color:#F39C12; }
+}
+
+@keyframes highlight {  
+    0% { color:#F39C12; }
+    25% { color:#00bc8c; }
+    50% { color:#d6ea17; }
+    75% { color:#E74C3C; }
+    100% { color:#F39C12; }
+}

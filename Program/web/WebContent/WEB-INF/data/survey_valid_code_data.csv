@@ -1,118 +1,115 @@
-#id,code,name
-1,100611,Furukawa Hiroshi
-2,007939,Sotaro Kuroda
-3,008139,Takahiro Sakuma
-4,007546,Kimura Maki
-5,300409,Hòa Quang Hiệp
-6,300410,Đoàn Thị Liên
-7,300413,Tống Trần Dương
-8,300414,Phùng Văn Hải
-9,300416,Vũ Kim Ngân
-10,300417,Nguyễn Thanh Thủy
-11,300418,Nguyễn Thị Thủy
-12,300422,Hoàng Minh Tuấn
-13,300424,Nguyễn Thị Ngọc
-14,300426,Nguyễn  Hồ Tường Vi
-15,300430,Phạm Đình Đô
-16,300434,Ngô Thị Hạnh
-17,300759,Trần Ngọc Liên
-18,300761,Phạm Hoàng Anh
-19,300764,Nguyễn Thị Thanh Hương
-20,300766,Nguyễn Thị Hà
-21,300772,Ngô Kim Phăng
-22,300776,Trần Thị Hương
-23,300926,Trần Thị Đào
-24,301343,Nguyễn Chí Cương
-25,301351,Trần Thị Phương Lan
-26,301507,Phạm Ngọc Anh
-27,301510,Nguyễn Ngọc Thùy
-28,301723,Nguyễn Thị Kim Trang
-29,301724,Trần Hồng Nhung
-30,301783,Lê Duy Anh
-31,301877,Đỗ Huyền Sâm
-32,301892,Nguyễn Hữu Dũng
-33,302208,Mai Lê Trà My
-34,302219,Phạm Thị Huỳnh
-35,302227,Trương Lan Phương
-36,302288,Nguyễn Hoàn Vũ
-37,302289,Trần Duy Long
-38,302557,Phạm Việt Anh
-39,302560,Lê Thị Hằng
-40,302561,Nguyễn Hoàng Sơn
-41,302566,Phạm Anh Kiên
-42,302569,Đỗ Thị Thuận Lan
-43,302649,Nguyễn Thị Thu Hà
-44,302650,Bạch Văn Duy
-45,302920,Nguyễn Hoàng Đăng
-46,302922,Đỗ Đình Lộc
-47,302923,Nguyễn Tuyết Ngân
-48,302924,Nguyễn Việt Hùng
-49,302926,Đinh Như Khánh
-50,302927,Nguyễn Quang Duy
-51,302934,Lê Vũ
-52,302936,Lưu Đức Trung
-53,302937,Đinh Thùy Linh
-54,302944,Lê Minh Phượng
-55,302946,Nguyễn Thị Thông
-56,302948,Trần Văn Tuấn
-57,302949,Trần Thị Ngọc
-58,302950,Lê Thị Dung
-59,302951,Phạm Thị Huyền
-60,302953,Trần Minh Đức
-61,302955,Hà Việt Phương
-62,302958,Nguyễn Thị Diệu Linh
-63,302959,Nguyễn Hoàng Phong
-64,302961,Nguyễn Trọng Phúc
-65,302963,Nguyễn Thị Thu Hằng
-66,302964,Nguyễn Gia Trung
-67,302965,Đào Lê Phương
-68,302972,Nguyễn Trung Hoàn
-69,302974,Ngô An Bình
-70,302976,Nguyễn Thúy Hằng
-71,302977,Đào Duy Thành
-72,302981,Đàm Anh Tuấn
-73,302982,Hoàng Anh Thảo
-74,303370,Nguyễn Khắc Bằng
-75,303371,Trần Thị Lan Anh
-76,303372,Nguyễn Mạnh Hoàng
-77,303373,Nguyễn Diệu Linh
-78,303374,Đặng Hùng Sơn
-79,303377,Kiều Thị Thùy Nhung
-80,303380,Nguyễn Hồng Giang
-81,303381,Đặng Minh Phương
-82,303382,Nguyễn Trần Diệu Mỹ
-83,303383,Đinh Đồng Tiến
-84,303385,Nguyễn Ngọc Thảo Trang
-85,303389,Lê Hoàng Hải
-86,303386,Nguyễn Ngọc Kiên
-87,303387,Lê Thanh Ngọc
-88,303388,Đoàn Văn Quý
-89,303391,Lê Văn Quang
-90,303393,Vũ Anh Hải
-91,303394,Nguyễn Thu Hằng
-92,303395,Đỗ Văn Thuần
-93,303396,Nguyễn Thọ Đức
-94,303397,Bùi Trọng Nam
-95,303398,Nguyễn Thùy Dương 2
-96,303744,Vũ Hà Nguyệt Ánh
-97,303745,Lê Thành Luân
-98,303746,Trần Huy Dũng
-99,303747,Nguyễn Đăng Minh
-100,303748,Hồ Khánh Chi
-101,303749,Ngô Thị Yến
-102,303750,Nguyễn Thị Ngọc Anh
-103,303751,Nguyễn Tiến Hoàng
-104,303752,Nguyễn Thị Thu
-105,303753,Ngô Thị Trang Anh
-106,303754,Nguyễn Xuân Huy
-107,303756,Tạ Vũ Tâm
-108,303757,Phí Thị Minh Phương
-109,303757,Đặng Phương Chi
-110,303759,Đỗ Xuân Huân
-111,303760,Lê Thị Thanh Mai
-112,303761,Hồ Tiến Quang
-113,303762,Nguyễn Khánh Huyền
-114,303772,Nguyễn Văn Nhân
-115,303773,Phạm Văn Hùng
-116,303774,Vũ Văn Minh
-117,303775,Nguyễn Thúy Linh
+#id,code,name,empid
+1,0395405747,Furukawa Hiroshi,100611
+2,0357193962,Sotaro Kuroda,7939
+3,0868830046,Takahiro Sakuma,8139
+4,0866536930,Kimura Maki,7546
+5,0989991308,Hòa Quang Hiệp,300409
+6,0932471686,Đoàn Thị Liên,300410
+7,0904659144,Tống Trần Dương,300413
+8,0986985808,Phùng Văn Hải,300414
+9,0912348918,Vũ Kim Ngân,300416
+10,0983138758,Nguyễn Thị Thủy,300418
+11,0922151125,Hoàng Minh Tuấn,300422
+12,0974986824,Nguyễn Thị Ngọc,300424
+13,0915659558,Nguyễn  Hồ Tường Vi,300426
+14,0987470885,Phạm Đình Đô,300430
+15,0388619414,Ngô Thị Hạnh,300434
+16,0976208835,Trần Ngọc Liên,300759
+17,0986498688,Phạm Hoàng Anh,300761
+18,0986078716,Nguyễn Thị Thanh Hương,300764
+19,0348686186,Nguyễn Thị Hà,300766
+20,0356066991,Ngô Kim Phăng,300772
+21,0977209251,Trần Thị Hương,300776
+22,0385585318,Trần Thị Đào,300926
+23,0979662980,Nguyễn Chí Cương,301343
+24,0364459495,Trần Thị Phương Lan,301351
+25,0817140802,Phạm Ngọc Anh,301507
+26,0987162962,Nguyễn Ngọc Thùy,301510
+27,0987882234,Nguyễn Thị Kim Trang,301723
+28,0973273010,Trần Hồng Nhung,301724
+29,0979017151,Lê Duy Anh,301783
+30,0979949997,Đỗ Huyền Sâm,301877
+31,0943298910,Nguyễn Hữu Dũng,301892
+32,0909861990,Mai Lê Trà My,302208
+33,0986794356,Phạm Thị Huỳnh,302219
+34,0982752678,Trương Lan Phương,302227
+35,0906050569,Nguyễn Hoàn Vũ,302288
+36,0977666103,Trần Duy Long,302289
+37,0357797190,Phạm Việt Anh,302557
+38,0975092180,Lê Thị Hằng,302560
+39,0965481217,Nguyễn Hoàng Sơn,302561
+40,0984796891,Phạm Anh Kiên,302566
+41,0985433669,Đỗ Thị Thuận Lan,302569
+42,0915588685,Nguyễn Thị Thu Hà,302649
+43,0773306383,Bạch Văn Duy,302650
+44,0346436456,Nguyễn Hoàng Đăng,302920
+45,0962381202,Đỗ Đình Lộc,302922
+46,0989653415,Nguyễn Tuyết Ngân,302923
+47,0367025394,Nguyễn Việt Hùng,302924
+48,0333397627,Đinh Như Khánh,302926
+49,0902244147,Nguyễn Quang Duy,302927
+50,0949988193,Lê Vũ,302934
+51,0389995825,Lưu Đức Trung,302936
+52,0988993282,Đinh Thùy Linh,302937
+53,0327849084,Lê Minh Phượng,302944
+54,0386940234,Nguyễn Thị Thông,302946
+55,0984748831,Trần Văn Tuấn,302948
+56,0977799448,Trần Thị Ngọc,302949
+57,0962486284,Lê Thị Dung,302950
+58,0369776577,Phạm Thị Huyền,302951
+59,0376530715,Trần Minh Đức,302953
+60,0989391194,Hà Việt Phương,302955
+61,0357939576,Nguyễn Thị Diệu Linh,302958
+62,0378531611,Nguyễn Hoàng Phong,302959
+63,0972204681,Nguyễn Trọng Phúc,302961
+64,0971599893,Nguyễn Thị Thu Hằng,302963
+65,0368094697,Nguyễn Gia Trung,302964
+66,0375618220,Đào Lê Phương,302965
+67,0904533682,Nguyễn Trung Hoàn,302972
+68,0969350689,Ngô An Bình,302974
+69,0943186850,Nguyễn Thúy Hằng,302976
+70,0382966130,Đào Duy Thành,302977
+71,0984011604,Đàm Anh Tuấn,302981
+72,0983871616,Hoàng Anh Thảo,302982
+73,0986480457,Nguyễn Khắc Bằng,303370
+74,0349972695,Trần Thị Lan Anh,303371
+75,0366765081,Nguyễn Mạnh Hoàng,303372
+76,0984672304,Nguyễn Diệu Linh,303373
+77,0973529156,Đặng Hùng Sơn,303374
+78,0357706353,Kiều Thị Thùy Nhung,303377
+79,0982797133,Nguyễn Hồng Giang,303380
+80,0852076163,Đặng Minh Phương,303381
+81,0762375738,Nguyễn Trần Diệu Mỹ,303382
+82,0334914202,Đinh Đồng Tiến,303383
+83,0948551218,Nguyễn Ngọc Thảo Trang,303385
+84,0914930766,Lê Hoàng Hải,303389
+85,0375783143,Nguyễn Ngọc Kiên,303386
+86,0983591359,Đoàn Văn Quý,303388
+87,0387230698,Lê Văn Quang,303391
+88,0824945903,Vũ Anh Hải,303393
+89,0389636786,Nguyễn Thu Hằng,303394
+90,0988400593,Đỗ Văn Thuận,303395
+91,0963988207,Nguyễn Thọ Đức,303396
+92,0376076355,Bùi Trọng Nam,303397
+93,0947491260,Nguyễn Thùy Dương 2,303398
+94,0977242206,Vũ Hà Nguyệt Ánh,303744
+95,0393124274,Lê Thành Luân,303745
+96,0777512345,Trần Huy Dũng,303746
+97,0989964281,Nguyễn Đăng Minh,303747
+98,0346902240,Hồ Khánh Chi,303748
+99,0335131334,Ngô Thị Yến,303749
+100,0979310300,Nguyễn Thị Ngọc Anh,303750
+101,0373588572,Nguyễn Tiến Hoàng,303751
+102,0982649253,Ngô Thị Trang Anh,303753
+103,0904513509,Nguyễn Xuân Huy,303754
+104,0986077603,Tạ Vũ Tâm,303756
+105,0968097705,Phí Thị Minh Phương,303757
+106,0985334725,Đặng Phương Chi,303758
+107,0366479458,Đỗ Xuân Huân,303759
+108,0387032497,Lê Thị Thanh Mai,303760
+109,0984564443,Vũ Văn Minh,303761
+110,0964822988,Nguyễn Thúy Linh,303762
+111,0328453799,Hồ Tiến Quang,303772
+112,0394843954,Nguyễn Khánh Huyền,303773
+113,0393713711,Nguyễn Văn Nhân,303774
+114,0366080760,Phạm Văn Hùng,303775

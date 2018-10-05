@@ -471,7 +471,7 @@ public class MilkTeaCommonFunc {
 				if (userId == order.getUserId() && !isManagement) {
 					trHighlight = "class=\"bg-primary text-success\"";
 				} else if (MilkTeaOrderFlag.FREE_TICKET_ORDER.isValidFlag(order.getFlag())) {
-					trHighlight = "class=\"text-warning order-highlight\"";
+					trHighlight = "class=\"text-warning data-highlight\"";
 				}
 				sb.append(String.format("<tr %s>", trHighlight));
 				if (isManagement && userInfo != null && UserFlagEnum.ADMINISTRATOR.isValid(userInfo.getFlag()) && menuInfo.getStatus() == MilkTeaMenuStatus.DELIVERING.ordinal()) {
