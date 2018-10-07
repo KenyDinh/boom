@@ -1,5 +1,6 @@
 package dev.boom.pages;
 
+import java.io.File;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,7 @@ public class PageBase extends Page {
 	private static final long serialVersionUID = 1L;
 	protected WorldInfo worldInfo = null;
 	protected boolean isDataTableFormat = false;
+	protected String fileUploadDir = null;
 
 	protected void storeBoomSession(UserInfo info) {
 		BoomSession boomSession = new BoomSession(info.getId());
@@ -48,6 +50,13 @@ public class PageBase extends Page {
 
 	protected String getContextPath() {
 		return getContext().getRequest().getContextPath();
+	}
+	
+	protected String getFileUploadDir() {
+		if (fileUploadDir == null) {
+			fileUploadDir = System.getProperty("catalina.base") + File.separator + "webapps" + File.separator + getContext().getServletContext().getInitParameter("file.dir");
+		}
+		return fileUploadDir;
 	}
 	
 	protected WorldInfo getWorldInfo() {
@@ -217,5 +226,16 @@ public class PageBase extends Page {
 //		headElements.add(new JsImport("https://cdn.datatables.net/fixedheader/3.1.5/js/dataTables.fixedHeader.min.js"));
 		headElements.add(new JsImport("https://cdn.datatables.net/responsive/2.2.3/js/dataTables.responsive.min.js"));
 		headElements.add(new JsImport("https://cdn.datatables.net/responsive/2.2.3/js/responsive.bootstrap4.min.js"));
+	}
+	
+	@SuppressWarnings({ "unchecked" })
+	protected void initHeadElementsLocalForTableData() {
+		headElements.add(new CssImport("/css/lib/dataTables.bootstrap4.min.css"));
+		headElements.add(new CssImport("/css/lib/responsive.bootstrap4.min.css"));
+		
+		headElements.add(new JsImport("/js/lib/jquery.dataTables.min.js"));
+		headElements.add(new JsImport("/js/lib/dataTables.bootstrap4.min.js"));
+		headElements.add(new JsImport("/js/lib/dataTables.responsive.min.js"));
+		headElements.add(new JsImport("/js/lib/responsive.bootstrap4.min.js"));
 	}
 }

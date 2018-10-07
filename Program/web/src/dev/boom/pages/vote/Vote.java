@@ -28,6 +28,7 @@ public class Vote extends PageBase {
 	
 	private SurveyInfo activeSurvey = null;
 	private SurveySession surveySession = null;
+	private SurveyValidCodeData userData = null;
 	private Date now = new Date();
 	
 	public Vote() {
@@ -41,6 +42,9 @@ public class Vote extends PageBase {
 			getContext().removeSessionAttribute(SURVEY_SESSION);
 			surveySession = null;
 		}
+		if (surveySession != null) {
+			userData = SurveyService.getSurveyValidData(surveySession.getCode());
+		}
 		return true;
 	}
 
@@ -52,24 +56,44 @@ public class Vote extends PageBase {
 			getContext().removeSessionAttribute(SURVEY_SESSION);
 			setRedirect(this.getClass());
 			return;
-		} else if (getContext().getRequestParameter("clear") != null) {
-			if (surveySession != null && activeSurvey != null) {
-				SurveyResultInfo resultInfo = SurveyService.getSurveyResult(surveySession.getCode(), activeSurvey.getId());
-				if (resultInfo != null) {
-					resultInfo.getInfo().setDelete();
-					if (!CommonDaoService.delete(resultInfo.getInfo())) {
-						GameLog.getInstance().error("[onInit] clear result failed!");
-					}
-					setRedirect(this.getClass());
-					return;
-				}
+		} 
+		if (getContext().getRequestParameter("clear") != null) {
+			if (activeSurvey == null) {
+				return;
 			}
+			if (surveySession == null) {
+				setRedirect(this.getClass());
+				return;
+			}
+			if (userData == null || !userData.isAdministrator()) {
+				setRedirect(this.getClass());
+				return;
+			}
+			String strCode = getContext().getRequestParameter("clear");
+			if (strCode == null || strCode.length() < CODE_LENGTH || !strCode.matches("^[0-9]+$") || !SurveyService.isValidUserCode(strCode)) {
+				setRedirect(this.getClass());
+				return;
+			}
+			SurveyResultInfo resultInfo = SurveyService.getSurveyResult(strCode, activeSurvey.getId());
+			if (resultInfo == null) {
+				setRedirect(this.getClass());
+				return;
+			}
+			resultInfo.getInfo().setDelete();
+			if (!CommonDaoService.delete(resultInfo.getInfo())) {
+				GameLog.getInstance().error("[onInit] clear result failed!");
+			}
+			setRedirect(this.getClass());
+			return;
 		}
 	}
 
 	@Override
 	public void onPost() {
 		super.onPost();
+		if (getRedirect() != null) {
+			return;
+		}
 		if (surveySession == null || surveySession.isExpired(now.getTime())) {
 			String strCode = getContext().getRequestParameter("user_code");
 			if (strCode != null && strCode.length() >= CODE_LENGTH && strCode.matches("^[0-9]+$")) {
@@ -158,7 +182,6 @@ public class Vote extends PageBase {
 		if (activeSurvey == null) {
 			return;
 		}
-		SurveyValidCodeData userData = SurveyService.getSurveyValidData(surveySession.getCode());
 		if (userData == null) {
 			return;
 		}
@@ -201,7 +224,7 @@ public class Vote extends PageBase {
 		if (resultInfo == null) {
 			sb.append("<div class=\"text-center\" style=\"margin-top:1rem;\">");
 			sb.append("<div class=\"row\">");
-			sb.append("<div class=\"col-sm-12 col-lg-3\" style=\"margin:0 auto;\">");
+			sb.append("<div class=\"col-sm-12 col-lg-4\" style=\"margin:0 auto;\">");
 			sb.append("<button type=\"submit\" onclick=\"sendVote(); this.blur; return false;\" class=\"btn btn-success\" style=\"width:100%;\">Submit</button>");
 			sb.append("</div>");
 			sb.append("</div>");
@@ -209,10 +232,10 @@ public class Vote extends PageBase {
 		} else {
 			sb.append("<div class=\"text-center\" style=\"margin-top:1rem;\">");
 			sb.append("<div class=\"row\">");
-				sb.append("<div class=\"col-6 col-lg-3\" style=\"margin:0 auto;\">");
+				sb.append("<div class=\"col-6 col-lg-4\" style=\"margin:0 auto;\">");
 				sb.append("<button type=\"submit\" onclick=\"sendVote(); this.blur; return false;\" class=\"btn btn-success\" style=\"width:100%;\">Submit</button>");
 				sb.append("</div>");
-				sb.append("<div class=\"col-6 col-lg-3\" style=\"margin:0 auto;\">");
+				sb.append("<div class=\"col-6 col-lg-4\" style=\"margin:0 auto;\">");
 				sb.append("<a href=\"" + getContextPath() + getContext().getPagePath(getClass()) + "\">");
 				sb.append("<button type=\"submit\" class=\"btn btn-danger\" style=\"width:100%;\">Cancel</button>");
 				sb.append("</a>");
@@ -297,7 +320,7 @@ public class Vote extends PageBase {
 		sb.append("<div class=\"survey-option-wrapper" + ((info == null && !selectable) ? " result-empty" : "") + "\">");
 		if (info != null) {
 			sb.append("<div style=\"position:relative;\" data=\"option-" + info.getId() + "\" class=\"survey-option option-" + (selectable ? "select-" + info.getId() : "result-" + info.getId()) + "\">");
-				sb.append("<img src=\"" + getHostURL() + getContextPath() + "/img/vote/" + info.getImage() + "\" alt=\"" + info.getName() + "\" class=\"survey-opt-image" + (checked ? " check" : "") + "\">");
+				sb.append("<img src=\"" + CommonMethod.getStaticFile(info.getImage()) + "\" alt=\"" + info.getName() + "\" class=\"survey-opt-image" + (checked ? " check" : "") + "\">");
 				sb.append("<label class=\"font-weight-bold\" data-toggle=\"tooltip\" data-placement=\"bottom\" style=\"text-overflow:ellipsis;overflow:hidden;white-space:nowrap;width:100%;\" title=\"" + info.getName() + "\">");
 					sb.append(info.getName());
 				sb.append("</label>");
@@ -327,6 +350,13 @@ public class Vote extends PageBase {
 					sb.append("</a>");
 				sb.append("</label>");
 			sb.append("</div>");
+			if (userData.isAdministrator()) {
+				sb.append("<div class=\"col-lg-12 text-center\">");
+				sb.append("<label class=\"\" style=\"margin-bottom:1rem;\" >");
+					sb.append(String.format("<a href=\"%s\">Administration Page</a>", getPagePath(ManageVote.class)));
+				sb.append("</label>");
+				sb.append("</div>");
+			}
 		sb.append("</div>");
 		return sb.toString();
 	}

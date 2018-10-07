@@ -47,6 +47,14 @@ public class SurveyResultInfo {
 	public void setUser(String user) {
 		this.info.setUser(user);
 	}
+	
+	public String getUserInfo() {
+		return this.info.getInfo();
+	}
+	
+	public void setUserInfo(String userInfo) {
+		this.info.setInfo(userInfo);
+	}
 
 	public String getResult() {
 		return this.info.getResult();

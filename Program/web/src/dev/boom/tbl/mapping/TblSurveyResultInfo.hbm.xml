@@ -14,6 +14,9 @@
 		<property name="user" type="java.lang.String">
 			<column name="user" length="32" not-null="true" />
 		</property>
+		<property name="info" type="java.lang.String">
+			<column name="info" length="32" not-null="true" />
+		</property>
 		<property name="result" type="java.lang.String">
 			<column name="result" not-null="true" />
 		</property>

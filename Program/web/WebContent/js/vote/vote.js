@@ -1,19 +1,29 @@
 var $j = jQuery.noConflict();
 $j(document).ready(function(e) {
+	if ($j('img.survey-opt-image').length) {
+		resizeOptionImage();
+	}
+	$j(window).on('resize', function() {
+		resizeOptionImage();
+		//resizeResultImage();
+	});
 	$j('div[class*="option-select-"]').click(function() {
 		let checkedElem = $j(this).find('div.option-checked');
 		if (checkedElem.length) {
 			let id = $j(this).attr('data').replace('option-','');
+			let limit = parseInt($j('#max_choice').text());
 			if (checkedElem.is(':visible')) {
 				let rsElem = $j('div.option-result-' + id);
 				if (rsElem.length) {
 					rsElem.parent().addClass('result-empty');
+					if ($j('.result-empty').length >= limit) {
+						resizeResultImage();
+					}
 					rsElem.remove();
 				}
 				checkedElem.hide();
 				$j(this).find('img.survey-opt-image').removeClass('check');
 			} else {
-				let limit = parseInt($j('#max_choice').text());
 				let cur = getSelectedOption();
 				if (cur.length >= limit) {
 					alert("Exceed limit!");
@@ -26,15 +36,14 @@ $j(document).ready(function(e) {
 					let obj = $j(this).clone();
 					obj.removeClass('option-select-' + id).addClass('option-result-' + id);
 					rsElem.html(obj);
+					resizeOptionImage();
+					$j('div#result-frame').attr('style','')
 				}
 				checkedElem.show();
 				$j(this).find('img.survey-opt-image').addClass('check');
 			}
 		}
 	});
-	if ($j('div#result-frame').length) {
-		$j('div#result-frame').css('height',$j('div#result-frame').outerHeight() + 'px')
-	}
 	$j('[data-toggle="tooltip"]').tooltip();
 });
 function getSelectedOption() {
@@ -66,4 +75,20 @@ function sendVote() {
 	}
 	$j('#options').val(cur.join(','));
 	$j('#vote_form').submit();
+}
+
+function resizeResultImage() {
+	if ($j('div#result-frame').length) {
+		let height = $j('div#result-frame').outerHeight();
+		$j('div#result-frame').css('height',height + 'px')
+	}
+}
+
+function resizeOptionImage() {
+	if ($j('img.survey-opt-image').length) {
+		$j('img.survey-opt-image').each(function() {
+			let width = parseInt($j(this).css('width'));
+			$j(this).css('height',(width * 100 / 160) + 'px');
+		});
+	}
 }

@@ -7,16 +7,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import dev.boom.common.CommonMethod;
+import dev.boom.core.GameLog;
 import dev.boom.pages.JsonPageBase;
 import dev.boom.services.SurveyInfo;
 import dev.boom.services.SurveyOptionInfo;
+import dev.boom.services.SurveyResultInfo;
 import dev.boom.services.SurveyService;
 
 public class VoteDataLoader extends JsonPageBase {
 
 	private static final long serialVersionUID = 1L;
 
-	private SurveyInfo activeSurvey = null;
+	private SurveyInfo survey = null;
 	
 	public VoteDataLoader() {
 	}
@@ -38,19 +41,83 @@ public class VoteDataLoader extends JsonPageBase {
 	@Override
 	public void onInit() {
 		super.onInit();
-		activeSurvey = SurveyService.getActiveSurveyInfo();
+		String strSurveyId = getContext().getRequestParameter("survey_id");
+		if (CommonMethod.isValidNumeric(strSurveyId, 1, Long.MAX_VALUE)) {
+			survey = SurveyService.getSurveyById(Long.parseLong(strSurveyId));
+		}
 	}
 
 	@Override
 	public void onPost() {
 		super.onPost();
-		if (activeSurvey == null) {
+		if (survey == null) {
 			return;
 		}
-		List<SurveyOptionInfo> listResultOption = SurveyService.calculateSurveyResult(activeSurvey.getId());
+		String strMode = getContext().getRequestParameter("mode");
+		if (strMode != null && strMode.equals("result_detail")) {
+			getResultDetail();
+		} else {
+			getStatisticData();
+		}
+	}
+
+	@Override
+	public void onRender() {
+		super.onRender();
+	}
+	
+	private void getResultDetail() {
+		List<SurveyOptionInfo> listOptions = SurveyService.getSurveyOptionList(survey.getId());
+		if (listOptions == null || listOptions.isEmpty()) {
+			return;
+		}
+		List<SurveyResultInfo> listResult = SurveyService.getSurveyResultBySurveyId(survey.getId());
+		if (listResult == null || listResult.isEmpty()) {
+			return;
+		}
+		List<Map<String, String>> listData = new ArrayList<>();
+		for (SurveyResultInfo result : listResult) {
+			Map<String, String> data = new HashMap<>();
+			data.put("user", result.getUser());
+			data.put("info", result.getUserInfo());
+			String rs = "";
+			if (!result.getResult().isEmpty()) {
+				for (String strId : result.getResult().split(",")) {
+					if (!CommonMethod.isValidNumeric(strId, 1, Long.MAX_VALUE)) {
+						GameLog.getInstance().error("[VoteDateLoader] invalid option id: " + strId);
+						continue;
+					}
+					long id = Long.parseLong(strId);
+					for (SurveyOptionInfo option : listOptions) {
+						if (option.getId() == id) {
+							if (!rs.isEmpty()) {
+								rs += ",";
+							}
+							rs += option.getName();
+							break;
+						}
+					}
+				}
+			}
+			data.put("result", rs);
+			listData.add(data);
+		}
+		if (listData.isEmpty()) {
+			return;
+		}
+		putJsonData("result_detail", listData);
+	}
+	
+	private void getStatisticData() {
+		List<SurveyOptionInfo> listResultOption = SurveyService.calculateSurveyResult(survey.getId());
 		if (listResultOption == null || listResultOption.isEmpty()) {
 			return;
 		}
+		long resultCount = SurveyService.getCountSurveyResult(survey.getId());
+		if (resultCount <= 0) {
+			return;
+		}
+		putJsonData("count", resultCount);
 		Collections.sort(listResultOption, new Comparator<SurveyOptionInfo>() {
 
 			@Override
@@ -76,10 +143,4 @@ public class VoteDataLoader extends JsonPageBase {
 		
 		putJsonData("option_list", listOptionData);
 	}
-
-	@Override
-	public void onRender() {
-		super.onRender();
-	}
-	
 }

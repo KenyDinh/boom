@@ -14,6 +14,7 @@ public class TblSurveyResultInfo extends DaoValueInfo {
 	private long id;
 	private long survey_id;
 	private String user;
+	private String info;
 	private String result;
 	private byte retry_remain;
 	private Date created;
@@ -22,6 +23,7 @@ public class TblSurveyResultInfo extends DaoValueInfo {
 		this.id = 0;
 		this.survey_id = 0;
 		this.user = "";
+		this.info = "";
 		this.result = "";
 		this.retry_remain = 0;
 		this.created = new Date();
@@ -50,6 +52,14 @@ public class TblSurveyResultInfo extends DaoValueInfo {
 
 	public void setUser(String user) {
 		this.user = user;
+	}
+
+	public String getInfo() {
+		return info;
+	}
+
+	public void setInfo(String info) {
+		this.info = info;
 	}
 
 	public String getResult() {

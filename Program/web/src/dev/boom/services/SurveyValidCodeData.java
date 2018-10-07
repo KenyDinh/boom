@@ -33,5 +33,13 @@ public class SurveyValidCodeData {
 	public String getEmployeeId() {
 		return this.data.getEmp_id();
 	}
+	
+	public int getFlag() {
+		return this.data.getFlag();
+	}
+	
+	public boolean isAdministrator() {
+		return getFlag() > 0;
+	}
 
 }

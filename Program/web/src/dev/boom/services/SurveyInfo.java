@@ -2,6 +2,8 @@ package dev.boom.services;
 
 import java.util.Date;
 
+import dev.boom.common.CommonDefine;
+import dev.boom.common.CommonMethod;
 import dev.boom.tbl.info.TblSurveyInfo;
 
 public class SurveyInfo {
@@ -86,6 +88,10 @@ public class SurveyInfo {
 
 	public void setExpired(Date expired) {
 		this.info.setExpired(expired);
+	}
+	
+	public String getFormatStringExpireDate() {
+		return CommonMethod.getFormatDateString(getExpired(), CommonDefine.DATE_FORMAT_PATTERN);
 	}
 
 	public Date getUpdated() {
