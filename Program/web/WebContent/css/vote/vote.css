@@ -23,6 +23,7 @@ div.option-checked{
 }
 img.survey-opt-image{
 	width:100%;
+	object-fit:cover;
 	border-radius: 0.25rem;
     border: 1px solid #1e78d2;
 }

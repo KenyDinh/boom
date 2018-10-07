@@ -6,6 +6,10 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Random;
 
+import org.apache.click.Context;
+
+import dev.boom.core.BoomProperties;
+
 public class CommonMethod {
 	
 	private CommonMethod() {
@@ -125,4 +129,11 @@ public class CommonMethod {
 		return randomNum;
 	}
 	
+	public static String getStaticFile(String fileName) {
+		String context = "";
+		if (Context.hasThreadLocalContext()) {
+			context = Context.getThreadLocalContext().getRequest().getContextPath();
+		}
+		return "http://" + BoomProperties.SERVICE_HOSTNAME + context + "/static/" + fileName;
+	}
 }

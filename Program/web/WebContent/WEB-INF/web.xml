@@ -4,7 +4,16 @@
   <context-param>
 		<param-name>config-service-class</param-name>
 		<param-value>dev.boom.core.BoomConfigService</param-value>
-	</context-param>
+  </context-param>
+    <context-param>
+        <param-name>file.dir</param-name>
+        <param-value>friday/files</param-value>
+  </context-param>
+  <servlet>
+    <servlet-name>FileServlet</servlet-name>
+    <servlet-class>dev.boom.core.FileServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
   <servlet>
     <servlet-name>BoomServlet</servlet-name>
     <servlet-class>dev.boom.core.BoomServlet</servlet-class>
@@ -21,6 +30,10 @@
   <servlet-mapping>
     <servlet-name>BoomServlet</servlet-name>
     <url-pattern>*.json</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>FileServlet</servlet-name>
+    <url-pattern>/static/*</url-pattern>
   </servlet-mapping>
   <welcome-file-list>
     <welcome-file>home.htm</welcome-file>

@@ -27,6 +27,33 @@ public class SurveyService {
 		return new SurveyInfo((TblSurveyInfo) list.get(0));
 	}
 	
+	public static List<SurveyInfo> getSurveyList() {
+		TblSurveyInfo info = new TblSurveyInfo();
+		
+		List<DaoValue> list = CommonDaoService.select(info);
+		if (list == null || list.isEmpty()) {
+			return null;
+		}
+		List<SurveyInfo> ret = new ArrayList<>();
+		for (DaoValue dao : list) {
+			ret.add(new SurveyInfo((TblSurveyInfo) dao));
+		}
+		
+		return ret;
+	}
+	
+	public static SurveyInfo getSurveyById(long id) {
+		TblSurveyInfo info = new TblSurveyInfo();
+		info.setId(id);
+		
+		List<DaoValue> list = CommonDaoService.select(info);
+		if (list == null || list.isEmpty()) {
+			return null;
+		}
+		
+		return new SurveyInfo((TblSurveyInfo) list.get(0));
+	}
+	
 	public static List<SurveyOptionInfo> getSurveyOptionList(long survey_id) {
 		TblSurveyOptionInfo info = new TblSurveyOptionInfo();
 		info.setSurvey_id(survey_id);
@@ -42,6 +69,24 @@ public class SurveyService {
 		}
 		
 		return ret;
+	}
+	
+	public static SurveyOptionInfo getSurveyOptionById(long id) {
+		TblSurveyOptionInfo info = new TblSurveyOptionInfo();
+		info.setId(id);
+		
+		List<DaoValue> list = CommonDaoService.select(info);
+		if (list == null || list.isEmpty()) {
+			return null;
+		}
+		
+		return new SurveyOptionInfo((TblSurveyOptionInfo) list.get(0));
+	}
+	
+	public static boolean isExistOptionImgFileName(String imgName) {
+		TblSurveyOptionInfo info = new TblSurveyOptionInfo();
+		info.setImage(imgName);
+		return (CommonDaoService.count(info) > 0);
 	}
 	
 	public static List<SurveyOptionInfo> getSurveyOptionList(List<Long> ids) {
