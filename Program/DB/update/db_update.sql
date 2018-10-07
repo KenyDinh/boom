@@ -1,1 +1,1 @@
-ALTER TABLE milktea_user_info ADD COLUMN free_ticket TINYINT NOT NULL AFTER total_topping;
+ALTER TABLE survey_result_info ADD COLUMN info VARCHAR(32) NOT NULL DEFAULT "" AFTER user;
