@@ -17,7 +17,7 @@ public class FileServlet extends ClickServlet {
 
 	@Override
 	public void init() throws ServletException {
-		String path = System.getProperty("catalina.base") + File.separator + "webapps" + File.separator + getServletContext().getInitParameter("file.dir");
+		String path = System.getProperty("catalina.base") + File.separator + "temp" + File.separator + getServletContext().getInitParameter("file.dir");
 		File file = new File(path);
 		if (!file.exists()) {
 			try {
@@ -31,7 +31,10 @@ public class FileServlet extends ClickServlet {
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String filename = URLDecoder.decode(request.getPathInfo().substring(1), "UTF-8");
-		String path = System.getProperty("catalina.base") + File.separator + "webapps" + File.separator + getServletContext().getInitParameter("file.dir");
+		if (filename.isEmpty()) {
+			filename = "404.png";
+		}
+		String path = System.getProperty("catalina.base") + File.separator + "temp" + File.separator + getServletContext().getInitParameter("file.dir");
 		File file = new File(path, filename);
 		if (!file.exists()) {
 			file = new File(path, "404.png");

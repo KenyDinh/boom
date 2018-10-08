@@ -11,6 +11,7 @@ import java.util.Map;
 import org.apache.click.element.JsImport;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 
 import dev.boom.common.CommonDefine;
@@ -35,8 +36,8 @@ public class ManageVote extends PageBase {
 	private static final String SURVEY_SESSION = "servey_session";
 	
 	private SurveySession surveySession = null;
+	private SurveyValidCodeData data = null;
 	private SurveyInfo survey = null;
-	private Date now = new Date();
 	private int mode = 0;
 	private boolean error = false;
 
@@ -49,14 +50,19 @@ public class ManageVote extends PageBase {
 			return false;
 		}
 		surveySession = (SurveySession) getContext().getSessionAttribute(SURVEY_SESSION);
-		if (surveySession == null || surveySession.isExpired(now.getTime())) {
-			GameLog.getInstance().error("[ManageVote] survey session is null or already expired!");
+		if (surveySession == null) {
+			GameLog.getInstance().error("[ManageVote] survey session is null!");
 			setRedirect(Vote.class);
 			return false;
 		}
-		SurveyValidCodeData data = SurveyService.getSurveyValidData(surveySession.getCode());
-		if (data == null || !data.isAdministrator()) {
-			GameLog.getInstance().error("[ManageVote] survey valid data is null or not allowed to access!");
+		data = SurveyService.getSurveyValidData(surveySession.getCode());
+		if (data == null) {
+			GameLog.getInstance().error("[ManageVote] survey valid data is null!");
+			setRedirect(Vote.class);
+			return false;
+		}
+		if (!data.isEditable() && !data.isReadonly()) {
+			GameLog.getInstance().error("[ManageVote] not allow to access!");
 			setRedirect(Vote.class);
 			return false;
 		}
@@ -92,6 +98,27 @@ public class ManageVote extends PageBase {
 			mode = Integer.parseInt(strMode);
 		}
 		addModel("mode", mode);
+		if (data == null) {
+			setRedirect(Vote.class);
+			return;
+		}
+		if (data.isEditable()) {
+		} else if (data.isReadonly()) {
+			if (mode != MODE_SHOW_RESULT) {
+				GameLog.getInstance().error("[ManageVote] not allowed to access other page beside result page.");
+				setRedirect(Vote.class);
+				return;
+			}
+			if (survey == null || !survey.isActive()) {
+				GameLog.getInstance().error("[ManageVote] no survey active!");
+				setRedirect(Vote.class);
+				return;
+			}
+		} else {
+			GameLog.getInstance().error("[ManageVote] access deny!");
+			setRedirect(Vote.class);
+			return;
+		}
 	}
 
 	@Override
@@ -117,6 +144,9 @@ public class ManageVote extends PageBase {
 			}
 			String strName = getContext().getRequestParameter("name");
 			if (strName != null && strName.length() > 0 && !surveyInfo.getName().equals(strName)) {
+				if (strName.indexOf("<script") >= 0) {
+					strName = StringEscapeUtils.escapeHtml(strName);
+				}
 				surveyInfo.setName(strName);
 				update = true;
 			}
@@ -201,11 +231,17 @@ public class ManageVote extends PageBase {
 			} else {
 				String strOptName = getContext().getRequestParameter("name");
 				if (strOptName != null && strOptName.length() > 0 && !surveyOption.getName().equals(strOptName)) {
+					if (strOptName.indexOf("<script") >= 0) {
+						strOptName = StringEscapeUtils.escapeHtml(strOptName);
+					}
 					surveyOption.setName(strOptName);
 					update = true;
 				}
 				String strContent = getContext().getRequestParameter("content");
 				if (strContent != null && !surveyOption.getContent().equals(strContent)) {
+					if (strContent.indexOf("<script") >= 0) {
+						strContent = StringEscapeUtils.escapeHtml(strContent);
+					}
 					surveyOption.setContent(strContent);
 					update = true;
 				}
@@ -243,10 +279,12 @@ public class ManageVote extends PageBase {
 						error = true;
 						return;
 					}
-					File oldFile = new File(getFileUploadDir(), oldFileName);
-					if (oldFile.exists()) {
-						if (!oldFile.delete()) {
-							GameLog.getInstance().error("[ManageVote] cannot delete old image file: " + oldFileName);
+					if (!surveyOption.getImage().equals(oldFileName)) {
+						File oldFile = new File(getFileUploadDir(), oldFileName);
+						if (oldFile.exists()) {
+							if (!oldFile.delete()) {
+								GameLog.getInstance().error("[ManageVote] cannot delete old image file: " + oldFileName);
+							}
 						}
 					}
 				}
@@ -499,6 +537,9 @@ public class ManageVote extends PageBase {
 		sb.append("</div>");
 		sb.append("<a href=\"").append(getPagePath(this.getClass()) + "?mode=" + MODE_SURVEY_NEW +"\">");
 		sb.append("<button class=\"btn btn-info\">New Vote</button>");
+		sb.append("</a>");
+		sb.append("<a href=\"").append(getPagePath(Vote.class) + "\" style=\"margin-left:1rem;\">");
+		sb.append("<button class=\"btn btn-secondary\">&nbsp;Back&nbsp;</button>");
 		sb.append("</a>");
 		sb.append("<div id=\"\" class=\"\">");
 		sb.append("<table id=\"survey_table\" class=\"table\">");

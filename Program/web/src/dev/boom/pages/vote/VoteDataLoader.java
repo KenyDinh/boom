@@ -9,16 +9,21 @@ import java.util.Map;
 
 import dev.boom.common.CommonMethod;
 import dev.boom.core.GameLog;
+import dev.boom.core.SurveySession;
 import dev.boom.pages.JsonPageBase;
 import dev.boom.services.SurveyInfo;
 import dev.boom.services.SurveyOptionInfo;
 import dev.boom.services.SurveyResultInfo;
 import dev.boom.services.SurveyService;
+import dev.boom.services.SurveyValidCodeData;
 
 public class VoteDataLoader extends JsonPageBase {
 
 	private static final long serialVersionUID = 1L;
-
+	private static final String SURVEY_SESSION = "servey_session";
+	
+	private SurveySession surveySession = null;
+	private SurveyValidCodeData data = null;
 	private SurveyInfo survey = null;
 	
 	public VoteDataLoader() {
@@ -33,6 +38,16 @@ public class VoteDataLoader extends JsonPageBase {
 			return false;
 		}
 		if (!getContext().isPost()) {
+			return false;
+		}
+		surveySession = (SurveySession) getContext().getSessionAttribute(SURVEY_SESSION);
+		if (surveySession == null) {
+			GameLog.getInstance().error("[ManageVote] survey session is null!");
+			return false;
+		}
+		data = SurveyService.getSurveyValidData(surveySession.getCode());
+		if (data == null || (!data.isEditable() && !data.isReadonly())) {
+			GameLog.getInstance().error("[ManageVote] survey valid data is null or not allowed to access!");
 			return false;
 		}
 		return true;
