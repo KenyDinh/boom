@@ -54,7 +54,7 @@ public class PageBase extends Page {
 	
 	protected String getFileUploadDir() {
 		if (fileUploadDir == null) {
-			fileUploadDir = System.getProperty("catalina.base") + File.separator + "webapps" + File.separator + getContext().getServletContext().getInitParameter("file.dir");
+			fileUploadDir = System.getProperty("catalina.base") + File.separator + "temp" + File.separator + getContext().getServletContext().getInitParameter("file.dir");
 		}
 		return fileUploadDir;
 	}

@@ -37,13 +37,19 @@ public class Vote extends PageBase {
 	@Override
 	public boolean onSecurityCheck() {
 		surveySession = (SurveySession) getContext().getSessionAttribute(SURVEY_SESSION);
-		if (surveySession != null && surveySession.isExpired(now.getTime())) {
-			GameLog.getInstance().info("survey session expired!");
-			getContext().removeSessionAttribute(SURVEY_SESSION);
-			surveySession = null;
-		}
 		if (surveySession != null) {
 			userData = SurveyService.getSurveyValidData(surveySession.getCode());
+			if (userData == null) {
+				GameLog.getInstance().error("[onSecurityCheck] user's data is null!");
+				return false;
+			}
+			if (!userData.isEditable() && !userData.isReadonly()) {
+				if (surveySession.isExpired(now.getTime())) {
+					GameLog.getInstance().info("survey session expired!");
+					getContext().removeSessionAttribute(SURVEY_SESSION);
+					surveySession = null;
+				}
+			}
 		}
 		return true;
 	}
@@ -65,7 +71,7 @@ public class Vote extends PageBase {
 				setRedirect(this.getClass());
 				return;
 			}
-			if (userData == null || !userData.isAdministrator()) {
+			if (userData == null || !userData.isEditable()) {
 				setRedirect(this.getClass());
 				return;
 			}
@@ -95,19 +101,21 @@ public class Vote extends PageBase {
 			return;
 		}
 		if (surveySession == null || surveySession.isExpired(now.getTime())) {
-			String strCode = getContext().getRequestParameter("user_code");
-			if (strCode != null && strCode.length() >= CODE_LENGTH && strCode.matches("^[0-9]+$")) {
-				if (!SurveyService.isValidUserCode(strCode)) {
-					GameLog.getInstance().error("[Survey] user code is invalid!, code:" + strCode);
-					return;
+			if (userData == null || (!userData.isEditable() && !userData.isReadonly())) {
+				String strCode = getContext().getRequestParameter("user_code");
+				if (strCode != null && strCode.length() >= CODE_LENGTH && strCode.matches("^[0-9]+$")) {
+					if (!SurveyService.isValidUserCode(strCode)) {
+						GameLog.getInstance().error("[Survey] user code is invalid!, code:" + strCode);
+						return;
+					}
+					long timeout = new Date().getTime() + SURVEY_SESSION_TIMEOUT;
+					surveySession = new SurveySession(strCode, timeout);
+					getContext().setSessionAttribute(SURVEY_SESSION, surveySession);
+					GameLog.getInstance().info("regist session!");
 				}
-				long timeout = new Date().getTime() + SURVEY_SESSION_TIMEOUT;
-				surveySession = new SurveySession(strCode, timeout);
-				getContext().setSessionAttribute(SURVEY_SESSION, surveySession);
-				GameLog.getInstance().info("regist session!");
+				setRedirect(this.getClass());
+				return;
 			}
-			setRedirect(this.getClass());
-			return;
 		}
 		if (surveySession != null ) {
 			String strOptionList = getContext().getRequestParameter("options");
@@ -130,6 +138,10 @@ public class Vote extends PageBase {
 				GameLog.getInstance().error("Option list in invalid!");
 				return;
 			}
+			if (arr.length > activeSurvey.getMaxChoice()) {
+				GameLog.getInstance().error("Option list in invalid!");
+				return;
+			}
 			activeSurvey = SurveyService.getActiveSurveyInfo();
 			if (activeSurvey == null) {
 				GameLog.getInstance().error("No active survey!");
@@ -146,6 +158,7 @@ public class Vote extends PageBase {
 			} else {
 				surveyResultInfo = new SurveyResultInfo();
 				surveyResultInfo.setUser(surveySession.getCode());
+				surveyResultInfo.setUserInfo(userData.getName());
 				surveyResultInfo.setSurveyId(activeSurvey.getId());
 				surveyResultInfo.setRetryRemain(activeSurvey.getMaxRetry());
 				isInsert = true;
@@ -350,10 +363,16 @@ public class Vote extends PageBase {
 					sb.append("</a>");
 				sb.append("</label>");
 			sb.append("</div>");
-			if (userData.isAdministrator()) {
+			String pageLink = null;
+			if (userData.isEditable()) {
+				pageLink = String.format("<a href=\"%s\">Administration Page</a>", getPagePath(ManageVote.class));
+			} else if (userData.isReadonly()) {
+				pageLink = String.format("<a href=\"%s\">Result Page</a>", getPagePath(ManageVote.class) + "?mode=5" + "&survey_id=" + activeSurvey.getId());
+			}
+			if (pageLink != null) {
 				sb.append("<div class=\"col-lg-12 text-center\">");
 				sb.append("<label class=\"\" style=\"margin-bottom:1rem;\" >");
-					sb.append(String.format("<a href=\"%s\">Administration Page</a>", getPagePath(ManageVote.class)));
+					sb.append(pageLink);
 				sb.append("</label>");
 				sb.append("</div>");
 			}

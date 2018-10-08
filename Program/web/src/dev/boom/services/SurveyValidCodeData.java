@@ -38,8 +38,11 @@ public class SurveyValidCodeData {
 		return this.data.getFlag();
 	}
 	
-	public boolean isAdministrator() {
-		return getFlag() > 0;
+	public boolean isEditable() {
+		return (getFlag() == 1);
 	}
-
+	
+	public boolean isReadonly() {
+		return (getFlag() == 2);
+	}
 }

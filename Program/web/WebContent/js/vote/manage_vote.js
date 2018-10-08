@@ -34,9 +34,13 @@ $j(document).ready(function() {
 		});
 		$j('#detail-wrapper').on('shown.bs.collapse', function() {
 			$j('#refresh-detail').show();
+			$j('#collapse-detail').text("Less Detail");
 		});
 		$j('#detail-wrapper').on('hide.bs.collapse', function() {
 			$j('#refresh-detail').hide();
+		});
+		$j('#detail-wrapper').on('hidden.bs.collapse', function() {
+			$j('#collapse-detail').text("More Detail");
 		});
 		$j('#collapse-chart').click(function() {
 			$j(this).blur();
@@ -221,9 +225,9 @@ function drawVoteData(option_list) {
 		if (trElem.length <= 0) {
 			addNewOptionAppend(option_list[i]);
 		} else {
-			trElem.find('td.name').text(option_list[i].name);
-			trElem.find('td.rate').text(option_list[i].rate);
-			trElem.find('td.count').text(option_list[i].count);
+			trElem.find('td.name').html(option_list[i].name);
+			trElem.find('td.rate').html(option_list[i].rate);
+			trElem.find('td.count').html(option_list[i].count);
 		}
 	}
 	if ($j('#chart-wrapper').is(':visible')) {
