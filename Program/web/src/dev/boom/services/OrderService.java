@@ -44,9 +44,17 @@ public class OrderService {
 	}
 
 	public static List<OrderInfo> getOrderInfoListByMenuId(long menu_id) {
+		return getOrderInfoListByMenuId(menu_id, null);
+	}
+	
+	public static List<OrderInfo> getOrderInfoListByMenuId(long menu_id, String option) {
 		TblOrderInfo orderInfo = new TblOrderInfo();
 		orderInfo.setMenu_id(menu_id);
-		orderInfo.setSelectOption("ORDER BY created DESC");
+		if (option != null) {
+			orderInfo.setSelectOption(option);
+		} else {
+			orderInfo.setSelectOption("ORDER BY created DESC");
+		}
 		List<DaoValue> list = CommonDaoService.select(orderInfo);
 		if (list == null || list.isEmpty()) {
 			return null;

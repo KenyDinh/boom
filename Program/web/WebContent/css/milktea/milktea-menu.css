@@ -11,6 +11,8 @@
     background: url('/friday/img/milktea/icon_stars.png') no-repeat -5px -3px;
     margin-left: 2px;
     cursor: pointer;
+    position:relative;
+    top:1px;
 }
 .stars span.star.full {
     background-position: -5px -42px;

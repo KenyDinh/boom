@@ -16,6 +16,7 @@ public class BoomProperties {
 	public static String DB_CONNECTION_USER = "root";
 	public static String DB_CONNECTION_PWD = "";
 	public static String WEBSOCKET_PORT_SCALE = "";
+	public static String STATIC_FILE_PORT_SCALE = "";
 	
 	public static void load() {
 		Properties prop = new Properties();
@@ -45,6 +46,10 @@ public class BoomProperties {
 		if (prop.containsKey("WEBSOCKET_PORT_SCALE")) {
 			WEBSOCKET_PORT_SCALE = prop.getProperty("WEBSOCKET_PORT_SCALE");
 			log.info("WEBSOCKET_PORT_SCALE <= " + WEBSOCKET_PORT_SCALE);
+		}
+		if (prop.containsKey("STATIC_FILE_PORT_SCALE")) {
+			STATIC_FILE_PORT_SCALE = prop.getProperty("STATIC_FILE_PORT_SCALE");
+			log.info("STATIC_FILE_PORT_SCALE <= " + STATIC_FILE_PORT_SCALE);
 		}
 	}
 }

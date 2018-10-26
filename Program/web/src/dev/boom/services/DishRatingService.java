@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import dev.boom.core.GameLog;
 import dev.boom.dao.core.DaoValue;
 import dev.boom.tbl.info.TblDishRatingInfo;
 
@@ -54,8 +55,11 @@ public class DishRatingService {
 		info.setCode(code);
 		info.setShop_id(shop_id);
 		List<DaoValue> list = CommonDaoService.select(info);
-		if (list == null || list.size() != 1) {
+		if (list == null || list.isEmpty()) {
 			return null;
+		}
+		if (list.size() > 1) {
+			GameLog.getInstance().warn("[getDishRatingInfo] There are more than one dish have the same dish code!");
 		}
 		
 		return new DishRatingInfo((TblDishRatingInfo) list.get(0));
@@ -65,7 +69,7 @@ public class DishRatingService {
 		TblDishRatingInfo info = new TblDishRatingInfo();
 		info.setShop_id(shop_id);
 		List<DaoValue> list = CommonDaoService.select(info);
-		if (list == null || list.size() != 1) {
+		if (list == null || list.isEmpty()) {
 			return null;
 		}
 		Map<Integer, DishRatingInfo> ret = new HashMap<>();

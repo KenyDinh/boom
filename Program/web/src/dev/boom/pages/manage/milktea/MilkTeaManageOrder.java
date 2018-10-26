@@ -57,7 +57,7 @@ public class MilkTeaManageOrder extends ManagePageBase {
 				setRedirect(MilkTeaManageMenu.class);
 				return;
 			}
-			orderList = OrderService.getOrderInfoListByMenuId(menuInfo.getId());
+			orderList = OrderService.getOrderInfoListByMenuId(menuInfo.getId(), "ORDER BY (dish_price + attr_price) * quantity ASC");
 			addModel("menuInfo", menuInfo);
 			addModel("orderList", MilkTeaCommonFunc.getHtmlListOrder(orderList, menuInfo, userInfo, getHostURL() + getContextPath(), getMessages(), true));
 			String token = SocketSessionPool.generateValidToken(ManageMilkTeaEndPoint.ENDPOINT_NAME, userInfo);

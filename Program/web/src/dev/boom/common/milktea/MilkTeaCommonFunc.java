@@ -297,9 +297,6 @@ public class MilkTeaCommonFunc {
 			if (!menuInfo.isActiveFlag(MilkteaMenuFlag.IGNORE_VALIDATION)) {
 				minSelect = limit.getTopping_min();
 				maxSelect = limit.getTopping_max();
-				if (minSelect == maxSelect && minSelect == 1) {
-					inputType = "radio";
-				}
 			}
 			break;
 		case ADDITION:
@@ -309,13 +306,13 @@ public class MilkTeaCommonFunc {
 			if (!menuInfo.isActiveFlag(MilkteaMenuFlag.IGNORE_VALIDATION)) {
 				minSelect = limit.getAddition_min();
 				maxSelect = limit.getAddition_max();
-				if (minSelect == maxSelect && minSelect == 1) {
-					inputType = "radio";
-				}
 			}
 			break;
 		default:
 			return "";
+		}
+		if (minSelect == maxSelect && minSelect == 1) {
+			inputType = "radio";
 		}
 		if (minSelect > 0) {
 			attention += "Minimum: " + minSelect;
@@ -751,12 +748,8 @@ public class MilkTeaCommonFunc {
 			sb.append("</div>");
 			sb.append(String.format("<div class=\"col-lg-%d col-md-6\">", (menuOpening ? 4 : 5)));
 				sb.append("<h5 class=\"font-weight-bol text-info\" style=\"margin-top:1rem;\">");
-				if (userInfo != null && UserFlagEnum.ADMINISTRATOR.isValid(userInfo.getFlag())) {
-					sb.append(String.format("<a class=\"text-info\" href=\"%s\" target=\"_blank\">", shopInfo.getUrl()));
-					sb.append(menuInfo.getName()).append("</a></h5>");
-				} else {
-					sb.append(menuInfo.getName()).append("</h5>");
-				}
+				sb.append(String.format("<a class=\"text-info\" href=\"%s\" target=\"_blank\">", shopInfo.getUrl()));
+				sb.append(menuInfo.getName()).append("</a></h5>");
 				sb.append("<div class=\"font-italic\" style=\"font-size:0.875rem;margin-bottom:0.5rem;\">").append(shopInfo.getAddress()).append("</div>");
 				sb.append("<div class=\"rating\">");
 					double rating = 0.0;

@@ -131,9 +131,15 @@ public class CommonMethod {
 	
 	public static String getStaticFile(String fileName) {
 		String context = "";
+		String strProt = "";
 		if (Context.hasThreadLocalContext()) {
 			context = Context.getThreadLocalContext().getRequest().getContextPath();
+			strProt = String.valueOf(Context.getThreadLocalContext().getRequest().getServerPort());
 		}
-		return "http://" + BoomProperties.SERVICE_HOSTNAME + context + "/static/" + fileName;
+		if (!BoomProperties.STATIC_FILE_PORT_SCALE.isEmpty()) {
+			strProt = BoomProperties.STATIC_FILE_PORT_SCALE;
+		}
+		strProt = (strProt.equals("80") ? "" : ":" + strProt);
+		return "http://" + BoomProperties.SERVICE_HOSTNAME + strProt + context + "/static/" + fileName;
 	}
 }

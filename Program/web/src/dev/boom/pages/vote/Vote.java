@@ -117,7 +117,7 @@ public class Vote extends PageBase {
 				return;
 			}
 		}
-		if (surveySession != null ) {
+		if (surveySession != null && activeSurvey != null) {
 			String strOptionList = getContext().getRequestParameter("options");
 			if (strOptionList == null || strOptionList.isEmpty()) {
 				GameLog.getInstance().error("No option selected!");
@@ -140,11 +140,6 @@ public class Vote extends PageBase {
 			}
 			if (arr.length > activeSurvey.getMaxChoice()) {
 				GameLog.getInstance().error("Option list in invalid!");
-				return;
-			}
-			activeSurvey = SurveyService.getActiveSurveyInfo();
-			if (activeSurvey == null) {
-				GameLog.getInstance().error("No active survey!");
 				return;
 			}
 			SurveyResultInfo surveyResultInfo = SurveyService.getSurveyResult(surveySession.getCode(), activeSurvey.getId());
@@ -192,14 +187,14 @@ public class Vote extends PageBase {
 			addModel("valid_form", 1);
 			return;
 		}
-		if (activeSurvey == null) {
-			return;
-		}
 		if (userData == null) {
 			return;
 		}
-		addModel("survey", activeSurvey);
 		addModel("userData", getUserInfo(userData));
+		if (activeSurvey == null) {
+			return;
+		}
+		addModel("survey", activeSurvey);
 		Long surveyId = activeSurvey.getId();
 		SurveyResultInfo resultInfo = SurveyService.getSurveyResult(surveySession.getCode(), activeSurvey.getId());
 		if (resultInfo == null) {
