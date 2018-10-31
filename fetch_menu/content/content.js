@@ -1,78 +1,72 @@
 function looking_for_menu(request, sender, sendResponse) {
 	if (typeof sendResponse == 'function') {
-		var menu = fetchData();
-		sendResponse(menu);
+		getOriginalMenuData(sendResponse);
 	}
 }
 
-function fetchData() {
-	var menuData = getOriginalMenuData();
-	if ( menuData === null) {
+function retrieveMenuData(menuData) {
+	if (menuData == undefined || menuData == null) {
 		return null;
 	}
 	var menu = new Menu();
-	menu.set_menu_name($('.name-hot-restaurant').eq(0).text().trim());
-	menu.setAddress($('.name-hot-restaurant + p').eq(0).text().trim());
+	menu.set_menu_name($('.name-restaurant').eq(0).text().trim());
+	menu.setAddress($('.address-restaurant').eq(0).text().trim());
 	menu.set_url(window.location.href);
 	menu.set_pre_image_url(window.location.pathname);
-	if ($('div.img-hot-restaurant > img').length > 0) {
-		menu.set_image_url($('div.img-hot-restaurant > img').eq(0).attr('src'));
-	} else if ($('div.img-hot-restaurant > iframe').length > 0) {
-		menu.set_image_url($('div.img-hot-restaurant > iframe').eq(0).attr('src'));
+	if ($('div.detail-restaurant-img > img').length > 0) {
+		menu.set_image_url($('div.detail-restaurant-img > img').eq(0).attr('src'));
+	} else if ($('div.detail-restaurant-img > iframe').length > 0) {
+		menu.set_image_url($('div.detail-restaurant-img > iframe').eq(0).attr('src'));
 	}
-	console.log(JSON.stringify(menu));
-	var discount_code = $('div.news-promotion').find('.icon-discount-code').eq(0).parent().find(".txt-red");
+	//console.log(JSON.stringify(menu));
+	let discount_code = $('div.promotions-order').find('.icon-discount-code').eq(0).parent();
 	if (discount_code.length > 0) {
-		var sale = parseInt(discount_code.eq(0).text().replace('%', '').trim());
+		let sale = parseInt(discount_code.find('strong').eq(0).text().replace('%', '').trim());
 		menu.set_sale(sale);
-	}
-	if (discount_code.length > 1) {
-		var code = discount_code.eq(1).text().trim();
+		let code = discount_code.find('strong').eq(1).text().trim();
 		menu.set_code(code);
-	}
-	var discount_air_pay = $('div.news-promotion').find('.icon-discount-airpay').eq(0).parent().find(".txt-red");
-	if (discount_air_pay.length > 0) {
-		var air_pay_rate = discount_air_pay.eq(0).text().trim();
-		if (air_pay_rate == "100%") {
-			menu.set_shipping_fee(0);
+		let max_discount = parseInt(discount_code.find('strong').eq(4).text().replace(',',''));
+		if (max_discount > 0) {
+			menu.set_max_discount(max_discount);
 		}
 	}
-	for ( var i in menuData.DishType) {
-		if (menuData.DishType.hasOwnProperty(i) == false) {
+	for ( var i in menuData.menu_infos) {
+		if (menuData.menu_infos.hasOwnProperty(i) == false) {
 			continue;
 		}
-		var type = menuData.DishType[i].Name;
+		var type = menuData.menu_infos[i].dish_type_name;
 
-		for ( var j in menuData.DishType[i].Dishes) {
-			if (menuData.DishType[i].Dishes.hasOwnProperty(j) == false) {
+		for ( var j in menuData.menu_infos[i].dishes) {
+			if (menuData.menu_infos[i].dishes.hasOwnProperty(j) == false) {
 				continue;
 			}
-			if (menuData.DishType[i].Dishes[j].IsDayOff || menuData.DishType[i].Dishes[j].OutOfStock) {
+			if (menuData.menu_infos[i].dishes[j].is_available == false) {
 				continue;
 			}
 			var menu_item = new MenuItem();
-			menu_item.name = menuData.DishType[i].Dishes[j].Name;
-			menu_item.desc = menuData.DishType[i].Dishes[j].Description;
-			menu_item.image_url = menuData.DishType[i].Dishes[j].ImageUrl;
-			menu_item.price = menuData.DishType[i].Dishes[j].Price;
+			menu_item.name = menuData.menu_infos[i].dishes[j].name;
+			menu_item.desc = menuData.menu_infos[i].dishes[j].description;
+			let img_index =( menuData.menu_infos[i].dishes[j].photos.length <= 2) ? 0 : 2;
+			menu_item.image_url = menuData.menu_infos[i].dishes[j].photos[img_index];
+			menu_item.price = menuData.menu_infos[i].dishes[j].price.value;
 			menu_item.type = type;
 
 			// ---------- get option ---------- //
-			for ( var k in menuData.DishType[i].Dishes[j].Attributes) {
-				if (menuData.DishType[i].Dishes[j].Attributes.hasOwnProperty(k) == false) {
+			for ( var k in menuData.menu_infos[i].dishes[j].options) {
+				if (menuData.menu_infos[i].dishes[j].options.hasOwnProperty(k) == false) {
 					continue;
 				}
-				var attribute_name = menuData.DishType[i].Dishes[j].Attributes[k].AttributeName;
-				var min_select = menuData.DishType[i].Dishes[j].Attributes[k].MinSelect;
-				var max_select = menuData.DishType[i].Dishes[j].Attributes[k].MaxSelect;
+				var attribute_name = menuData.menu_infos[i].dishes[j].options[k].name;
+				var min_select = menuData.menu_infos[i].dishes[j].options[k].option_items.min_select;
+				var max_select = menuData.menu_infos[i].dishes[j].options[k].option_items.max_select;
 
-				for ( var m in menuData.DishType[i].Dishes[j].Attributes[k].Values) {
-					if (menuData.DishType[i].Dishes[j].Attributes[k].Values.hasOwnProperty(m) == false) {
+				for ( var m in menuData.menu_infos[i].dishes[j].options[k].option_items.items) {
+					if (menuData.menu_infos[i].dishes[j].options[k].option_items.items.hasOwnProperty(m) == false) {
 						continue;
 					}
 					var option = new Option();
-					option.name = menuData.DishType[i].Dishes[j].Attributes[k].Values[m].ValueName;
-					option.price = menuData.DishType[i].Dishes[j].Attributes[k].Values[m].Price;
+					option.name = menuData.menu_infos[i].dishes[j].options[k].option_items.items[m].name;
+					option.price = menuData.menu_infos[i].dishes[j].options[k].option_items.items[m].price.value;
 					if (attribute_name.toLocaleLowerCase().includes('đá')) {
 						menu_item.add_ice(option);
 						menu_item.limit_select.ice_min = min_select;
@@ -205,30 +199,50 @@ function getPlaceOrderInjectCode(order_list) {
 	return code;
 }
 
-function getOriginalMenuData() {
-	injectMenuData();
-	try {
-		var menuData = JSON.parse($('div#menu-inject-content').text());
-		if (menuData === undefined || menuData === null) {
-			console.log("Menu Data not found!");
-			return null;
-		}
-		return menuData;
-	} catch (e) {
-		console.log(JSON.stringify(e, null, 4));
-	}
-	return null;
+function getOriginalMenuData(sendResponse) {
+	let pathname = window.location.pathname.substr(1);
+	sendAjaxRequest(
+			'https://gappapi.deliverynow.vn/api/delivery/get_from_url',
+			'url=' + pathname,
+			function(ret) {
+				if (ret.result == 'success') {
+					sendAjaxRequest(
+							'https://gappapi.deliverynow.vn/api/dish/get_delivery_dishes',
+							'id_type=2&request_id=' + ret.reply.delivery_id,
+							function(ret) {
+								if (ret.result == 'success') {
+									let menu = retrieveMenuData(ret.reply);
+									if (menu != null) {
+										chrome.extension.sendMessage({type:'retrieve_menu', menu_data:menu});
+									}
+								}
+							}
+					);
+				}
+			}
+	);
 }
 
-function injectMenuData() {
-	if ($('div#menu-inject-content').length > 0) {
-		$('div#menu-inject-content').remove();
-	}
-	if ($('#menu-inject-script').length > 0) {
-		$('#menu-inject-script').remove();
-	}
-	$('body').append("<div id='menu-inject-content' style='display:none;'></div>");
-	$('body').append("<script id='menu-inject-script' >document.getElementById('menu-inject-content').innerHTML = JSON.stringify(menuData);</script>");
+function sendAjaxRequest(url, data, callback) {
+	$.ajax({
+		url: url,
+		data: data,
+		dataType: 'json',
+		contentType: 'application/json; charset=utf-8',
+		headers: {
+			'x-foody-access-token': '',
+			'x-foody-api-version': 1,
+			'x-foody-app-type': 1004,
+			'x-foody-client-id': '',
+			'x-foody-client-language': 'vi',
+			'x-foody-client-type': 1,
+			'x-foody-client-version': '1.8.3'
+		},
+		success: callback,
+		error: function() {
+			console.log('error request!');
+		}
+	});
 }
 
 function copyObject(src) {

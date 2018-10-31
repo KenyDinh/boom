@@ -116,6 +116,7 @@ public class FridaySocketSession extends SocketSessionBase {
 		menuInfo.setName(menu.getMenu_name());
 		menuInfo.setShop_id(shopInfo.getId());
 		menuInfo.setSale((short) menu.getSale());
+		menuInfo.setMax_discount(menu.getMax_discount());
 		menuInfo.setCode(menu.getCode());
 		menuInfo.setShipping_fee(menu.getShipping_fee());
 		updateList.add(menuInfo);

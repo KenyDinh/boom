@@ -2,9 +2,7 @@ function looking_for_menu() {
 	CommonMethod.getTabId('www.now.vn', function (tab) {
 		if (CommonMethod.isValidData(tab)) {
 			Log.info("Start looking for the menu.");
-			chrome.tabs.sendMessage(tab.id, {type:'looking_for_menu'}, function (response) {
-				retrieve_menu(response);
-			});
+			chrome.tabs.sendMessage(tab.id, {type:'looking_for_menu'});
 		} else {
 			Log.error("Can not find the tab's id");
 		}
@@ -22,6 +20,7 @@ function retrieve_menu(menu) {
 			}
 		}
 		registSendMenu(menu);
+		//console.log(JSON.stringify(menu));
 	} else {
 		Log.error("Menu not found!");
 	}
@@ -93,7 +92,7 @@ chrome.tabs.onUpdated.addListener(function(tabId,changeInfo,tab){
 
 //receive message from ex page.
 chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
-	Log.log(JSON.stringify(request));
+	Log.log(JSON.stringify(request.type));
 	if (request) {
 		switch (request.type) {
 		case 'looking_for_menu':
@@ -107,6 +106,9 @@ chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
 			break;
 		case 'init_socket':
 			reInitSocket();
+			break;
+		case 'retrieve_menu':
+			retrieve_menu(request.menu_data);
 			break;
 		default:
 			break;

@@ -5,6 +5,7 @@ var Menu = function() {
 	this.pre_image_url = "";
 	this.image_url = "";
 	this.sale = 0;
+	this.max_discount = 0;
 	this.code = "";
 	this.shipping_fee = 15000; // default
 	this.list_item = [];
@@ -18,6 +19,10 @@ var Menu = function() {
 
 	this.set_sale = function(sale) {
 		this.sale = sale;
+	}
+	
+	this.set_max_discount = function(max_discount) {
+		this.max_discount = max_discount;
 	}
 	
 	this.set_code = function(code) {
@@ -89,6 +94,7 @@ function getBaseMenuString(menu) {
 	obj.pre_image_url = menu.pre_image_url;
 	obj.image_url = menu.image_url;
 	obj.sale = menu.sale;
+	obj.max_discount = menu.max_discount;
 	obj.code = menu.code;
 	obj.shipping_fee = menu.shipping_fee;
 	return "MENU_OBJECT" + JSON.stringify(obj);

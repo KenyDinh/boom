@@ -8,6 +8,7 @@ public class Menu {
 	private String pre_image_url;
 	private String image_url;
 	private int sale;
+	private long max_discount;
 	private String code;
 	private int shipping_fee;
 
@@ -61,6 +62,14 @@ public class Menu {
 
 	public void setSale(int sale) {
 		this.sale = sale;
+	}
+
+	public long getMax_discount() {
+		return max_discount;
+	}
+
+	public void setMax_discount(long max_discount) {
+		this.max_discount = max_discount;
 	}
 
 	public String getCode() {
