@@ -1,3 +1,4 @@
+var access_token = '';
 function looking_for_menu() {
 	CommonMethod.getTabId('www.now.vn', function (tab) {
 		if (CommonMethod.isValidData(tab)) {
@@ -26,11 +27,15 @@ function retrieve_menu(menu) {
 	}
 }
 
-function feedBackOrder(ids) {
-	sendMessageSocket("ORDER_FEED_BACK:" + ids);
+function feedBackOrder(result) {
+	sendMessageSocket("ORDER_FEED_BACK:" + result);
 }
 
 function placeOrder() {
+	if (access_token.length <= 0) {
+		feedBackOrder('error');
+		return;
+	}
 	if (CommonMethod.isValidData(milktea_order)) {
 		if (CommonMethod.isValidData(milktea_order.url)) {
 			chrome.tabs.create({
@@ -70,11 +75,12 @@ function placeOrderTest() {
 
 }
 
-function reInitSocket() {
+function reInitSocket(sendResponse) {
 	if (isSocketOpened()) {
 		return;
 	}
 	initWebSocket();
+	sendResponse({token:access_token});
 }
 
 //page update
@@ -82,7 +88,7 @@ chrome.tabs.onUpdated.addListener(function(tabId,changeInfo,tab){
 	if(tab.status === 'complete'){
 		if (CommonMethod.isValidData(milktea_order)) {
 			if (tab.url == milktea_order.url && milktea_order.is_placing) {
-				chrome.tabs.sendMessage(tab.id, {type:'place_order',order_list:milktea_order.order_list}, function (response) {
+				chrome.tabs.sendMessage(tab.id, {type:'place_order',token:access_token,menu_order:milktea_order.menu_order}, function (response) {
 					//
 				});
 			}
@@ -96,16 +102,20 @@ chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
 	if (request) {
 		switch (request.type) {
 		case 'looking_for_menu':
+			if (request.token) {
+				access_token = request.token;
+			}
 			looking_for_menu();
 			break;
 		case 'place_order_test':
 			placeOrderTest();
 			break;
-		case 'order_feed_back':
-			feedBackOrder(request.ids);
+		case 'place_order_result':
+			milktea_order = null;
+			feedBackOrder(request.result);
 			break;
 		case 'init_socket':
-			reInitSocket();
+			reInitSocket(sendResponse);
 			break;
 		case 'retrieve_menu':
 			retrieve_menu(request.menu_data);

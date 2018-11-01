@@ -16,7 +16,8 @@ public class FridayStaticData {
 	// ---------- Data ---------- //
 	private static Menu menu = null;
 	private static List<MenuItem> listItems = null;
-	private static List<MenuOrder> listOrder = null;
+	private static MenuOrder menuOrder = null;
+	private static List<Long> ids = null;
 	
 	
 	public static void setMenu(Menu menu) {
@@ -43,36 +44,45 @@ public class FridayStaticData {
 		return listItems;
 	}
 	
-	public static void setMenuOrderList(List<MenuOrder> orderList) {
-		if (!isPlacingOrder && listOrder == null) {
+	public static void setMenuOrder(MenuOrder _menuOrder) {
+		if (!isPlacingOrder && menuOrder == null) {
 			synchronized (__lockOrder) {
-				if (!isPlacingOrder && listOrder == null) {
+				if (!isPlacingOrder && menuOrder == null) {
 					isPlacingOrder = true;
-					listOrder = orderList;
+					menuOrder = _menuOrder;
 				}
 			}
 		}
 	}
 	
+	public static List<Long> getIds() {
+		return ids;
+	}
+
+	public static void setIds(List<Long> _ids) {
+		ids = _ids;
+	}
+
 	public static boolean isInPlacingState() {
 		return isPlacingOrder;
 	}
 	
-	public static List<MenuOrder> getMenuOrderList() {
-		return listOrder;
+	public static MenuOrder getMenuOrder() {
+		return menuOrder;
 	}
 	
 	public static void forceResetmoveState() {
 		isPlacingOrder = false;
-		listOrder = null;
+		menuOrder = null;
 	}
 	
-	public static void resetPlacingOrderState() {
-		if (isPlacingOrder && listOrder != null) {
+	public static void resetOrderState() {
+		if (isPlacingOrder && menuOrder != null) {
 			synchronized (__lockOrder) {
-				if (isPlacingOrder && listOrder != null) {
+				if (isPlacingOrder && menuOrder != null) {
 					isPlacingOrder = false;
-					listOrder = null;
+					menuOrder = null;
+					ids = null;
 				}
 			}
 		}

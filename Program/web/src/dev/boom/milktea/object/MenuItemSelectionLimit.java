@@ -14,6 +14,11 @@ public class MenuItemSelectionLimit {
 	private int topping_max;
 	private int addition_min;
 	private int addition_max;
+	private long ice_opt_id;
+	private long size_opt_id;
+	private long sugar_opt_id;
+	private long topping_opt_id;
+	private long addition_opt_id;
 
 	public MenuItemSelectionLimit() {
 		this.ice_min = 0;
@@ -108,6 +113,46 @@ public class MenuItemSelectionLimit {
 		this.addition_max = addition_max;
 	}
 	
+	public long getIce_opt_id() {
+		return ice_opt_id;
+	}
+
+	public void setIce_opt_id(long ice_opt_id) {
+		this.ice_opt_id = ice_opt_id;
+	}
+
+	public long getSize_opt_id() {
+		return size_opt_id;
+	}
+
+	public void setSize_opt_id(long size_opt_id) {
+		this.size_opt_id = size_opt_id;
+	}
+
+	public long getSugar_opt_id() {
+		return sugar_opt_id;
+	}
+
+	public void setSugar_opt_id(long sugar_opt_id) {
+		this.sugar_opt_id = sugar_opt_id;
+	}
+
+	public long getTopping_opt_id() {
+		return topping_opt_id;
+	}
+
+	public void setTopping_opt_id(long topping_opt_id) {
+		this.topping_opt_id = topping_opt_id;
+	}
+
+	public long getAddition_opt_id() {
+		return addition_opt_id;
+	}
+
+	public void setAddition_opt_id(long addition_opt_id) {
+		this.addition_opt_id = addition_opt_id;
+	}
+
 	public int getMinSelect(MilkTeaItemOptionType optionType) {
 		switch (optionType) {
 		case ICE:
@@ -137,6 +182,23 @@ public class MenuItemSelectionLimit {
 			return getTopping_max();
 		case ADDITION:
 			return getAddition_max();
+		default:
+			return 0;
+		}
+	}
+	
+	public long getOptionId(MilkTeaItemOptionType optionType) {
+		switch (optionType) {
+		case ICE:
+			return getIce_opt_id();
+		case SIZE:
+			return getSize_opt_id();
+		case SUGAR:
+			return getSugar_opt_id();
+		case TOPPING:
+			return getTopping_opt_id();
+		case ADDITION:
+			return getAddition_opt_id();
 		default:
 			return 0;
 		}

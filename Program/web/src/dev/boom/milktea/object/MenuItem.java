@@ -7,6 +7,7 @@ import dev.boom.common.milktea.MilkTeaItemOptionType;
 
 public class MenuItem {
 
+	private long item_id;
 	private String name;
 	private String desc;
 	private String image_url;
@@ -25,6 +26,14 @@ public class MenuItem {
 
 	public MenuItem() {
 		super();
+	}
+
+	public long getItem_id() {
+		return item_id;
+	}
+
+	public void setItem_id(long item_id) {
+		this.item_id = item_id;
 	}
 
 	public String getName() {

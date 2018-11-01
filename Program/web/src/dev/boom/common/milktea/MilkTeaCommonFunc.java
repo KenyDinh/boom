@@ -467,7 +467,7 @@ public class MilkTeaCommonFunc {
 				String trHighlight = "style=\"color:#C5C5C5;\"";
 				if (userId == order.getUserId() && !isManagement) {
 					trHighlight = "class=\"bg-primary text-success\"";
-				} else if (MilkTeaOrderFlag.FREE_TICKET_ORDER.isValidFlag(order.getFlag())) {
+				} else if (MilkTeaOrderFlag.KOC_TICKET.isValidFlag(order.getFlag())) {
 					trHighlight = "class=\"text-warning data-highlight\"";
 				}
 				sb.append(String.format("<tr %s>", trHighlight));
@@ -1037,7 +1037,7 @@ public class MilkTeaCommonFunc {
 	}
 	
 	public static long getFinalCost(long totalMoney, int totalOrder, MenuInfo menuInfo, OrderInfo order) {
-		if (MilkTeaOrderFlag.FREE_TICKET_ORDER.isValidFlag(order.getFlag())) {
+		if (MilkTeaOrderFlag.KOC_TICKET.isValidFlag(order.getFlag())) {
 			return 0;
 		}
 		int sale = 100;

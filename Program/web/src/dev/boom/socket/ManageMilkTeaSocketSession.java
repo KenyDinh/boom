@@ -8,10 +8,15 @@ import java.util.Map;
 import javax.websocket.Session;
 
 import dev.boom.common.CommonMethod;
+import dev.boom.common.milktea.MilkTeaItemOptionType;
 import dev.boom.common.milktea.MilkTeaOrderFlag;
 import dev.boom.dao.core.DaoValue;
+import dev.boom.milktea.object.MenuItem;
+import dev.boom.milktea.object.MenuItemOption;
 import dev.boom.milktea.object.MenuOrder;
+import dev.boom.milktea.object.MenuOrderItem;
 import dev.boom.milktea.object.MenuOrderOption;
+import dev.boom.milktea.object.MenuOrderOptionItem;
 import dev.boom.services.CommonDaoService;
 import dev.boom.services.MenuInfo;
 import dev.boom.services.MenuService;
@@ -36,6 +41,11 @@ public class ManageMilkTeaSocketSession extends SocketSessionBase {
 		if (message.startsWith("PREPARING_ORDER:")) {
 			if (FridayStaticData.isInPlacingState()) {
 				logError("[ManageMilkTeaSocketSession] (process) still be in placing state!");
+				return;
+			}
+			SocketSessionBase fridaySocket = SocketSessionPool.getStoredSocketSessionByUserId(getUserId(), FridayEndpoint.ENDPOINT_NAME);
+			if (fridaySocket == null) {
+				logError("[ManageMilkTeaSocketSession] fridaySocket not found!");
 				return;
 			}
 			String datas = message.replace("PREPARING_ORDER:", "");
@@ -72,7 +82,14 @@ public class ManageMilkTeaSocketSession extends SocketSessionBase {
 				logError("[ManageMilkTeaSocketSession] shop not found, shop_id:" + shopId);
 				return;
 			}
-			List<MenuOrder> menuOrderList = new ArrayList<>();
+			List<MenuItem> menuItemList = MenuService.getMenuItemListByShopId(shopId);
+			if (menuItemList == null || menuItemList.isEmpty()) {
+				logError("[ManageMilkTeaSocketSession] (process) No menu item found, shop_id:" + shopId);
+				return;
+			}
+			List<MenuOrderItem> menuOrderItemList = new ArrayList<>();
+			List<OrderInfo> uniqueOrderList = new ArrayList<>();
+			List<Long> _ids = new ArrayList<>();
 			for (OrderInfo orderInfo : orderList) {
 				if (orderInfo.getMenuId() != menuId) {
 					logError("[ManageMilkTeaSocketSession] menu id is invalid, menu_id:" + menuId + ", order_id:" + orderInfo.getId());
@@ -82,81 +99,54 @@ public class ManageMilkTeaSocketSession extends SocketSessionBase {
 					logError("[ManageMilkTeaSocketSession] menu id is invalid, menu_id:" + menuId + ", order_id:" + orderInfo.getId());
 					return;
 				}
-				for (int i = 0; i < orderInfo.getQuantity(); i++) {
-					MenuOrder menuOrder = fromOrderInfoToMenuOrder(orderInfo);
-					if (menuOrder == null) {
-						logError("[ManageMilkTeaSocketSession] menuOrder is null!");
-						return;
+				_ids.add(orderInfo.getId());
+				boolean exist = false;
+				for (OrderInfo checkedOrder : uniqueOrderList) {
+					if (orderInfo.isRoughtlySimilar(checkedOrder)) {
+						checkedOrder.setQuantity(checkedOrder.getQuantity() + orderInfo.getQuantity());
+						exist = true;
+						break;
 					}
-					menuOrderList.add(menuOrder);
 				}
+				if (exist) {
+					continue;
+				}
+				uniqueOrderList.add(orderInfo);
+				
 			}
-			//send message
-			SocketSessionBase fridaySocket = SocketSessionPool.getStoredSocketSessionByUserId(getUserId(), FridayEndpoint.ENDPOINT_NAME);
-			if (fridaySocket == null) {
-				logError("[ManageMilkTeaSocketSession] fridaySocket not found!");
-				return;
+			for (OrderInfo orderInfo : uniqueOrderList) {
+				MenuOrderItem menuOrderItem = toMenuOrderItem(menuItemList, orderInfo);
+				if (menuOrderItem == null) {
+					logError("[ManageMilkTeaSocketSession] invalid order, menu_id:" + menuId + ", order_id:" + orderInfo.getId());
+					return;
+				}
+				menuOrderItemList.add(menuOrderItem);
 			}
-			FridayStaticData.setMenuOrderList(menuOrderList);
+			MenuOrder menuOrder = new MenuOrder();
+			menuOrder.setDishes(menuOrderItemList.toArray(new MenuOrderItem[0]));
+			System.out.println(JSON.encode(menuOrder));
+			
+			FridayStaticData.setMenuOrder(menuOrder);
+			FridayStaticData.setIds(_ids);
 			Map<String, Object> mapData = new HashMap<>();
 			mapData.put("type", "milktea_order");
 			mapData.put("step", "prepare");
 			mapData.put("url", shopInfo.getUrl());
+			mapData.put("menu_order", menuOrder);
 			fridaySocket.sendMessage(JSON.encode(mapData));
-		} else if (message.startsWith("PLACING_ORDER")) {
-			if (!FridayStaticData.isInPlacingState()) {
-				logError("[ManageMilkTeaSocketSession] (process) not in placing state!");
-				return;
-			}
-			SocketSessionBase fridaySocket = SocketSessionPool.getStoredSocketSessionByUserId(getUserId(), FridayEndpoint.ENDPOINT_NAME);
-			if (fridaySocket == null) {
-				FridayStaticData.resetPlacingOrderState();
-				logError("[ManageMilkTeaSocketSession] fridaySocket not found!");
-				return;
-			}
-			List<MenuOrder> menuOrderList = FridayStaticData.getMenuOrderList();
-			if (menuOrderList == null || menuOrderList.isEmpty()) {
-				FridayStaticData.resetPlacingOrderState();
-				logError("[ManageMilkTeaSocketSession] menuOrderList is null!");
-				return;
-			}
-			MenuOrder nextOrder = null;
-			for (MenuOrder menuOrder : menuOrderList) {
-				if (!menuOrder.isSent()) {
-					nextOrder = menuOrder;
-					break;
-				}
-			}
-			Map<String, Object> mapData = new HashMap<>();
-			mapData.put("type", "milktea_order");
-			fridaySocket.sendMessage(JSON.encode(mapData));
-			if (nextOrder == null) {
-				mapData.put("step", "order");
-				fridaySocket.sendMessage(JSON.encode(mapData));
-			} else {
-				mapData.put("step", "detail");
-				mapData.put("order", nextOrder);
-				fridaySocket.sendMessage(JSON.encode(mapData));
-				nextOrder.setSent(true);
-			}
 		} else if (message.startsWith("ORDER_FEED_BACK:")) {
 			if (!FridayStaticData.isInPlacingState()) {
 				logError("[ManageMilkTeaSocketSession] (process) still be in placing state!");
 				return;
 			}
-			FridayStaticData.resetPlacingOrderState();
-			String datas = message.replace("ORDER_FEED_BACK:", "");
-			if (!datas.matches("[0-9]+(,[0-9]+)*")) {
-				logError("[ManageMilkTeaSocketSession] (process) Order feed back id list is invalid: " + datas);
-				//return;
+			FridayStaticData.resetOrderState();
+			String result = message.replace("ORDER_FEED_BACK:", "");
+			if (result == null || !result.equals("success")) {
+				logError("[ManageMilkTeaSocketSession] (process) Place order failed!");
+				return;
 			}
-			List<Long> ids = new ArrayList<>();
-			for (String strId : datas.split(",")) {
-				if (CommonMethod.isValidNumeric(strId, 1, Long.MAX_VALUE)) {
-					ids.add(Long.parseLong(strId));
-				}
-			}
-			if (!ids.isEmpty()) {
+			List<Long> ids = FridayStaticData.getIds();
+			if (ids != null && !ids.isEmpty()) {
 				List<OrderInfo> orderList = OrderService.getOrderList(ids);
 				if (orderList != null && !orderList.isEmpty()) {
 					List<DaoValue> updates = new ArrayList<>();
@@ -168,35 +158,67 @@ public class ManageMilkTeaSocketSession extends SocketSessionBase {
 						logError("[ManageMilkTeaSocketSession] (process) update order flag failed!");
 					}
 				}
+			} else {
+				logWarning("[ManageMilkTeaSocketSession] No order_id found!");
 			}
 			sendMessage("order_done");
 		} else if (message.startsWith("FORCE_RESET_STATE")) {
 			FridayStaticData.forceResetmoveState();
 		}
 	}
-
-	private MenuOrder fromOrderInfoToMenuOrder(OrderInfo orderInfo) {
-		if (orderInfo == null) {
-			throw new NullPointerException("(fromOrderInfoToMenuOrder) order null!");
-		}
-		MenuOrder menuOrder = new MenuOrder();
-		menuOrder.setId(orderInfo.getId());
-		menuOrder.setName(orderInfo.getDishName());
-		menuOrder.setPrice(orderInfo.getDishPrice()); // ? attr price
-		menuOrder.setSent(false);
-		List<String> options = orderInfo.getAllOptionList();
-		if (options.isEmpty()) {
-			menuOrder.setOptions(new MenuOrderOption[0]);
-		} else {
-			MenuOrderOption[] menuOrderOptions = new MenuOrderOption[options.size()];
-			int index = 0;
-			for (String name : options) {
-				MenuOrderOption menuOrderOption = new MenuOrderOption();
-				menuOrderOption.setName(name);
-				menuOrderOptions[index++] = menuOrderOption;
+	
+	private MenuOrderItem toMenuOrderItem(List<MenuItem> menuItemList, OrderInfo orderInfo) {
+		MenuItem itemOrder = null;
+		for (MenuItem menuItem : menuItemList) {
+			if (menuItem.getName().equals(orderInfo.getDishName()) && menuItem.getType().equals(orderInfo.getDishType())) {
+				itemOrder = menuItem;
+				break;
 			}
-			menuOrder.setOptions(menuOrderOptions);
 		}
-		return menuOrder;
+		if (itemOrder == null) {
+			logError("[ManageMilkTeaSocketSession] No matched menu item, order_id:" + orderInfo.getId() + ", order_name:" + orderInfo.getDishName());
+			return null;
+		}
+		MenuOrderItem menuOrderItem = new MenuOrderItem();
+		menuOrderItem.setDish_id(itemOrder.getItem_id());
+		menuOrderItem.setQuantity((int)orderInfo.getQuantity());
+		//
+		List<MenuOrderOption> menuOrderOptionList = new ArrayList<>();
+		//
+		List<MenuItemOption> listItemOption = itemOrder.getListOptions();
+		List<String> optionNameList = orderInfo.getAllOptionList();
+		for (String name : optionNameList) {
+			MenuItemOption matchedOption = null;
+			for (MenuItemOption menuItemOption : listItemOption) {
+				if (name.equals(menuItemOption.getName())) {
+					matchedOption = menuItemOption;
+					break;
+				}
+			}
+			if (matchedOption == null) {
+				logWarning("[ManageMilkTeaSocketSession] (proceNo matched option:" + name);
+				continue;
+			}
+			long optionTypeId = itemOrder.getLimit_select().getOptionId(MilkTeaItemOptionType.valueOf(matchedOption.getType()));
+			MenuOrderOption moo = null;
+			for (MenuOrderOption _menuOrderOption : menuOrderOptionList) {
+				if (_menuOrderOption.getId() == optionTypeId) {
+					moo = _menuOrderOption;
+					break;
+				}
+			}
+			if (moo == null) {
+				moo = new MenuOrderOption();
+				moo.setId(optionTypeId);
+				menuOrderOptionList.add(moo);
+			}
+			MenuOrderOptionItem mooi = new MenuOrderOptionItem();
+			mooi.setId(matchedOption.getId());
+			mooi.setQuantity(1);
+			moo.addOption_items(mooi);
+		}
+		menuOrderItem.setOptions(menuOrderOptionList.toArray(new MenuOrderOption[0]));
+		
+		return menuOrderItem;
 	}
 }

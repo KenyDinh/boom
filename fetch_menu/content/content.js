@@ -1,7 +1,5 @@
 function looking_for_menu(request, sender, sendResponse) {
-	if (typeof sendResponse == 'function') {
-		getOriginalMenuData(sendResponse);
-	}
+	getOriginalMenuData();
 }
 
 function retrieveMenuData(menuData) {
@@ -44,6 +42,7 @@ function retrieveMenuData(menuData) {
 				continue;
 			}
 			var menu_item = new MenuItem();
+			menu_item.item_id = menuData.menu_infos[i].dishes[j].id;
 			menu_item.name = menuData.menu_infos[i].dishes[j].name;
 			menu_item.desc = menuData.menu_infos[i].dishes[j].description;
 			let img_index =( menuData.menu_infos[i].dishes[j].photos.length <= 2) ? 0 : 2;
@@ -56,38 +55,45 @@ function retrieveMenuData(menuData) {
 				if (menuData.menu_infos[i].dishes[j].options.hasOwnProperty(k) == false) {
 					continue;
 				}
-				var attribute_name = menuData.menu_infos[i].dishes[j].options[k].name;
-				var min_select = menuData.menu_infos[i].dishes[j].options[k].option_items.min_select;
-				var max_select = menuData.menu_infos[i].dishes[j].options[k].option_items.max_select;
+				let attribute_name = menuData.menu_infos[i].dishes[j].options[k].name;
+				let min_select = menuData.menu_infos[i].dishes[j].options[k].option_items.min_select;
+				let max_select = menuData.menu_infos[i].dishes[j].options[k].option_items.max_select;
+				let option_type_id = menuData.menu_infos[i].dishes[j].options[k].id;
 
 				for ( var m in menuData.menu_infos[i].dishes[j].options[k].option_items.items) {
 					if (menuData.menu_infos[i].dishes[j].options[k].option_items.items.hasOwnProperty(m) == false) {
 						continue;
 					}
 					var option = new Option();
+					option.id = menuData.menu_infos[i].dishes[j].options[k].option_items.items[m].id;
 					option.name = menuData.menu_infos[i].dishes[j].options[k].option_items.items[m].name;
 					option.price = menuData.menu_infos[i].dishes[j].options[k].option_items.items[m].price.value;
 					if (attribute_name.toLocaleLowerCase().includes('đá')) {
 						menu_item.add_ice(option);
 						menu_item.limit_select.ice_min = min_select;
 						menu_item.limit_select.ice_max = max_select;
+						menu_item.limit_select.ice_opt_id = option_type_id;
 					} else if (attribute_name.toLocaleLowerCase().includes('đường')) {
 						menu_item.add_sugar(option);
 						menu_item.limit_select.sugar_min = min_select;
 						menu_item.limit_select.sugar_max = max_select;
+						menu_item.limit_select.sugar_opt_id = option_type_id;
 					} else if (attribute_name.toLocaleLowerCase().includes('topping') || attribute_name.toLocaleLowerCase().includes('toping')) {
 						menu_item.add_topping(option);
 						menu_item.limit_select.topping_min = min_select;
 						menu_item.limit_select.topping_max = max_select;
+						menu_item.limit_select.topping_opt_id = option_type_id;
 					} else if (attribute_name.toLocaleLowerCase().includes('size')) {
 						menu_item.add_size(option);
 						menu_item.limit_select.size_min = min_select;
 						menu_item.limit_select.size_max = max_select;
+						menu_item.limit_select.size_opt_id = option_type_id;
 					} else if (attribute_name.toLocaleLowerCase().includes('thêm') || attribute_name.toLocaleLowerCase().includes('khác') || 
 							attribute_name.toLocaleLowerCase().includes('option') || attribute_name.toLocaleLowerCase().includes('chọn')) {
 						menu_item.add_addition(option);
 						menu_item.limit_select.addition_min = min_select;
 						menu_item.limit_select.addition_max = max_select;
+						menu_item.limit_select.addition_opt_id = option_type_id;
 					} else {
 						console.log("undefined attribute name: " + attribute_name);
 					}
@@ -105,144 +111,133 @@ function retrieveMenuData(menuData) {
 	return menu;
 }
 
-function placeOrder(request, sender, sendResponse) {
-	if (request.order_list) {
-		var order_list = request.order_list;
-		if (order_list.length == 0) {
-			console.log("Order list is empty!");
-			sendMessToBackground({type:"order_feed_back",ids:""});
-			return;
-		}
-		if (document.cookie.includes('DELIVERY.AUTH.UDID') == false) {
-			console.log("Please login first!");
-			sendMessToBackground({type:"order_feed_back",ids:""});
-			return;
-		}
-//		if ($('div#order-list-inject-content').length > 0) {
-//			$('div#order-list-inject-content').remove();
-//		}
-//		if ($('#order-list-inject-script').length > 0) {
-//			$('#order-list-inject-script').remove();
-//		}
-		//$('body').append("<div id='order-list-inject-content' style='display:none;'></div>");
-		//$('body').append("<script id='order-list-inject-script' >document.getElementById('order-list-inject-content').innerHTML = '" + JSON.stringify(order_list) + "';</script>");
-		// inject javascript
-		$('body').append("<span id='success-order-count' style='display:none;'></span>");
-		$('body').append("<script>" + getPlaceOrderInjectCode(order_list) + "</script>");
-		var countdown = 100;
-		var t = window.setInterval(function() {
-			if ($('#success-order-count').hasClass('order-done') || countdown < 0) {
-				let ids = $('#success-order-count').text();
-				if (t != null) {
-					clearInterval(t);
-					sendMessToBackground({type:"order_feed_back",ids:ids});
+function placeOrder(request) {
+	if (request.menu_order && request.token) {
+		let menu_order = request.menu_order;
+		let access_token = request.token;
+		let pathname = window.location.pathname.substr(1);
+		$.ajax({
+			url: 'https://gappapi.deliverynow.vn/api/delivery/get_from_url',
+			data: 'url=' + pathname,
+			dataType: 'json',
+			contentType: 'application/json; charset=utf-8',
+			headers: get_headers(''),
+			success: function(ret) {
+				if (ret.result == 'success') {
+					$.ajax({
+						url: 'https://gappapi.deliverynow.vn/api/cart/draft',
+						type: 'post',
+						data: '{"delivery_id":' + ret.reply.delivery_id + '}',
+						dataType: 'json',
+						contentType: 'application/json; charset=utf-8',
+						headers: get_headers(access_token),
+						success: function(ret) {
+							if (ret.result == 'success') {
+								menu_order.cart_id = ret.reply.id;
+								console.log(JSON.stringify(menu_order));
+								///order
+								$.ajax({
+									url: 'https://gappapi.deliverynow.vn/api/cart/set_items',
+									type: 'post',
+									data: JSON.stringify(menu_order),
+									dataType: 'json',
+									contentType: 'application/json; charset=utf-8',
+									headers: get_headers(access_token),
+									success: function(ret) {
+										let _result;
+										if (ret.result == 'success') {
+											_result = 'success';
+										} else {
+											_result = 'error';
+											console.log(JSON.stringify(ret));
+										}
+										chrome.extension.sendMessage({type:'place_order_result', result:_result});
+										window.location.reload();
+									},
+									error: function() {
+										console.log('error request!');
+									}
+								});
+							} else {
+								console.log(JSON.stringify(ret));
+							}
+						},
+						error: function() {
+							console.log('error request!');
+						}
+					});
 				}
-				console.log(ids);
+			},
+			error: function() {
+				console.log('error request!');
 			}
-			countdown--;
-		}, 200);
+		});
 	} else {
-		console.log("No order found!");
+		console.log("No menu order found!");
 	}
 }
 
 
-function getPlaceOrderInjectCode(order_list) {
-	var code = "";
-	code += "var order_list = " + JSON.stringify(order_list) + ";";
-	code += "var controller = angular.element(document.querySelector('#detail-page')).scope().detailCtrl;";
-	code += "var origin_item_list = [];";
-	code += "if (controller.cart.length > 0) {console.log('Please reset cart first!');document.getElementById('success-order-count').classList.add('order-done');} else {";
-	code += "for (var i in menuData.DishType) {";
-	code += "if (menuData.DishType.hasOwnProperty(i) == false) {continue;}";
-	code += "for (var j in menuData.DishType[i].Dishes) {";
-	code += "if (menuData.DishType[i].Dishes.hasOwnProperty(j) == false) {continue;}";
-	code += "if (menuData.DishType[i].Dishes[j].IsDayOff || menuData.DishType[i].Dishes[j].OutOfStock) {console.log('item is now not available!');continue;}";
-	code += "origin_item_list.push(menuData.DishType[i].Dishes[j]);}";
-	code += "}";
-	code += "var real_order_list = [];";
-	code += "for (var k = 0; k < order_list.length; k++) {";
-	code += "let item = null;";
-	code += "for (var m = 0; m < origin_item_list.length; m++) {";
-	code += "if (order_list[k].name != origin_item_list[m].Name) {continue;}";
-//	code += "if (order_list[k].price != origin_item_list[m].Price) {continue;}";
-	code += "item = jQuery.extend(true, {}, origin_item_list[m]);break;}";
-	code += "if (item === null) {console.log('Invalid order: ' + JSON.stringify(order_list[k]));continue;}";
-	//code += "console.log('Do add item here!');";
-	code += "let extraPrice = 0;";
-	code += "for (var n = 0; n < item.Attributes.length; n++) {";
-	code += "for (var p = 0; p < item.Attributes[n].Values.length; p++) {";
-	code += "for (var q = 0; q < order_list[k].options.length; q++) {";
-	code += "if (item.Attributes[n].Values[p].ValueName == order_list[k].options[q].name) {";
-	code += "item.Attributes[n].Values[p].checked = true;";
-	code += "item.Attributes[n].Values[p].NumberChoosed = 1;";
-	code += "extraPrice += item.Attributes[n].Values[p].Price;";
-	code += "break;}";
-	code += "}}}";
-	code += "item.back_id = order_list[k].id;";
-	code += "item.extra_price = extraPrice;";
-	code += "real_order_list.push(item);}";
-	code += "var loop_order = function(list, index) {\n";
-	code += "if (index >= list.length) {";
-	code += "document.getElementById('success-order-count').classList.add('order-done');return;}\n";
-	code += "controller.actionDish = list[index];\n";
-	code += "controller.totalAttributePrice = list[index].extra_price;\n";
-	code += "controller.insertShoppingCartItemInCludeAttribute();\n";
-	code += "let ids = document.getElementById('success-order-count').innerHTML;\n";
-	code += "if (ids.length > 0) {ids += ',';}\n";
-	code += "ids += list[index].back_id;\n";
-	code += "document.getElementById('success-order-count').innerHTML = ids;\n";
-	code += "window.setTimeout(function() {loop_order(list, index + 1);},200);\n";
-	code += "}\n";
-	code += "loop_order(real_order_list, 0);\n";
-	code += "}\n";
-	return code;
-}
-
-function getOriginalMenuData(sendResponse) {
+function getOriginalMenuData() {
 	let pathname = window.location.pathname.substr(1);
-	sendAjaxRequest(
-			'https://gappapi.deliverynow.vn/api/delivery/get_from_url',
-			'url=' + pathname,
-			function(ret) {
-				if (ret.result == 'success') {
-					sendAjaxRequest(
-							'https://gappapi.deliverynow.vn/api/dish/get_delivery_dishes',
-							'id_type=2&request_id=' + ret.reply.delivery_id,
-							function(ret) {
-								if (ret.result == 'success') {
-									let menu = retrieveMenuData(ret.reply);
-									if (menu != null) {
-										chrome.extension.sendMessage({type:'retrieve_menu', menu_data:menu});
-									}
-								}
+	$.ajax({
+		url: 'https://gappapi.deliverynow.vn/api/delivery/get_from_url',
+		data: 'url=' + pathname,
+		dataType: 'json',
+		contentType: 'application/json; charset=utf-8',
+		headers: get_headers(''),
+		success: function(ret) {
+			if (ret.result == 'success') {
+				$.ajax({
+					url: 'https://gappapi.deliverynow.vn/api/dish/get_delivery_dishes',
+					data: 'id_type=2&request_id=' + ret.reply.delivery_id,
+					dataType: 'json',
+					contentType: 'application/json; charset=utf-8',
+					headers: get_headers(''),
+					success: function(ret) {
+						if (ret.result == 'success') {
+							let menu = retrieveMenuData(ret.reply);
+							if (menu != null) {
+								chrome.extension.sendMessage({type:'retrieve_menu', menu_data:menu});
 							}
-					);
-				}
+						}
+					},
+					error: function() {
+						console.log('error request!');
+					}
+				});
 			}
-	);
+		},
+		error: function() {
+			console.log('error request!');
+		}
+	});
 }
 
-function sendAjaxRequest(url, data, callback) {
+function sendAjaxRequest(url, data, token, callback) {
 	$.ajax({
 		url: url,
 		data: data,
 		dataType: 'json',
 		contentType: 'application/json; charset=utf-8',
-		headers: {
-			'x-foody-access-token': '',
-			'x-foody-api-version': 1,
-			'x-foody-app-type': 1004,
-			'x-foody-client-id': '',
-			'x-foody-client-language': 'vi',
-			'x-foody-client-type': 1,
-			'x-foody-client-version': '1.8.3'
-		},
+		headers: get_headers(token),
 		success: callback,
 		error: function() {
 			console.log('error request!');
 		}
 	});
+}
+
+function get_headers(token) {
+	return {
+		'x-foody-access-token': token,
+		'x-foody-api-version': 1,
+		'x-foody-app-type': 1004,
+		'x-foody-client-id': '',
+		'x-foody-client-language': 'vi',
+		'x-foody-client-type': 1,
+		'x-foody-client-version': '1.8.3'
+	};
 }
 
 function copyObject(src) {
@@ -264,7 +259,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 			looking_for_menu(request, sender, sendResponse);
 			break;
 		case 'place_order':
-			placeOrder(request, sender, sendResponse);
+			placeOrder(request);
 			break;
 		default:
 

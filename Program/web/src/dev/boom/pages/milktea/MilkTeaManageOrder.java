@@ -293,7 +293,7 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 		orderInfo.setDishCode(menuItem.getName().hashCode());
 		orderInfo.setQuantity(quantity);
 		if (isTicket) {
-			orderInfo.setFlag(MilkTeaOrderFlag.FREE_TICKET_ORDER.getValidFlag(orderInfo.getFlag()));
+			orderInfo.setFlag(MilkTeaOrderFlag.KOC_TICKET.getValidFlag(orderInfo.getFlag()));
 			milkteaUser.setFreeTicket((byte)(milkteaUser.getFreeTicket() - quantity));
 			updates.add(milkteaUser.getTblInfo());
 		}
@@ -327,7 +327,7 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 		orderInfo.getTblInfo().setDelete();
 		List<DaoValue> updates = new ArrayList<>();
 		updates.add(orderInfo.getTblInfo());
-		if (MilkTeaOrderFlag.FREE_TICKET_ORDER.isValidFlag(orderInfo.getFlag())) {
+		if (MilkTeaOrderFlag.KOC_TICKET.isValidFlag(orderInfo.getFlag())) {
 			if (milkteaUser == null) {
 				GameLog.getInstance().error("[MilkTeaManageOrder] Delete free order without MilkteUserInfo!!!");
 			} else {

@@ -71,14 +71,7 @@ function doMilkteaOrder(obj) {
 	case "prepare":
 		milktea_order = {};
 		milktea_order.url = obj.url;
-		milktea_order.order_list = [];
-		sendMessageSocket("ORDER_DETAIL");
-		break;
-	case "detail":
-		milktea_order.order_list.push(obj.order);
-		sendMessageSocket("ORDER_DETAIL");
-		break;
-	case "order":
+		milktea_order.menu_order = obj.menu_order;
 		placeOrder();
 		break;
 	default:

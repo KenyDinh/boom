@@ -51,6 +51,7 @@ var Menu = function() {
 }
 
 var MenuItem = function() {
+	this.item_id = 0;
 	this.name = "";
 	this.desc = "";
 	this.image_url = "";
@@ -82,6 +83,7 @@ var MenuItem = function() {
 }
 
 var Option = function() {
+	this.id = 0;
 	this.name = "";
 	this.price = 0;
 }

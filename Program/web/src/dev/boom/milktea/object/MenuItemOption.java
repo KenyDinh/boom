@@ -2,12 +2,21 @@ package dev.boom.milktea.object;
 
 public class MenuItemOption {
 
+	private long id;
 	private String name;
 	private int price;
 	private short type;
 
 	public MenuItemOption() {
 		super();
+	}
+
+	public long getId() {
+		return id;
+	}
+
+	public void setId(long id) {
+		this.id = id;
 	}
 
 	public String getName() {

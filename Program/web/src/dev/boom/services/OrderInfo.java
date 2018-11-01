@@ -270,4 +270,32 @@ public class OrderInfo {
 		return options;
 	}
 	
+	public boolean isRoughtlySimilar(OrderInfo other) {
+		if (this.getDishPrice() != other.getDishPrice()) {
+			return false;
+		}
+		if (this.getAttrPrice() != other.getAttrPrice()) {
+			return false;
+		}
+		if (!this.getDishName().equals(other.getDishName())) {
+			return false;
+		}
+		if (!this.getSize().equals(other.getSize())) {
+			return false;
+		}
+		if (!this.getSugar().equals(other.getSugar())) {
+			return false;
+		}
+		if (!this.getDishType().equals(other.getDishType())) {
+			return false;
+		}
+		if (!this.getIce().equals(other.getIce())) {
+			return false;
+		}
+		if (!this.getOptionList().equals(other.getOptionList())) {
+			return false;
+		}
+		return true;
+	}
+	
 }

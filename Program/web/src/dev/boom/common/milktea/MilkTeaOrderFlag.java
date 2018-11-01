@@ -2,12 +2,13 @@ package dev.boom.common.milktea;
 
 public enum MilkTeaOrderFlag {
 	
-	PLACED,
-	PAID,
-	VOTE,
-	VOTE_CRON,
-	CANCELED,
-	FREE_TICKET_ORDER,
+	PLACED,		//1
+	PAID,		//2
+	VOTE,		//3
+	VOTE_CRON,	//4
+	CANCELED,	//5
+	KOC_TICKET,	//6
+	KOC_VALID,	//7
 	;
 	
 	public boolean isValidFlag(int flag) {
