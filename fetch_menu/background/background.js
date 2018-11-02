@@ -75,12 +75,11 @@ function placeOrderTest() {
 
 }
 
-function reInitSocket(sendResponse) {
+function reInitSocket() {
 	if (isSocketOpened()) {
 		return;
 	}
 	initWebSocket();
-	sendResponse({token:access_token});
 }
 
 //page update
@@ -115,7 +114,8 @@ chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
 			feedBackOrder(request.result);
 			break;
 		case 'init_socket':
-			reInitSocket(sendResponse);
+			reInitSocket();
+			sendResponse({token:access_token});
 			break;
 		case 'retrieve_menu':
 			retrieve_menu(request.menu_data);

@@ -139,7 +139,6 @@ public class ManageMilkTeaSocketSession extends SocketSessionBase {
 				logError("[ManageMilkTeaSocketSession] (process) still be in placing state!");
 				return;
 			}
-			FridayStaticData.resetOrderState();
 			String result = message.replace("ORDER_FEED_BACK:", "");
 			if (result == null || !result.equals("success")) {
 				logError("[ManageMilkTeaSocketSession] (process) Place order failed!");
@@ -161,6 +160,7 @@ public class ManageMilkTeaSocketSession extends SocketSessionBase {
 			} else {
 				logWarning("[ManageMilkTeaSocketSession] No order_id found!");
 			}
+			FridayStaticData.resetOrderState();
 			sendMessage("order_done");
 		} else if (message.startsWith("FORCE_RESET_STATE")) {
 			FridayStaticData.forceResetmoveState();
