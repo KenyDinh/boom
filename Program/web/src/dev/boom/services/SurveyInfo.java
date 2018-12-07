@@ -65,6 +65,14 @@ public class SurveyInfo {
 	public void setMaxChoice(byte max_choice) {
 		this.info.setMax_choice(max_choice);
 	}
+	
+	public byte getMinChoice() {
+		return this.info.getMin_choice();
+	}
+
+	public void setMinChoice(byte min_choice) {
+		this.info.setMin_choice(min_choice);
+	}
 
 	public byte getMaxRetry() {
 		return this.info.getMax_retry();

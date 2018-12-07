@@ -41,6 +41,8 @@ public class Vote extends PageBase {
 			userData = SurveyService.getSurveyValidData(surveySession.getCode());
 			if (userData == null) {
 				GameLog.getInstance().error("[onSecurityCheck] user's data is null!");
+				getContext().removeSessionAttribute(SURVEY_SESSION);
+				setRedirect(this.getClass());
 				return false;
 			}
 			if (!userData.isEditable() && !userData.isReadonly()) {
@@ -139,7 +141,11 @@ public class Vote extends PageBase {
 				return;
 			}
 			if (arr.length > activeSurvey.getMaxChoice()) {
-				GameLog.getInstance().error("Option list in invalid!");
+				GameLog.getInstance().error("Option list in invalid!, max_choice:" + activeSurvey.getMaxChoice());
+				return;
+			}
+			if (arr.length < activeSurvey.getMinChoice()) {
+				GameLog.getInstance().error("Option list in invalid!, min_choice:" + activeSurvey.getMinChoice());
 				return;
 			}
 			SurveyResultInfo surveyResultInfo = SurveyService.getSurveyResult(surveySession.getCode(), activeSurvey.getId());

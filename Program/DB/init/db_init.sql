@@ -227,3 +227,14 @@ CREATE TABLE cannon_player_info (
 	INDEX(user_id),
 	INDEX(username)
 ) ENGINE INNODB;
+
+DROP TABLE IF EXISTS user_ticket_info;
+CREATE TABLE user_ticket_info (
+	id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
+	user_id INT UNSIGNED NOT NULL,
+	ticket_type TINYINT UNSIGNED NOT NULL,
+	ticket_remain TINYINT UNSIGNED NOT NULL,
+	total_num SMALLINT UNSIGNED NOT NULL,
+	UNIQUE(user_id,ticket_type),
+	INDEX(user_id,ticket_type)
+) ENGINE INNODB;

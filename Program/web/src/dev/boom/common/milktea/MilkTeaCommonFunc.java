@@ -14,6 +14,7 @@ import dev.boom.common.CommonDefine;
 import dev.boom.common.CommonHtmlFunc;
 import dev.boom.common.CommonMethod;
 import dev.boom.common.enums.BootStrapColorEnum;
+import dev.boom.common.enums.TicketType;
 import dev.boom.common.enums.UserFlagEnum;
 import dev.boom.core.GameLog;
 import dev.boom.milktea.object.MenuItem;
@@ -29,6 +30,7 @@ import dev.boom.services.OrderInfo;
 import dev.boom.services.ShopInfo;
 import dev.boom.services.ShopService;
 import dev.boom.services.UserInfo;
+import dev.boom.services.UserTicketInfo;
 
 public class MilkTeaCommonFunc {
 	
@@ -75,7 +77,7 @@ public class MilkTeaCommonFunc {
 				String itemPriceBlock = getItemPriceBlock(item, menuInfo, userInfo, messages);
 				sb.append("<div class=\"col-lg-2 col-md-3 col-8\">");
 					String imgSrc = item.getImage_url();
-					if (imgSrc == null || !imgSrc.startsWith("http")) {
+					if (imgSrc == null || !imgSrc.startsWith("http") || imgSrc.contains("no-image")) {
 						imgSrc = contextPath + "/img/milktea/no_image.png?@no_image.png@";
 					}
 					sb.append(String.format("<img src=\"%s\" class=\"dish-image\" title=\"\" alt=\"\" style=\"height:3.125rem;padding-left:0;margin-top:0.3125rem;\"/>", imgSrc));
@@ -118,6 +120,9 @@ public class MilkTeaCommonFunc {
 		if (menuInfo != null && menuInfo.isOpening()) {
 			if (userInfo != null) {
 				MilkTeaUserInfo milkteaUser = MilkTeaUserService.getMilkTeaUserInfoById(userInfo.getId());
+				if (milkteaUser != null) {
+					milkteaUser.initRemainTicket();
+				}
 				if (!UserFlagEnum.ACTIVE.isValid(userInfo.getFlag())) {
 					sb.append(CommonHtmlFunc.getModalAlertWithMessage("account-not-active-modal", "warning", (String)messages.get("MSG_ACCOUNT_INACTIVE")));
 				} else if (UserFlagEnum.MILKTEA_BANNED.isValid(userInfo.getFlag())) {
@@ -224,13 +229,13 @@ public class MilkTeaCommonFunc {
 								sb.append("</div>");
 								
 								sb.append("<div class=\"col-md-6\">");
-								if (milkteaUser != null && milkteaUser.getFreeTicket() > 0) {
-									sb.append(String.format("<label class=\"font-weight-bold\" style=\"font-size:1.125rem;\" data-toggle=\"tooltip\" data-placement=\"bottom\" title=\"%s\">", messages.get("MSG_MILK_TEA_FREE_TICKET_EXPLANE")));
-									sb.append(MessageFormat.format((String)messages.get("MSG_MILK_TEA_FREE_TICKET_REMAIN"), milkteaUser.getFreeTicket())).append("</label>");
-									sb.append("<div class=\"custom-control custom-checkbox\">");
-									sb.append(String.format("<input type=\"checkbox\" class=\"custom-control-input\" id=\"free-ticket-%d\"/>", item.getId()));
-									sb.append(String.format("<label class=\"custom-control-label\" for=\"free-ticket-%d\">%s</label>", item.getId(), messages.get("MSG_MILK_TEA_FREE_TICKET_USE_LABEL")));
-									sb.append("</div>");
+								if (milkteaUser != null) {
+									List<UserTicketInfo> listTicket = milkteaUser.getListTicket();
+									if (listTicket != null && !listTicket.isEmpty()) {
+										sb.append(String.format("<select id=\"use-ticket-%d\" class=\"form-control\" name=\"select-ticket\">", item.getId()));
+											
+										sb.append("</select>");
+									}
 								}
 								sb.append("</div>");
 							sb.append("</div>");
@@ -328,27 +333,31 @@ public class MilkTeaCommonFunc {
 		sb.append("<label class=\"font-weight-bold\" style=\"font-size:1.125rem;\">").append(messages.get(label)).append("</label>");
 		if (attention.length() > 0) {
 			sb.append("<label class=\"font-italic none-select\" style=\"margin-left:1rem;font-size:0.75rem;color:lightgray;\">").append(attention).append("</label>");
+		} else {
+			sb.append("<label class=\"font-italic none-select\" style=\"margin-left:1rem;font-size:1rem;color:lightgray;\">Not Available</label>");
 		}
 		sb.append("</div></div>");
-		for (int i = 0; i < rowCount; i++) {
-			sb.append("<div class=\"row\">");
-			for (int j = 0; j < 2; j++) {
-				sb.append("<div class=\"col-sm-6\">");
-				if (2 * i + j < listItemOption.length) {
-					MenuItemOption itemOption = listItemOption[2 * i + j];
-					sb.append(String.format("<div class=\"custom-control custom-%s\">", inputType));
-					sb.append(String.format("<input type=\"%s\" class=\"custom-control-input\" id=\"item-option-%s\" name=\"item-option-%s\" value=\"%s\" %s/>", inputType, (item.getId() + "-" + inputName + "-" + (2 * i + j)), inputName, itemOption.getName(), (i + j == 0 && !inputName.equals("topping")) ? "checked" : ""));
-					sb.append(String.format("<label class=\"custom-control-label text-success\" for=\"item-option-%s\">", (item.getId() + "-" + inputName + "-" + (2 * i + j))));
-					sb.append(itemOption.getName());
-					if (itemOption.getPrice() != 0) {
-						sb.append(" + ").append(getShowPriceWithUnit(itemOption.getPrice(), messages));
+		if (attention.length() > 0) {
+			for (int i = 0; i < rowCount; i++) {
+				sb.append("<div class=\"row\">");
+				for (int j = 0; j < 2; j++) {
+					sb.append("<div class=\"col-sm-6\">");
+					if (2 * i + j < listItemOption.length) {
+						MenuItemOption itemOption = listItemOption[2 * i + j];
+						sb.append(String.format("<div class=\"custom-control custom-%s\">", inputType));
+						sb.append(String.format("<input type=\"%s\" class=\"custom-control-input\" id=\"item-option-%s\" name=\"item-option-%s\" value=\"%s\" %s/>", inputType, (item.getId() + "-" + inputName + "-" + (2 * i + j)), inputName, itemOption.getName(), (i + j == 0 && !inputName.equals("topping")) ? "checked" : ""));
+						sb.append(String.format("<label class=\"custom-control-label text-success\" for=\"item-option-%s\">", (item.getId() + "-" + inputName + "-" + (2 * i + j))));
+						sb.append(itemOption.getName());
+						if (itemOption.getPrice() != 0) {
+							sb.append(" + ").append(getShowPriceWithUnit(itemOption.getPrice(), messages));
+						}
+						sb.append("</label>");
+						sb.append("</div>");
 					}
-					sb.append("</label>");
 					sb.append("</div>");
 				}
 				sb.append("</div>");
 			}
-			sb.append("</div>");
 		}
 		sb.append("</div>");
 		return sb.toString();
@@ -686,6 +695,9 @@ public class MilkTeaCommonFunc {
 				MenuInfo menuInfo =  it.next();
 				if (!menuInfo.isAvailableForUser(userInfo)) {
 					it.remove();
+					continue;
+				}
+				if (shopids.contains(menuInfo.getShopId())) {
 					continue;
 				}
 				shopids.add(menuInfo.getShopId());
@@ -1037,9 +1049,6 @@ public class MilkTeaCommonFunc {
 	}
 	
 	public static long getFinalCost(long totalMoney, int totalOrder, MenuInfo menuInfo, OrderInfo order) {
-		if (MilkTeaOrderFlag.KOC_TICKET.isValidFlag(order.getFlag())) {
-			return 0;
-		}
 		int sale = 100;
 		if (menuInfo.getSale() > 0 && menuInfo.getSale() < 100) {
 			sale = 100 - menuInfo.getSale();
@@ -1053,6 +1062,25 @@ public class MilkTeaCommonFunc {
 		}
 		long shippingFee = (long) Math.ceil(((double) menuInfo.getShippingFee()) / totalOrder);
 		price += shippingFee;
+		return adjustPriceByTicket(TicketType.valueOf(order.getTicket()), price);
+	}
+	
+	public static long adjustPriceByTicket(TicketType ticketType, long price) {
+		switch (ticketType) {
+		case KING_OF_CHASUA:
+			//price = price - ((price * 100) / 100);
+			price = 0;
+			break;
+		default:
+			break;
+		}
+		return adjustRoundPrice(price);
+	}
+	
+	public static long adjustRoundPrice(long price) {
+		if (price == 0) {
+			return price;
+		}
 		if (price % 1000 > 300) {
 			price = price - (price % 1000) + 1000;
 		} else {
@@ -1066,6 +1094,9 @@ public class MilkTeaCommonFunc {
 	}
 	
 	public static String getStringOptionAmount(String option) {
+		if (option.matches(".*[0-9]+/[0-9]+.*")) {
+			return option;
+		}
 		if (option.matches("[^0-9]*([0-9]+).*")) {
 			return option.replaceAll("[^0-9]*([0-9]+).*", "$1") + "%";
 		}
@@ -1084,13 +1115,13 @@ public class MilkTeaCommonFunc {
 		if (option.indexOf("không") >= 0 || option.indexOf("hot") >= 0 || option.indexOf("warm") >= 0
 				 || option.indexOf("ấm") >= 0 || option.indexOf("nóng") >= 0 || option.indexOf("ko-đá") >= 0) {
 			return 0;
-		} else if (option.indexOf("rất-ít") >= 0) {
+		} else if (option.indexOf("rất-ít") >= 0 || option.indexOf("1/3") >= 0) {
 			return 30;
-		} else if (option.indexOf("ít") >= 0) {
+		} else if (option.indexOf("ít") >= 0 || option.indexOf("1/2") >= 0) {
 			return 50;
-		} else if (option.indexOf("vừa") >= 0) {
+		} else if (option.indexOf("vừa") >= 0 || option.indexOf("2/3") >= 0) {
 			return 70;
-		} else if (option.indexOf("bình-thường") >= 0 || option.indexOf("normal") >= 0) {
+		} else if (option.indexOf("bình-thường") >= 0 || option.indexOf("normal") >= 0 || option.indexOf("full") >= 0) {
 			return 100;
 		} else if (option.indexOf("rất-nhiều") >= 0) {
 			return 130;

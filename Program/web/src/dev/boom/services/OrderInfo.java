@@ -178,6 +178,14 @@ public class OrderInfo {
 		this.info.setFlag(flag);
 	}
 
+	public short getTicket() {
+		return this.info.getTicket();
+	}
+
+	public void setTicket(short ticket) {
+		this.info.setTicket(ticket);
+	}
+	
 	public Date getCreated() {
 		return this.info.getCreated();
 	}

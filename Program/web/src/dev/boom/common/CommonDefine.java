@@ -17,5 +17,8 @@ public class CommonDefine {
 	
 	public static final long KING_OF_CHASUA_MIN_ORDER_NUM = 4;
 	
+	public static final short MAX_KOC_TICKET_NUM = 1;
+	public static final short MAX_TICKET_NUM = 255;
+	
 	
 }

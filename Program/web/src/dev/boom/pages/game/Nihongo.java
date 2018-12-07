@@ -1,6 +1,5 @@
 package dev.boom.pages.game;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.click.element.CssImport;

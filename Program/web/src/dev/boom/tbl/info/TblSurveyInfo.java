@@ -17,6 +17,7 @@ public class TblSurveyInfo extends DaoValueInfo {
 	private byte status;
 	private String description;
 	private byte max_choice;
+	private byte min_choice;
 	private byte max_retry;
 	private Date created;
 	private Date expired;
@@ -28,6 +29,7 @@ public class TblSurveyInfo extends DaoValueInfo {
 		this.status = 0;
 		this.description = "";
 		this.max_choice = 1;
+		this.min_choice = 1;
 		this.max_retry = 0;
 		this.created = new Date();
 		this.expired = new Date(this.created.getTime() + CommonDefine.MILLION_SECOND_DAY);
@@ -73,6 +75,14 @@ public class TblSurveyInfo extends DaoValueInfo {
 
 	public void setMax_choice(byte max_choice) {
 		this.max_choice = max_choice;
+	}
+	
+	public byte getMin_choice() {
+		return min_choice;
+	}
+
+	public void setMin_choice(byte min_choice) {
+		this.min_choice = min_choice;
 	}
 
 	public byte getMax_retry() {

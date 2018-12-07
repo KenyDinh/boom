@@ -30,7 +30,11 @@ img.survey-opt-image{
 				<div class="col-lg-10 col-12">
 					#if (${result})
 						<div style="margin-top:2rem;margin-bottom:0.5rem;">
+						#if (${resultCount} > 0)
 							<label class="text-success font-weight-bold">There are <span id="result-count">${resultCount}</span> people had up-voted</label>
+						#else ###if (${resultCount} == 0)
+							<label class="text-success font-weight-bold">No one had up-voted</label>
+						#end ###if (${resultCount} == 0)
 						</div>
 						<div style="margin-bottom:1rem;">
 							<button class="btn btn-info" id="collapse-detail">More Detail</button>
@@ -89,6 +93,10 @@ img.survey-opt-image{
 ##								<textarea class="form-control" name="description" id="description">${survey_form.getDescription()}</textarea>
 ##							</div>
 							<div class="form-group">
+								<label for="min_choice">Min Choice:</label>
+								<input type="number" class="form-control" name="min_choice" id="min_choice" min="1" value="${survey_form.getMinChoice()}" />
+							</div>
+							<div class="form-group">
 								<label for="max_choice">Max Choice:</label>
 								<input type="number" class="form-control" name="max_choice" id="max_choice" min="1" value="${survey_form.getMaxChoice()}" />
 							</div>
@@ -105,12 +113,15 @@ img.survey-opt-image{
 									<button type="submit" class="btn btn-info" style="width:100%;margin-top:1rem;">Submit</button>
 								</div>
 								<div class="col-md-4 col-6">
+									<button id="delete-button" type="button" class="btn btn-danger" style="width:100%;margin-top:1rem;">Clear</button>
+								</div>
+								<div class="col-md-4 col-12">
 									#if (${survey})
 										<a href="${context}/vote/manage_vote.htm?survey_id=${survey.getId()}">
 									#else ##if (${back_param})
 										<a href="${context}/vote/manage_vote.htm">
 									#end ##if (${back_param})
-									<button type="button" class="btn btn-danger" style="width:100%;margin-top:1rem;">Cancel</button>
+									<button type="button" class="btn btn-secondary" style="width:100%;margin-top:1rem;">Cancel</button>
 									</a>
 								</div>
 							</div>

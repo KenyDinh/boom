@@ -175,7 +175,7 @@ public class MilkTeaRanking extends MilkTeaMainPage {
 			end = CommonMethod.getFormatDateString(cal.getTime());
 			if (mode == MODE_KING_OF_CHASUA) {
 				query = "SELECT temp.username, COUNT(temp.username), SUM(temp.max_price), GROUP_CONCAT(temp.ice SEPARATOR ',') AS total_ice, GROUP_CONCAT(temp.sugar SEPARATOR ',') AS total_sugar, GROUP_CONCAT(temp.option_list SEPARATOR ',') AS total_topping "
-						+ "FROM (SELECT username, menu_id, MAX(final_price) AS max_price, ice, sugar, option_list FROM order_info WHERE final_price > 0 AND (flag & " + MilkTeaOrderFlag.KOC_VALID.ordinal() + ") AND created >= '" + start + "' AND created <= '" + end + "' GROUP BY username, menu_id) AS temp "
+						+ "FROM (SELECT username, menu_id, MAX(final_price) AS max_price, ice, sugar, option_list FROM order_info WHERE final_price > 0 AND (flag & " + MilkTeaOrderFlag.KOC_VALID.getBitMask() + ") AND created >= '" + start + "' AND created <= '" + end + "' GROUP BY username, menu_id) AS temp "
 						+ "GROUP BY username ORDER BY (CASE WHEN COUNT(temp.username) >= " + CommonDefine.KING_OF_CHASUA_MIN_ORDER_NUM + " THEN SUM(temp.max_price) ELSE COUNT(temp.username) END) DESC LIMIT 10";
 			} else {
 				query = "SELECT username, COUNT(user_id), SUM(final_price), GROUP_CONCAT(ice SEPARATOR ',') AS total_ice, GROUP_CONCAT(sugar SEPARATOR ',') AS total_sugar, GROUP_CONCAT(option_list SEPARATOR ',') AS total_topping "

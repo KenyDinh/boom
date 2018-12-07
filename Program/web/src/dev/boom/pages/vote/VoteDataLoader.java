@@ -11,11 +11,13 @@ import dev.boom.common.CommonMethod;
 import dev.boom.core.GameLog;
 import dev.boom.core.SurveySession;
 import dev.boom.pages.JsonPageBase;
+import dev.boom.services.CommonDaoService;
 import dev.boom.services.SurveyInfo;
 import dev.boom.services.SurveyOptionInfo;
 import dev.boom.services.SurveyResultInfo;
 import dev.boom.services.SurveyService;
 import dev.boom.services.SurveyValidCodeData;
+import dev.boom.tbl.info.TblSurveyResultInfo;
 
 public class VoteDataLoader extends JsonPageBase {
 
@@ -70,7 +72,35 @@ public class VoteDataLoader extends JsonPageBase {
 		}
 		String strMode = getContext().getRequestParameter("mode");
 		if (strMode != null && strMode.equals("result_detail")) {
-			getResultDetail();
+			int type =  1;
+			String strType = getContext().getRequestParameter("type");
+			if (CommonMethod.isValidNumeric(strType, 0, 1)) {
+				type = Integer.parseInt(strType);
+			}
+			if (type == 0) {
+				getUnVoteDetail();
+			} else {
+				getResultDetail();
+			}
+		} else if (strMode != null && strMode.equals("clear")) {
+			String strUser = getContext().getRequestParameter("user");
+			if (strUser == null || strUser.isEmpty()) {
+				return;
+			}
+			if (data == null || !data.isEditable()) {
+				GameLog.getInstance().error("[ManageVote] survey valid data is null or not allowed to access!");
+				return;
+			}
+			SurveyResultInfo resultInfo = SurveyService.getSurveyResult(strUser, survey.getId());
+			if (resultInfo == null) {
+				GameLog.getInstance().error("[VoteDataLoader] no result to clear!");
+				return;
+			}
+			if (!CommonDaoService.delete(resultInfo.getInfo())) {
+				GameLog.getInstance().error("[VoteDataLoader] clear failed!");
+				return;
+			}
+			putJsonData("success", "1");
 		} else {
 			getStatisticData();
 		}
@@ -79,6 +109,41 @@ public class VoteDataLoader extends JsonPageBase {
 	@Override
 	public void onRender() {
 		super.onRender();
+	}
+	
+	private void getUnVoteDetail() {
+		List<SurveyValidCodeData> listValidCodes = SurveyService.getValidCodeList();
+		if (listValidCodes == null || listValidCodes.isEmpty()) {
+			return;
+		}
+		TblSurveyResultInfo resultInfo = new TblSurveyResultInfo();
+		resultInfo.addSelectedField("user");
+		resultInfo.setSurvey_id(survey.getId());
+		List<Object> list = CommonDaoService.selectWithFields(resultInfo);
+		
+		List<Map<String, String>> listData = new ArrayList<>();
+		for (SurveyValidCodeData dataCode : listValidCodes) {
+			boolean found = false;
+			if (list != null && !list.isEmpty()) {
+				for (Object obj : list) {
+					if (obj.toString().equals(dataCode.getCode())) {
+						found = true;
+						break;
+					}
+				}
+			}
+			if (found) {
+				continue;
+			}
+			Map<String, String> data = new HashMap<>();
+			data.put("user", dataCode.getCode());
+			data.put("info", dataCode.getName());
+			listData.add(data);
+		}
+		if (listData.isEmpty()) {
+			return;
+		}
+		putJsonData("result_detail", listData);
 	}
 	
 	private void getResultDetail() {
@@ -94,6 +159,7 @@ public class VoteDataLoader extends JsonPageBase {
 		for (SurveyResultInfo result : listResult) {
 			Map<String, String> data = new HashMap<>();
 			data.put("user", result.getUser());
+			data.put("edit", "<a href=\"javascript:void(0);\" onclick=\"clearResult('" + result.getUser() + "')\">Clear</a>");
 			data.put("info", result.getUserInfo());
 			String rs = "";
 			if (!result.getResult().isEmpty()) {
@@ -153,6 +219,7 @@ public class VoteDataLoader extends JsonPageBase {
 			optionData.put("name", option.getName());
 			optionData.put("rate", option.getFormatVoteRating(total));
 			optionData.put("count", String.valueOf(option.getSelectedCount()));
+			optionData.put("point", String.valueOf(option.getTotalPoint()));
 			listOptionData.add(optionData);
 		}
 		

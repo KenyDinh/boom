@@ -76,7 +76,7 @@ public class MenuService {
 			option += options;
 		}
 		if (!option.isEmpty()) {
-			menuInfo.setSelectOption("WHERE " + option + " ORDER BY status ASC");
+			menuInfo.setSelectOption("WHERE " + option + " ORDER BY status ASC, updated DESC");
 		}
 		List<DaoValue> list = CommonDaoService.select(menuInfo);
 		if (list == null || list.isEmpty()) {

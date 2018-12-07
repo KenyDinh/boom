@@ -8,7 +8,6 @@ import dev.boom.dao.core.IDaoFactory;
 import dev.boom.dao.fix.FixData;
 import dev.boom.services.CommonDaoService;
 import dev.boom.tbl.data.TblCannonBlockData;
-import dev.boom.tbl.data.TblSurveyValidCodeData;
 
 public class DaoCannonBlockData extends FixData implements IDaoFactory {
 

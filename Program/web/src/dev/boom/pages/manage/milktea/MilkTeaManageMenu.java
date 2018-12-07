@@ -232,7 +232,7 @@ public class MilkTeaManageMenu extends ManagePageBase {
 		table.append("</thead>");
 		table.append("<tbody>");
 		if (menuList == null || menuList.isEmpty()) {
-			table.append("<tr><td colspan=\"11\">No menu found!</td></tr>");
+			table.append("<tr><td colspan=\"12\">No menu found!</td></tr>");
 		} else {
 			for (MenuInfo menu : menuList) {
 				table.append("<tr>");

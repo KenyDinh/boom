@@ -1,12 +1,17 @@
 package dev.boom.services;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
 
+import dev.boom.common.enums.TicketCategory;
+import dev.boom.common.enums.TicketType;
 import dev.boom.tbl.info.TblMilkTeaUserInfo;
 
 public class MilkTeaUserInfo {
 
 	private TblMilkTeaUserInfo info = null;
+	private List<UserTicketInfo> ticketInfoList = null;
 
 	public MilkTeaUserInfo(TblMilkTeaUserInfo info) {
 		this.info = info;
@@ -18,6 +23,30 @@ public class MilkTeaUserInfo {
 	
 	public TblMilkTeaUserInfo getTblInfo() {
 		return this.info;
+	}
+	
+	public void initRemainTicket() {
+		List<Short> ticketTypes = new ArrayList<>();
+		for (TicketType type : TicketCategory.MILKTEA_TICKET.getTicketTypes()) {
+			ticketTypes.add(type.getType());
+		}
+		ticketInfoList = UserTicketService.getUserTicketInfo(getUserId(), ticketTypes, "AND ticket_remain > 0");
+	}
+	
+	public List<UserTicketInfo> getListTicket() {
+		return ticketInfoList;
+	}
+	
+	public UserTicketInfo getUserTicket(TicketType ticketType) {
+		if (ticketInfoList == null || ticketInfoList.isEmpty()) {
+			return null;
+		}
+		for (UserTicketInfo userTicket : ticketInfoList) {
+			if (userTicket.getTicketType() == ticketType.getType()) {
+				return userTicket;
+			}
+		}
+		return null;
 	}
 	
 	public long getUserId() {
@@ -82,20 +111,6 @@ public class MilkTeaUserInfo {
 
 	public void setTotalTopping(long total_topping) {
 		this.info.setTotal_topping(total_topping);
-	}
-	
-	public byte getFreeTicket() {
-		return this.info.getFree_ticket();
-	}
-	
-	public void setFreeTicket(byte free_ticket) {
-		if (free_ticket < 0) {
-			free_ticket = 0;
-		}
-		if (free_ticket > Byte.MAX_VALUE) {
-			free_ticket = Byte.MAX_VALUE;
-		}
-		this.info.setFree_ticket(free_ticket);
 	}
 
 	public long getLatestOrderId() {

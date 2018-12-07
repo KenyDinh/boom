@@ -181,11 +181,21 @@ function scrollDishType() {
 }
 
 function viewItemByName(name) {
-	if (name == undefined || name == null || name.length == 0) {
+	if (name === undefined || name === null || name.length === 0) {
 		return;
 	}
-	let item = $j('span.item-findable:contains("' + name + '")');
-	if (item.length <= 0) {
+	let item = null;
+	let item_list = $j('span.item-findable:contains("' + name + '")');
+	if (item_list.length <= 0) {
+		return;
+	}
+	for (let i = 0; i < item_list.length; i++) {
+		if (item_list.eq(i).text() == name) {
+			item = item_list.eq(i);
+			break;
+		}
+	}
+	if (item === null) {
 		return;
 	}
 	let top = item.closest('div.menu-item').offset().top - $j('#main-nav-bar').outerHeight();

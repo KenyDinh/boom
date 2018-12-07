@@ -7,6 +7,7 @@ import dev.boom.tbl.info.TblSurveyOptionInfo;
 public class SurveyOptionInfo {
 
 	private int selectedCount = 0;
+	private int totalPoint = 0;
 	private TblSurveyOptionInfo info = null;
 
 	public SurveyOptionInfo() {
@@ -27,6 +28,14 @@ public class SurveyOptionInfo {
 
 	public void setSelectedCount(int selectedCount) {
 		this.selectedCount = selectedCount;
+	}
+	
+	public int getTotalPoint() {
+		return totalPoint;
+	}
+
+	public void setTotalPoint(int totalPoint) {
+		this.totalPoint = totalPoint;
 	}
 	
 	public String getFormatVoteRating(long totalVote) {

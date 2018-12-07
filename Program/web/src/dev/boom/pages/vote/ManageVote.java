@@ -1,6 +1,7 @@
 package dev.boom.pages.vote;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -142,57 +143,75 @@ public class ManageVote extends PageBase {
 				error = true;
 				return;
 			}
-			String strName = getContext().getRequestParameter("name");
-			if (strName != null && strName.length() > 0 && !surveyInfo.getName().equals(strName)) {
-				if (strName.indexOf("<script") >= 0) {
-					strName = StringEscapeUtils.escapeHtml(strName);
-				}
-				surveyInfo.setName(strName);
-				update = true;
-			}
-			String strStatus = getContext().getRequestParameter("status");
-			if (CommonMethod.isValidNumeric(strStatus, 0, 1)) {
-				byte status = Byte.parseByte(strStatus);
-				if (surveyInfo.getStatus() != status) {
-					surveyInfo.setStatus(status);
-					update = true;
-				}
-			}
-			String strMaxChoice = getContext().getRequestParameter("max_choice");
-			if (CommonMethod.isValidNumeric(strMaxChoice, 1, Byte.MAX_VALUE)) {
-				byte max_choice = Byte.parseByte(strMaxChoice);
-				if (surveyInfo.getMaxChoice() != max_choice) {
-					surveyInfo.setMaxChoice(max_choice);
-					update = true;
-				}
-			}
-			String strMaxRetry = getContext().getRequestParameter("max_retry");
-			if (CommonMethod.isValidNumeric(strMaxRetry, 1, Byte.MAX_VALUE)) {
-				byte max_retry = Byte.parseByte(strMaxRetry);
-				if (surveyInfo.getMaxRetry() != max_retry) {
-					surveyInfo.setMaxRetry(max_retry);
-					update = true;
-				}
-			}
-			String strExpiration = getContext().getRequestParameter("expired");
-			if (strExpiration != null && strExpiration.matches(CommonDefine.DATE_REGEX_PATTERN)) {
-				Date expired = CommonMethod.getDate(strExpiration, CommonDefine.DATE_FORMAT_PATTERN);
-				if (expired != null && expired.getTime() != surveyInfo.getExpired().getTime()) {
-					surveyInfo.setExpired(expired);
-					update = true;
-				}
-			}
-			if (mode == MODE_SURVEY_NEW) {
-				if (CommonDaoService.insert(surveyInfo.getInfo()) == null) {
-					GameLog.getInstance().error("[ManageVote] insert survey fail!");
+			if (mode == MODE_SURVEY_EDIT && getContext().getRequestParameter("delete") != null) {
+				List<String> command = Arrays.asList(new String[] {"DELETE FROM survey_result_info WHERE survey_id = " + surveyInfo.getId()});
+				List<Object> ret = CommonDaoService.executeNativeSQLQuery("SELECT * FROM survey_info WHERE id = " + surveyInfo.getId(), command);
+				if (ret == null || ret.isEmpty()) {
+					GameLog.getInstance().error("[ManageVote] Clear Survey failed!");
 					error = true;
 					return;
 				}
-			} else if (update){
-				if (!CommonDaoService.update(surveyInfo.getInfo())) {
-					GameLog.getInstance().error("[ManageVote] update survey fail!");
-					error = true;
-					return;
+			} else {
+				String strName = getContext().getRequestParameter("name");
+				if (strName != null && strName.length() > 0 && !surveyInfo.getName().equals(strName)) {
+					if (strName.indexOf("<script") >= 0) {
+						strName = StringEscapeUtils.escapeHtml(strName);
+					}
+					surveyInfo.setName(strName);
+					update = true;
+				}
+				String strStatus = getContext().getRequestParameter("status");
+				if (CommonMethod.isValidNumeric(strStatus, 0, 1)) {
+					byte status = Byte.parseByte(strStatus);
+					if (surveyInfo.getStatus() != status) {
+						surveyInfo.setStatus(status);
+						update = true;
+					}
+				}
+				String strMaxChoice = getContext().getRequestParameter("max_choice");
+				if (CommonMethod.isValidNumeric(strMaxChoice, 1, Byte.MAX_VALUE)) {
+					byte max_choice = Byte.parseByte(strMaxChoice);
+					if (surveyInfo.getMaxChoice() != max_choice) {
+						surveyInfo.setMaxChoice(max_choice);
+						update = true;
+					}
+				}
+				String strMinChoice = getContext().getRequestParameter("min_choice");
+				if (CommonMethod.isValidNumeric(strMinChoice, 1, Byte.MAX_VALUE)) {
+					byte min_choice = Byte.parseByte(strMinChoice);
+					if (surveyInfo.getMinChoice() != min_choice) {
+						surveyInfo.setMinChoice(min_choice);
+						update = true;
+					}
+				}
+				String strMaxRetry = getContext().getRequestParameter("max_retry");
+				if (CommonMethod.isValidNumeric(strMaxRetry, 1, Byte.MAX_VALUE)) {
+					byte max_retry = Byte.parseByte(strMaxRetry);
+					if (surveyInfo.getMaxRetry() != max_retry) {
+						surveyInfo.setMaxRetry(max_retry);
+						update = true;
+					}
+				}
+				String strExpiration = getContext().getRequestParameter("expired");
+				if (strExpiration != null && strExpiration.matches(CommonDefine.DATE_REGEX_PATTERN)) {
+					Date expired = CommonMethod.getDate(strExpiration, CommonDefine.DATE_FORMAT_PATTERN);
+					if (expired != null && expired.getTime() != surveyInfo.getExpired().getTime()) {
+						surveyInfo.setExpired(expired);
+						update = true;
+					}
+				}
+				if (mode == MODE_SURVEY_NEW) {
+					if (CommonDaoService.insert(surveyInfo.getInfo()) == null) {
+						GameLog.getInstance().error("[ManageVote] insert survey fail!");
+						error = true;
+						return;
+					}
+				} else if (update){
+					if (!CommonDaoService.update(surveyInfo.getInfo())) {
+						GameLog.getInstance().error("[ManageVote] update survey fail!");
+						error = true;
+						return;
+					}
 				}
 			}
 			break;
@@ -209,20 +228,22 @@ public class ManageVote extends PageBase {
 				surveyOption = SurveyService.getSurveyOptionById(Long.parseLong(strOptionId));
 			} else {
 				surveyOption = new SurveyOptionInfo();
-				if (survey == null) {
-					GameLog.getInstance().error("[ManageVote] no survey selected!");
-					error = true;
-					return;
-				}
-				surveyOption.setSurveyId(survey.getId());
 			}
 			if (surveyOption == null) {
 				GameLog.getInstance().error("[ManageVote] Option is null!");
 				error = true;
 				return;
 			}
+			if (survey == null) {
+				GameLog.getInstance().error("[ManageVote] no survey selected!");
+				error = true;
+				return;
+			}
+			if (surveyOption.getSurveyId() != survey.getId()) {
+				surveyOption.setSurveyId(survey.getId());
+				update = true;
+			}
 			if (mode == MODE_OPTION_EDIT && getContext().getRequestParameter("delete") != null) {
-				surveyOption.getInfo().setDelete();
 				if (!CommonDaoService.delete(surveyOption.getInfo())) {
 					GameLog.getInstance().error("[ManageVote] delete option fail!");
 					error = true;
@@ -403,10 +424,10 @@ public class ManageVote extends PageBase {
 			}
 		});
 		long resultCount = SurveyService.getCountSurveyResult(survey.getId());
-		if (resultCount <= 0) {
-			GameLog.getInstance().error("[ManageVote] no result record found!");
-			return;
-		}
+//		if (resultCount <= 0) {
+//			GameLog.getInstance().error("[ManageVote] no result record found!");
+//			return;
+//		}
 		addModel("resultCount", resultCount);
 		int total = 0;
 		for (SurveyOptionInfo option : listResultOption) {
@@ -429,6 +450,9 @@ public class ManageVote extends PageBase {
 				sb.append("<th>");
 					sb.append("Vote");
 				sb.append("</th>");
+				sb.append("<th>");
+					sb.append("Point");
+				sb.append("</th>");
 			sb.append("</tr>");
 		sb.append("</thead>");
 		sb.append("<tbody>");
@@ -447,6 +471,9 @@ public class ManageVote extends PageBase {
 				sb.append("<td class=\"count\">");
 					sb.append(option.getSelectedCount());
 				sb.append("</td>");
+				sb.append("<td class=\"point\">");
+					sb.append(option.getTotalPoint());
+					sb.append("</td>");
 			sb.append("</tr>");
 		}
 		sb.append("</tbody>");

@@ -28,6 +28,7 @@ public class TblOrderInfo extends DaoValueInfo {
 	private String sugar;
 	private String option_list;
 	private int flag;
+	private short ticket;
 	private Date created;
 	private Date updated;
 
@@ -50,6 +51,7 @@ public class TblOrderInfo extends DaoValueInfo {
 		this.sugar = "";
 		this.option_list = "";
 		this.flag = 0;
+		this.ticket = 0;
 		this.created = new Date();
 		this.updated = this.created;
 		Sync();
@@ -197,6 +199,14 @@ public class TblOrderInfo extends DaoValueInfo {
 
 	public void setFlag(int flag) {
 		this.flag = flag;
+	}
+
+	public short getTicket() {
+		return ticket;
+	}
+
+	public void setTicket(short ticket) {
+		this.ticket = ticket;
 	}
 
 	public Date getCreated() {

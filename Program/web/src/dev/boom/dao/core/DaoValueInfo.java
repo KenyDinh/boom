@@ -162,7 +162,13 @@ public class DaoValueInfo extends DaoValue {
 
 	@Override
 	public void setSelectOption(String selectOption) {
-		this.selectOption = selectOption;
+		if (selectOption == null || selectOption.isEmpty()) {
+			return;
+		}
+		if (this.selectOption == null) {
+			this.selectOption = "";
+		}
+		this.selectOption += (" " + selectOption);
 	}
 
 	@Override

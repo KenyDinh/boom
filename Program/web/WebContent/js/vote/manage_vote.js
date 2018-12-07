@@ -54,7 +54,11 @@ $j(document).ready(function() {
 			if ($j(this).is(':visible')) {
 				$j(this).blur();
 				$j('#table-detail').toggleClass('text-secondary');
-				loadResultDetail();
+				if ($j('button#btn-unvote').length) {
+					loadUnvoteDetail();
+				} else {
+					loadResultDetail();
+				}
 			}
 		});
 	}
@@ -100,6 +104,32 @@ $j(document).ready(function() {
 //		}
 //	});
 });
+
+var isLoadingUnvote = false;
+function loadUnvoteDetail() {
+	if (typeof survey_id == "undefined" || survey_id == null || survey_id <= 0) {
+		return;
+	}
+	if (isLoadingUnvote) {
+		return;
+	}
+	isLoadingUnvote = true;
+	$j.ajax({
+		type:"POST",
+		url:CONTEXT + "/vote/vote_data_loader.json?survey_id=" + survey_id + "&mode=result_detail&type=0",
+		dataType:"json",
+		success: function(result) {
+			if (result) {
+				drawUnvoteDetail(result.result_detail);
+			}
+		},
+		error:function() {
+			console.log("error!");
+			isLoadingUnvote = false;
+		}
+	});
+}
+
 var isLoadingDetail = false;
 function loadResultDetail() {
 	if (typeof survey_id == "undefined" || survey_id == null || survey_id <= 0) {
@@ -111,7 +141,7 @@ function loadResultDetail() {
 	isLoadingDetail = true;
 	$j.ajax({
 		type:"POST",
-		url:CONTEXT + "/vote/vote_data_loader.json?survey_id=" + survey_id + "&mode=result_detail",
+		url:CONTEXT + "/vote/vote_data_loader.json?survey_id=" + survey_id + "&mode=result_detail&type=1",
 		dataType:"json",
 		success: function(result) {
 			if (result) {
@@ -125,6 +155,41 @@ function loadResultDetail() {
 	});
 }
 
+function drawUnvoteDetail(detail) {
+	if (detail === null || detail === undefined) {
+		return;
+	}
+	let wrapper = $j('div#detail-wrapper');
+	if (wrapper.length <= 0) {
+		return;
+	}
+	let html = '<div><button id="btn-unvote" class="btn btn-info" onclick="loadResultDetail();this.blur();return false;">Not-vote</button></div>';
+	html += '<div class="font-weight-bold text-center text-info" style="margin:0.5rem 0;"><label>Those users who not voted yet</label></div>';
+	html += '<table class="table table-striped" id="table-detail">';
+		html += '<thead>';
+			html += '<tr class="text-info">';
+			html += '<th>Phone Number</th>';
+			html += '<th>Full Name</th>';
+			html += '</tr>';
+		html += '</thead>';
+		
+		html += '<tbody>';
+			for (let i = 0; i < detail.length; i++) {
+				html += '<tr>';
+					html += '<td>' + detail[i].user + '</td>';
+					html += '<td>' + detail[i].info + '</td>';
+				html += '</tr>';
+			}
+		html += '</tbody>';
+	html += '<table>';
+	wrapper.html(html);
+	$j('table#table-detail').DataTable( {
+        responsive: true,
+        ordering:false,
+    });
+	isLoadingUnvote = false;
+}
+
 function drawResultDetail(detail) {
 	if (detail === null || detail === undefined) {
 		return;
@@ -133,13 +198,15 @@ function drawResultDetail(detail) {
 	if (wrapper.length <= 0) {
 		return;
 	}
-	let html = '';
+	let html = '<div><button class="btn btn-info" onclick="loadUnvoteDetail();this.blur();return false;">Voted</button></div>';
+	html += '<div class="font-weight-bold text-center text-info" style="margin:0.5rem 0;"><label>Those users who already voted</label></div>';
 	html += '<table class="table table-striped" id="table-detail">';
 		html += '<thead>';
 			html += '<tr class="text-info">';
 			html += '<th>Phone Number</th>';
 			html += '<th>Full Name</th>';
 			html += '<th>Upvote</th>';
+			html += '<th>Action</th>';
 			html += '</tr>';
 		html += '</thead>';
 		
@@ -149,6 +216,7 @@ function drawResultDetail(detail) {
 					html += '<td>' + detail[i].user + '</td>';
 					html += '<td>' + detail[i].info + '</td>';
 					html += '<td>' + detail[i].result + '</td>';
+					html += '<td>' + detail[i].edit + '</td>';
 				html += '</tr>';
 			}
 		html += '</tbody>';
@@ -195,10 +263,12 @@ function loadVoteResult() {
 	});
 }
 
+var title_labels;
 function drawVoteData(option_list) {
 	if (color_map == null) {
 		color_map = new Map();
 	}
+	title_labels = [];
 	let len = option_list.length;
 	let arr_labels = [];
 	let datas = [];
@@ -206,7 +276,13 @@ function drawVoteData(option_list) {
 	let border_color = [];
 	let type = (isPhone ? 'bar' : 'horizontalBar');
 	for (let i = 0; i < len; i++) {
-		arr_labels.push(option_list[i].name);
+		let i_name = option_list[i].name;
+		if (i_name.length > 5) {
+			arr_labels.push((i_name.substr(0,6) + '...'));
+		} else {
+			arr_labels.push(option_list[i].name);
+		}
+		title_labels.push(option_list[i].name);
 		datas.push(parseInt(option_list[i].count));
 		let color = color_map.get(option_list[i].id);
 		if (typeof color == "undefined") {
@@ -228,6 +304,7 @@ function drawVoteData(option_list) {
 			trElem.find('td.name').html(option_list[i].name);
 			trElem.find('td.rate').html(option_list[i].rate);
 			trElem.find('td.count').html(option_list[i].count);
+			trElem.find('td.point').html(option_list[i].point);
 		}
 	}
 	if ($j('#chart-wrapper').is(':visible')) {
@@ -256,6 +333,17 @@ function drawVoteData(option_list) {
 			                    beginAtZero:true
 			                }
 			            }]
+			        },
+			        tooltips: {
+			        	callbacks: {
+			        		title: function(tooltipItems, data) {
+			        			let _tooltip = title_labels[tooltipItems[tooltipItems.length - 1].index] || '';
+			        			if (_tooltip) {
+			        				return _tooltip;
+			        			}
+			        			return 'null';
+			        		}
+			        	}
 			        }
 			    }
 			});
@@ -315,7 +403,40 @@ function addNewOptionAppend(option) {
 	html+= '<td class="name">' 	+ 	option.name 	+ '</td>';
 	html+= '<td class="rate">' 	+ 	option.rate 	+ '</td>';
 	html+= '<td class="count">' + 	option.count 	+ '</td>';
-	
+	html+= '<td class="point">' + 	option.point 	+ '</td>';
 	html += '</tr>';
 	$j('tbody').append(html);
+}
+var isClearResult = false;
+function clearResult(user) {
+	if (typeof survey_id == "undefined" || survey_id == null || survey_id <= 0) {
+		return;
+	}
+	if (typeof user == "undefined" || user == null || user.length == 0) {
+		return;
+	}
+	let answ = confirm("Confirm clear up result?");
+	if (answ == false) {
+		return;
+	}
+	if (isClearResult) {
+		return;
+	}
+	isClearResult = true;
+	$j.ajax({
+		type:"POST",
+		url:CONTEXT + "/vote/vote_data_loader.json?survey_id=" + survey_id + "&mode=clear&user=" + user,
+		dataType:"json",
+		success: function(result) {
+			if (result.success) {
+				loadResultDetail();
+				loadVoteResult();
+				isClearResult = false;
+			}
+		},
+		error:function() {
+			console.log("error!");
+			isClearResult = false;
+		}
+	});
 }

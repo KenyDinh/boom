@@ -1,7 +1,9 @@
 package dev.boom.services;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import dev.boom.core.GameLog;
 import dev.boom.dao.core.DaoValue;
@@ -157,36 +159,73 @@ public class SurveyService {
 		return CommonDaoService.count(info);
 	}
 	
+//	public static List<SurveyOptionInfo> calculateSurveyResult(long survey_id) {
+//		List<SurveyOptionInfo> listOptions = getSurveyOptionList(survey_id);
+//		if (listOptions == null || listOptions.isEmpty()) {
+//			return null;
+//		}
+//		String sql = "SELECT GROUP_CONCAT(result SEPARATOR ';') AS results from survey_result_info where survey_id = " + survey_id;
+//		List<String> commands = new ArrayList<>();
+//		commands.add(new String("SET SESSION group_concat_max_len = 2048"));
+//		List<Object> results = CommonDaoService.executeNativeSQLQuery(sql);
+//		if (results != null && !results.isEmpty()) {
+//			String strResults = (String) results.get(0);
+//			if (strResults != null) {
+//				String[] ids = strResults.split(",");
+//				for (String optId : ids) {
+//					if (!optId.matches("^[0-9]+$")) {
+//						continue;
+//					}
+//					int serialNum = listOptions.size();
+//					for (SurveyOptionInfo surveyOption : listOptions) {	
+//						if (surveyOption.getId() == Long.parseLong(optId)) {
+//							surveyOption.setSelectedCount(surveyOption.getSelectedCount() + 1);
+//							surveyOption.setTotalPoint(surveyOption.getTotalPoint() + serialNum);
+//							serialNum--;
+//							break;
+//						}
+//					}
+//					
+//				}
+//			}
+//		}
+//		
+//		return listOptions;
+//	}
+	
 	public static List<SurveyOptionInfo> calculateSurveyResult(long survey_id) {
 		List<SurveyOptionInfo> listOptions = getSurveyOptionList(survey_id);
 		if (listOptions == null || listOptions.isEmpty()) {
 			return null;
 		}
-		String sql = "SELECT GROUP_CONCAT(result SEPARATOR ',') AS results from survey_result_info where survey_id = " + survey_id;
-//		List<String> commands = new ArrayList<>();
-//		commands.add(new String("SET SESSION group_concat_max_len = 2048"));
-		List<Object> results = CommonDaoService.executeNativeSQLQuery(sql);
-		if (results != null && !results.isEmpty()) {
-			String strResults = (String) results.get(0);
-			if (strResults != null) {
-				String[] ids = strResults.split(",");
-				for (String optId : ids) {
-					if (!optId.matches("^[0-9]+$")) {
-						continue;
-					}
-					for (SurveyOptionInfo surveyOption : listOptions) {
-						if (surveyOption.getId() == Long.parseLong(optId)) {
-							surveyOption.setSelectedCount(surveyOption.getSelectedCount() + 1);
-							break;
-						}
-					}
+		
+		Map<Long, SurveyOptionInfo> mapSurveyOption = new HashMap<>();
+		for(SurveyOptionInfo surveyOption : listOptions) {
+			mapSurveyOption.put(surveyOption.getId(), surveyOption);
+		}
+		
+		List<SurveyResultInfo> listResultSurvey = getSurveyResultBySurveyId(survey_id);
+		
+		if (listResultSurvey == null || listResultSurvey.isEmpty()) {
+			return null;
+		}
+		
+		for(SurveyResultInfo surveyResult : listResultSurvey) {
+			String[] ids = surveyResult.getResult().split(",");
+			int serialNum = ids.length;
+			for (String optId : ids) {
+				if (!optId.matches("^[0-9]+$")) {
+					continue;
 				}
+				SurveyOptionInfo surveyOption = mapSurveyOption.get(Long.parseLong(optId));
+				surveyOption.setSelectedCount(surveyOption.getSelectedCount() + 1);
+				surveyOption.setTotalPoint(surveyOption.getTotalPoint() + serialNum);
+				serialNum--;
 			}
 		}
 		
 		return listOptions;
 	}
-	
 	public static long getCountValidSurveyOption(List<Long> ids) {
 		if (ids == null || ids.isEmpty()) {
 			return 0;
@@ -221,6 +260,20 @@ public class SurveyService {
 			return false;
 		}
 		return true;
+	}
+	
+	public static List<SurveyValidCodeData> getValidCodeList() {
+		TblSurveyValidCodeData infoData = new TblSurveyValidCodeData();
+		List<DaoValue> list = CommonDaoService.select(infoData);
+		if (list == null || list.isEmpty()) {
+			return null;
+		}
+		List<SurveyValidCodeData> ret = new ArrayList<>();
+		for (DaoValue dao : list) {
+			ret.add(new SurveyValidCodeData((TblSurveyValidCodeData) dao));
+		}
+		
+		return ret;
 	}
 	
 	public static SurveyValidCodeData getSurveyValidData(String code) {

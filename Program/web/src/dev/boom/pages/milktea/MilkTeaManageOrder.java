@@ -9,6 +9,7 @@ import java.util.Map;
 import dev.boom.common.CommonDefine;
 import dev.boom.common.CommonMethod;
 import dev.boom.common.enums.EventFlagEnum;
+import dev.boom.common.enums.TicketType;
 import dev.boom.common.milktea.MilkTeaCommonFunc;
 import dev.boom.common.milktea.MilkTeaItemOptionType;
 import dev.boom.common.milktea.MilkTeaOrderFlag;
@@ -31,6 +32,7 @@ import dev.boom.services.OrderInfo;
 import dev.boom.services.OrderService;
 import dev.boom.services.ShopInfo;
 import dev.boom.services.ShopService;
+import dev.boom.services.UserTicketInfo;
 import dev.boom.socket.endpoint.MilkTeaEndPoint;
 
 public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
@@ -80,6 +82,9 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 			menuInfo = MenuService.getMenuById(Long.parseLong(strMenuId));
 		}
 		milkteaUser = MilkTeaUserService.getMilkTeaUserInfoById(getUserInfo().getId());
+		if (milkteaUser != null) {
+			milkteaUser.initRemainTicket();
+		}
 	}
 
 	@Override
@@ -130,7 +135,8 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 		long menuItemId = 0;
 		List<MenuItemOption> listItemOptions = null;
 		int quantity = 1;
-		boolean isTicket = false;
+		TicketType ticketType = TicketType.INVALID;
+		UserTicketInfo userTicketInfo = null;
 		for (String key : mapParams.keySet()) {
 			String[] values = mapParams.get(key);
 			if (key.equals("menu_item_id")) {
@@ -172,20 +178,24 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 				}
 			} else if (key.equals("ticket")) {
 				if (values != null && values.length > 0) {
-					if (values[0].equals("true")) {
-						isTicket = true;
+					if (CommonMethod.isValidNumeric(values[0], 1, Short.MAX_VALUE)) {
+						ticketType = TicketType.valueOf(Short.parseShort(values[0]));
 					}
 				}
 			}
 		}
-		if (isTicket) {
-			byte ticket = (milkteaUser == null ? 0 : milkteaUser.getFreeTicket());
-			if (ticket < quantity) {
-				GameLog.getInstance().error("[MilkTeaManageOrder] Not enough free ticket, ticket:" + ticket + ",quantity:" + quantity);
+		if (ticketType != TicketType.INVALID) {
+			if (milkteaUser == null) {
+				GameLog.getInstance().error("[MilkTeaManageOrder] No milktea user to use ticket:" + ticketType.name());
 				error = true;
 				return;
 			}
-			GameLog.getInstance().info("[MilkTeaManageOrder] Order with free ticket!");
+			userTicketInfo = milkteaUser.getUserTicket(ticketType);
+			if (userTicketInfo.getTicketRemain() < quantity) {
+				GameLog.getInstance().error("[MilkTeaManageOrder] Not enough free ticket, ticket:" + userTicketInfo.getTicketRemain() + ",quantity:" + quantity);
+				error = true;
+				return;
+			}
 		}
 		MenuItem menuItem = MenuService.getMenuItemById(menuItemId);
 		if (menuItem == null) {
@@ -292,10 +302,11 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 		orderInfo.setAttrPrice(plusPrice);
 		orderInfo.setDishCode(menuItem.getName().hashCode());
 		orderInfo.setQuantity(quantity);
-		if (isTicket) {
-			orderInfo.setFlag(MilkTeaOrderFlag.KOC_TICKET.getValidFlag(orderInfo.getFlag()));
-			milkteaUser.setFreeTicket((byte)(milkteaUser.getFreeTicket() - quantity));
-			updates.add(milkteaUser.getTblInfo());
+		orderInfo.setFlag(MilkTeaOrderFlag.KOC_VALID.getValidFlag(orderInfo.getFlag()));
+		if (ticketType != TicketType.INVALID && userTicketInfo != null) {
+			orderInfo.setTicket(ticketType.getType());
+			userTicketInfo.setTicketRemain((short)(userTicketInfo.getTicketRemain() - quantity));
+			updates.add(userTicketInfo.getTblInfo());
 		}
 		updates.add(orderInfo.getTblInfo());
 		if (!CommonDaoService.update(updates)) {
@@ -331,8 +342,8 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 			if (milkteaUser == null) {
 				GameLog.getInstance().error("[MilkTeaManageOrder] Delete free order without MilkteUserInfo!!!");
 			} else {
-				milkteaUser.setFreeTicket((byte)(milkteaUser.getFreeTicket() + orderInfo.getQuantity()));
-				updates.add(milkteaUser.getTblInfo());
+//				milkteaUser.setFreeTicket((byte)(milkteaUser.getFreeTicket() + orderInfo.getQuantity()));
+//				updates.add(milkteaUser.getTblInfo());
 			}
 		}
 		if (!CommonDaoService.update(updates)) {

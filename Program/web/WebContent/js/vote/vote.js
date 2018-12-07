@@ -26,7 +26,7 @@ $j(document).ready(function(e) {
 			} else {
 				let cur = getSelectedOption();
 				if (cur.length >= limit) {
-					alert("Exceed limit!");
+					alert("Choose maximum " + limit + "!");
 					return;
 				}
 				let rsEmptyList = $j('div.result-empty');
@@ -63,14 +63,15 @@ function getSelectedOption() {
 }
 function sendVote() {
 	let limit = parseInt($j('#max_choice').text());
+	let minimum = parseInt($j('#min_choice').text());
 	let cur = getSelectedOption();
-	if (cur.length <= 0) {
+	if (cur.length < minimum) {
 		//$j('#error').text('Please choose at least 1 option!');
-		alert("Please choose at least 1 option!");
+		alert("Please choose at least " + minimum + " option!");
 		return;
 	}
 	if (cur.length > limit) {
-		alert("Exceed limit!");
+		alert("Exceed limit! maximum " + limit);
 		return;
 	}
 	$j('#options').val(cur.join(','));

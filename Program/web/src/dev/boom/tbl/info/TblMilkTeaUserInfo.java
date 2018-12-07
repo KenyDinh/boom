@@ -18,7 +18,6 @@ public class TblMilkTeaUserInfo extends DaoValueInfo {
 	private long total_sugar;
 	private long total_ice;
 	private long total_topping;
-	private byte free_ticket;
 	private long latest_order_id;
 
 	public TblMilkTeaUserInfo() {
@@ -30,7 +29,6 @@ public class TblMilkTeaUserInfo extends DaoValueInfo {
 		this.total_sugar = 0;
 		this.total_ice = 0;
 		this.total_topping = 0;
-		this.free_ticket = 0;
 		this.latest_order_id = 0;
 		Sync();
 	}
@@ -97,14 +95,6 @@ public class TblMilkTeaUserInfo extends DaoValueInfo {
 
 	public void setTotal_topping(long total_topping) {
 		this.total_topping = total_topping;
-	}
-
-	public byte getFree_ticket() {
-		return free_ticket;
-	}
-
-	public void setFree_ticket(byte free_ticket) {
-		this.free_ticket = free_ticket;
 	}
 
 	public long getLatest_order_id() {

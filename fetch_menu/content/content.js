@@ -46,8 +46,12 @@ function retrieveMenuData(menuData) {
 			menu_item.name = menuData.menu_infos[i].dishes[j].name;
 			menu_item.desc = menuData.menu_infos[i].dishes[j].description;
 			let img_index =( menuData.menu_infos[i].dishes[j].photos.length <= 2) ? 0 : 2;
-			menu_item.image_url = menuData.menu_infos[i].dishes[j].photos[img_index];
-			menu_item.price = menuData.menu_infos[i].dishes[j].price.value;
+			menu_item.image_url = menuData.menu_infos[i].dishes[j].photos[img_index].value;
+			if (menuData.menu_infos[i].dishes[j].discount_price) {
+				menu_item.price = menuData.menu_infos[i].dishes[j].discount_price.value;
+			} else {
+				menu_item.price = menuData.menu_infos[i].dishes[j].price.value;
+			}
 			menu_item.type = type;
 
 			// ---------- get option ---------- //
