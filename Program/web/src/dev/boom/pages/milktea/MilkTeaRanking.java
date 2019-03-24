@@ -66,6 +66,14 @@ public class MilkTeaRanking extends MilkTeaMainPage {
 			addModel("url_" + i, "href=\"" + getContextPath() + getContext().getPagePath(this.getClass()) + "?mode=" + i + "\""); 
 		}
 	}
+	
+	@Override
+	public void onPost() {
+		super.onPost();
+		if (getContext().getRequestParameter("king_of_chasua") != null) {
+			
+		}
+	}
 
 	@Override
 	public void onRender() {
@@ -128,7 +136,16 @@ public class MilkTeaRanking extends MilkTeaMainPage {
 				}
 			} else {
 				sb.append("<tr role=\"row\">");
-				sb.append("<td colspan=\"6\" id=\"no-data\">").append("No records found!").append("</td>");
+				sb.append("<td colspan=\"6\" id=\"no-data\">");
+				switch (mode) {
+				case MODE_KING_OF_CHASUA:
+					sb.append("No one is eligible for \"King Of Chasua\"");
+					break;
+				default:
+					sb.append("No records found!");
+					break;
+				}
+				sb.append("</td>");
 				sb.append("</tr>");
 			}
 			sb.append("</tbody>");

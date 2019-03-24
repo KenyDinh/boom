@@ -9,6 +9,7 @@ import java.util.Map;
 import dev.boom.common.CommonDefine;
 import dev.boom.common.CommonMethod;
 import dev.boom.common.enums.EventFlagEnum;
+import dev.boom.common.enums.UserFlagEnum;
 import dev.boom.common.milktea.MilkTeaCommonFunc;
 import dev.boom.common.milktea.MilkTeaItemOptionType;
 import dev.boom.common.milktea.MilkTeaOrderFlag;
@@ -46,6 +47,7 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 
 	private int mode = 0;
 	private boolean error = false;
+	private boolean isAdminAccess = false;
 	private MenuInfo menuInfo = null;
 	private MilkTeaUserInfo milkteaUser = null;
 
@@ -80,6 +82,7 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 			menuInfo = MenuService.getMenuById(Long.parseLong(strMenuId));
 		}
 		milkteaUser = MilkTeaUserService.getMilkTeaUserInfoById(getUserInfo().getId());
+		isAdminAccess = (userInfo!= null && UserFlagEnum.ADMINISTRATOR.isValid(userInfo.getFlag()));
 	}
 
 	@Override
@@ -101,7 +104,12 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 				error = true;
 				return;
 			}
-			if (!menuInfo.isOpening()) {
+			if (menuInfo.isCompleted()) {
+				GameLog.getInstance().error("[MilkTeaManageOrder] Menu is completed, id:" + menuInfo.getId());
+				error = true;
+				return;
+			}
+			if (!menuInfo.isOpening() && !isAdminAccess) {
 				GameLog.getInstance().error("[MilkTeaManageOrder] Menu is no longer open!, id:" + menuInfo.getId());
 				error = true;
 				return;
@@ -292,6 +300,7 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 		orderInfo.setAttrPrice(plusPrice);
 		orderInfo.setDishCode(menuItem.getName().hashCode());
 		orderInfo.setQuantity(quantity);
+		orderInfo.setFlag(MilkTeaOrderFlag.KOC_VALID.getValidFlag(orderInfo.getFlag()));
 		if (isTicket) {
 			orderInfo.setFlag(MilkTeaOrderFlag.KOC_TICKET.getValidFlag(orderInfo.getFlag()));
 			milkteaUser.setFreeTicket((byte)(milkteaUser.getFreeTicket() - quantity));
@@ -319,7 +328,7 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 			error = true;
 			return;
 		}
-		if (orderInfo.getMenuId() != menuInfo.getId() || orderInfo.getUserId() != userInfo.getId()) {
+		if (orderInfo.getMenuId() != menuInfo.getId() || (orderInfo.getUserId() != userInfo.getId() && !isAdminAccess)) {
 			GameLog.getInstance().error("[MilkTeaManageOrder] Order is invalid!");
 			error = true;
 			return;

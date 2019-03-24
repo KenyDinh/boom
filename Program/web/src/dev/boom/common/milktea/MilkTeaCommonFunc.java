@@ -48,6 +48,7 @@ public class MilkTeaCommonFunc {
 		if (menuInfo != null) {
 			dishRatingMap = DishRatingService.getDishRatingInfoMap(menuInfo.getShopId());
 		}
+		boolean isAdminAccess = (userInfo != null && UserFlagEnum.ADMINISTRATOR.isValid(userInfo.getFlag()));
 		StringBuilder sb = new StringBuilder();
 		String type = null;
 		int groupType = 0;
@@ -115,7 +116,7 @@ public class MilkTeaCommonFunc {
 			sb.append("</div>");
 		}
 		// modal
-		if (menuInfo != null && menuInfo.isOpening()) {
+		if (menuInfo != null && (menuInfo.isOpening() || (isAdminAccess && !menuInfo.isCompleted()))) {
 			if (userInfo != null) {
 				MilkTeaUserInfo milkteaUser = MilkTeaUserService.getMilkTeaUserInfoById(userInfo.getId());
 				if (!UserFlagEnum.ACTIVE.isValid(userInfo.getFlag())) {
@@ -137,12 +138,13 @@ public class MilkTeaCommonFunc {
 	
 	@SuppressWarnings("rawtypes")
 	private static String getItemPriceBlock(MenuItem item, MenuInfo menuInfo, UserInfo userInfo, Map messages) {
+		boolean isAdminAccess = (userInfo != null && UserFlagEnum.ADMINISTRATOR.isValid(userInfo.getFlag()));
 		StringBuilder sb = new StringBuilder();
 		sb.append("<div class=\"row\"><div class=\"col-sm-12\" style=\"text-align:right;\">");
 		sb.append(getShowPriceWithUnit(item.getPrice(), "height:100%;", "class=\"d-sm-none d-lg-block\"", messages));
 		sb.append("</div></div>");
 		sb.append("<div class=\"row\"><div class=\"col-sm-12\" style=\"position:relative;height:1.6875rem;\">");
-		if (menuInfo != null && menuInfo.isOpening()) {
+		if (menuInfo != null && (menuInfo.isOpening() || (isAdminAccess && !menuInfo.isCompleted()))) {
 			if (userInfo != null) {
 				if (!UserFlagEnum.ACTIVE.isValid(userInfo.getFlag())) {
 					sb.append("<div data-toggle=\"tooltip\" data-placement=\"bottom\" title=\"Can not order!\" style=\"position:absolute;cursor:pointer;right:1.25rem;bottom:0;\" >");
@@ -405,6 +407,7 @@ public class MilkTeaCommonFunc {
 	@SuppressWarnings("rawtypes")
 	public static String getHtmlListOrder(List<OrderInfo> orderList, MenuInfo menuInfo, UserInfo userInfo, String contextPath, Map messages, boolean isManagement) {
 		long userId = (userInfo != null) ? userInfo.getId() : 0;
+		boolean isAdminAccess = (userInfo != null && UserFlagEnum.ADMINISTRATOR.isValid(userInfo.getFlag()));
 		boolean isMenuOpening = menuInfo.isOpening();
 		boolean hasOrder = (orderList != null && !orderList.isEmpty());
 		StringBuilder sb = new StringBuilder();
@@ -413,7 +416,7 @@ public class MilkTeaCommonFunc {
 		sb.append("<div style=\"text-align:center;\" class=\"text-success\">");
 		sb.append(messages.get("MSG_MILK_TEA_ORDER_LIST"));
 		sb.append("</div>");
-		sb.append(String.format("<table class=\"table %s %s\">",(isManagement ? "" : "table-responsive"), (isMenuOpening ? "table-striped table-hover" : (hasOrder ? "table-striped" : ""))));
+		sb.append(String.format("<table class=\"table %s %s\">",(isManagement ? "" : "table-responsive"), ((isMenuOpening || (isAdminAccess && !menuInfo.isCompleted())) ? "table-striped table-hover" : (hasOrder ? "table-striped" : ""))));
 			sb.append("<thead>");
 				sb.append("<tr>");
 				String thStyle = String.format("border-top:0.0625rem solid %s;border-bottom:0.125rem solid %s;", ORDER_BORDER_COLOR, ORDER_BORDER_COLOR);
@@ -530,7 +533,7 @@ public class MilkTeaCommonFunc {
 							sb.append(String.format("<a href=\"%s\">%s</a>", contextPath + "/manage/milktea/milk_tea_manage_order.htm?order_id=" + order.getId(), messages.get("MSG_GENERAL_EDIT")));
 							sb.append("</td>");
 						}
-					} else if (isMenuOpening && userId == order.getUserId()) { 
+					} else if ((isMenuOpening && userId == order.getUserId()) || (isAdminAccess && !menuInfo.isCompleted())) { 
 						sb.append(String.format("<td style=\"border-top:0.0625rem solid %s;\">", ORDER_BORDER_COLOR));
 							sb.append(String.format("<div id=\"delete-order-%d\" class=\"text-secondary\" data-toggle=\"tooltip\" data-placement=\"bottom\" title=\"Delete This Order\" style=\"cursor:pointer;\" >", order.getId()));
 								sb.append(String.format("<i class=\"fas fa-trash\" data-toggle=\"modal\" data-target=\"#confirm-delete-order-%d\"></i>", order.getId()));
@@ -735,6 +738,7 @@ public class MilkTeaCommonFunc {
 		ShopInfo shopInfo = ShopService.getShopById(menuInfo.getShopId());
 		if (shopInfo != null) {
 			boolean menuOpening = menuInfo.isOpening();
+			boolean isAdminAccess = (userInfo != null && UserFlagEnum.ADMINISTRATOR.isValid(userInfo.getFlag()));
 			sb.append("<div id=\"menu-detail\" class=\"col-12\"><div class=\"row\">");
 			sb.append("<div class=\"col-lg-3 col-md-6\" style=\"\">");
 			String url = shopInfo.getImageUrl();
@@ -746,7 +750,7 @@ public class MilkTeaCommonFunc {
 				sb.append(String.format("<img src=\"%s\" style=\"%s\" />", contextPath + getMenuCommonImage(), "width:100%;max-height:15.625rem;"));
 			}
 			sb.append("</div>");
-			sb.append(String.format("<div class=\"col-lg-%d col-md-6\">", (menuOpening ? 4 : 5)));
+			sb.append(String.format("<div class=\"col-lg-%d col-md-6\">", ((menuOpening || (isAdminAccess && !menuInfo.isCompleted())) ? 4 : 5)));
 				sb.append("<h5 class=\"font-weight-bol text-info\" style=\"margin-top:1rem;\">");
 				sb.append(String.format("<a class=\"text-info\" href=\"%s\" target=\"_blank\">", shopInfo.getUrl()));
 				sb.append(menuInfo.getName()).append("</a></h5>");
