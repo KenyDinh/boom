@@ -24,7 +24,6 @@ public class HibernateSessionFactory {
 			//_/_/_/_/_/_/_/_/_/_/_/_//
 			"TblWorldInfo",
 			"TblUserInfo",
-			"TblUserTicketInfo",
 			//_/_/_/_/_/_/_/_/_/_/_/_//
 			"TblNihongoOwningInfo",
 			"TblNihongoPetInfo",

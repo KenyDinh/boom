@@ -3,14 +3,14 @@ var isSending = false;
 $(document).ready(function() {
 	sendMessToBackground({type:'init_socket'}, function(response) {
 		if (response && response.token) {
-			$('#access_token').val(response.access_token);
+			$('#access_token').val(response.token);
 			$('#access_token').prop('disabled', true);
-			$('#access_token').click(function() {
-				$('#access_token').prop('disabled',false);
-			});
 		}
 	});
 	isSending = false;
+	$('#edit-token').click(function() {
+		$('#access_token').prop('disabled',false);
+	});
 	$('#looking-for-menu').click(function() {
 		let data = {type:'looking_for_menu'};
 		if ($('#access_token').prop('disabled')) {

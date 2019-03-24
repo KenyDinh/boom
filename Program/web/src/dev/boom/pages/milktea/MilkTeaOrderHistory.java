@@ -113,7 +113,7 @@ public class MilkTeaOrderHistory extends MilkTeaMainPage {
 					sb.append("<th>").append("Option").append("</th>");
 					sb.append("<th>").append("Quantity").append("</th>");
 					sb.append("<th>").append("Price").append("</th>");
-					sb.append("<th>").append("Order time").append("</th>");
+					sb.append("<th>").append("Ordering time").append("</th>");
 					if (worldInfo.isActiveEventFlag(EventFlagEnum.ORDER_VOTING)) {
 						sb.append("<th>").append("Rating").append("</th>");
 					}
@@ -175,7 +175,7 @@ public class MilkTeaOrderHistory extends MilkTeaMainPage {
 						sb.append("<th>").append("Option").append("</th>");
 						sb.append("<th>").append("Quantity").append("</th>");
 						sb.append("<th>").append("Price").append("</th>");
-						sb.append("<th>").append("Order time").append("</th>");
+						sb.append("<th>").append("Ordering time").append("</th>");
 						if (worldInfo.isActiveEventFlag(EventFlagEnum.ORDER_VOTING)) {
 							sb.append("<th>").append("Rating").append("</th>");
 						}

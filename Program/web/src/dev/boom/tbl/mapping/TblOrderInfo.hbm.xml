@@ -59,9 +59,6 @@
         <property name="flag" type="java.lang.Integer">
             <column name="flag" not-null="true" />
         </property>
-         <property name="ticket" type="java.lang.Short">
-            <column name="ticket" not-null="true" />
-        </property>
         <property name="created" type="java.util.Date">
             <column name="created" not-null="true" />
         </property>
