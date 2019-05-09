@@ -1,32 +1,12 @@
 var isSending = false;
 
 $(document).ready(function() {
-	sendMessToBackground({type:'init_socket'}, function(response) {
-		if (response && response.token) {
-			$('#access_token').val(response.token);
-			$('#access_token').prop('disabled', true);
-		}
-	});
+	sendMessToBackground({type:'init_socket'});
 	isSending = false;
-	$('#edit-token').click(function() {
-		$('#access_token').prop('disabled',false);
-	});
 	$('#looking-for-menu').click(function() {
-		let data = {type:'looking_for_menu'};
-		if ($('#access_token').prop('disabled')) {
-		} else {
-			data.token = $('#access_token').val();
-		}
-		looking_for_menu(data);
-	});
-	$('#placeOrderTest').click(function() {
-		placeOrderTest();
+		looking_for_menu({type:'looking_for_menu'});
 	});
 });
-
-function placeOrderTest() {
-	sendMessToBackground({type:'place_order_test'});
-}
 
 function looking_for_menu(data) {
 	sendMessToBackground(data);

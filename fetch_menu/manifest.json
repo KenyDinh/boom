@@ -11,7 +11,7 @@
 		"64": "image/icon/favicon_64.png"
 	},
 	"background": {
-		"scripts": ["js/data_object.js","js/pre_image_data.js","background/socket.js","background/log.js","background/common.js","background/background.js"],
+		"scripts": ["js/jquery-3.2.1.min.js","js/data_object.js","js/pre_image_data.js","background/socket.js","background/log.js","background/common.js","background/background.js"],
 		"persistent":true
 	},
 	"browser_action": {
@@ -24,5 +24,7 @@
 			"js": ["js/jquery-3.2.1.min.js","js/data_object.js","content/content.js"]
 		}
 	],
-	"permissions": ["tabs","<all_urls>"]
+	"permissions": [
+		"webRequest","tabs","https://*/"
+	]
 }
