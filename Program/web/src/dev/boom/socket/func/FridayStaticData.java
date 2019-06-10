@@ -1,4 +1,4 @@
-package dev.boom.socket.endpoint;
+package dev.boom.socket.func;
 
 import java.util.ArrayList;
 import java.util.List;

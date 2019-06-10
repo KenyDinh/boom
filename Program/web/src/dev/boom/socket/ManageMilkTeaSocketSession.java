@@ -25,7 +25,7 @@ import dev.boom.services.OrderService;
 import dev.boom.services.ShopInfo;
 import dev.boom.services.ShopService;
 import dev.boom.socket.endpoint.FridayEndpoint;
-import dev.boom.socket.endpoint.FridayStaticData;
+import dev.boom.socket.func.FridayStaticData;
 import net.arnx.jsonic.JSON;
 
 public class ManageMilkTeaSocketSession extends SocketSessionBase {

@@ -96,7 +96,6 @@ public class MilkTeaMenu extends MilkTeaMainPage {
 			sb.append("background-image:");
 				sb.append("url('" + getContextPath() + "/img/milktea/ranking_banner_c.png');");
 			sb.append("background-repeat:repeat-x;");
-			sb.append("background-color:skyblue;");
 		sb.append("\">");
 		sb.append("</div>");
 		sb.append("</div>");

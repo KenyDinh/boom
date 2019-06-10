@@ -38,6 +38,9 @@ public class HibernateSessionFactory {
 			"TblCannonPlayerInfo",
 			"TblCannonBlockInfo",
 			//_/_/_/_/_/_/_/_/_/_/_/_//
+			"TblQuizInfo",
+			"TblQuizPlayerInfo",
+			//_/_/_/_/_/_/_/_/_/_/_/_//
 	};
 
 	private static SessionFactory sessionFactory = buildSessionFactory();
