@@ -76,7 +76,7 @@ public class MilkTeaCommonFunc {
 				String itemPriceBlock = getItemPriceBlock(item, menuInfo, userInfo, messages);
 				sb.append("<div class=\"col-lg-2 col-md-3 col-8\">");
 					String imgSrc = item.getImage_url();
-					if (imgSrc == null || !imgSrc.startsWith("http")) {
+					if (imgSrc == null || !imgSrc.startsWith("http") || imgSrc.contains("no-image")) {
 						imgSrc = contextPath + "/img/milktea/no_image.png?@no_image.png@";
 					}
 					sb.append(String.format("<img src=\"%s\" class=\"dish-image\" title=\"\" alt=\"\" style=\"height:3.125rem;padding-left:0;margin-top:0.3125rem;\"/>", imgSrc));
@@ -330,27 +330,31 @@ public class MilkTeaCommonFunc {
 		sb.append("<label class=\"font-weight-bold\" style=\"font-size:1.125rem;\">").append(messages.get(label)).append("</label>");
 		if (attention.length() > 0) {
 			sb.append("<label class=\"font-italic none-select\" style=\"margin-left:1rem;font-size:0.75rem;color:lightgray;\">").append(attention).append("</label>");
+		} else {
+			sb.append("<label class=\"font-italic none-select\" style=\"margin-left:1rem;font-size:1rem;color:lightgray;\">Not Available</label>");
 		}
 		sb.append("</div></div>");
-		for (int i = 0; i < rowCount; i++) {
-			sb.append("<div class=\"row\">");
-			for (int j = 0; j < 2; j++) {
-				sb.append("<div class=\"col-sm-6\">");
-				if (2 * i + j < listItemOption.length) {
-					MenuItemOption itemOption = listItemOption[2 * i + j];
-					sb.append(String.format("<div class=\"custom-control custom-%s\">", inputType));
-					sb.append(String.format("<input type=\"%s\" class=\"custom-control-input\" id=\"item-option-%s\" name=\"item-option-%s\" value=\"%s\" %s/>", inputType, (item.getId() + "-" + inputName + "-" + (2 * i + j)), inputName, itemOption.getName(), (i + j == 0 && !inputName.equals("topping")) ? "checked" : ""));
-					sb.append(String.format("<label class=\"custom-control-label text-success\" for=\"item-option-%s\">", (item.getId() + "-" + inputName + "-" + (2 * i + j))));
-					sb.append(itemOption.getName());
-					if (itemOption.getPrice() != 0) {
-						sb.append(" + ").append(getShowPriceWithUnit(itemOption.getPrice(), messages));
+		if (attention.length() > 0) {
+			for (int i = 0; i < rowCount; i++) {
+				sb.append("<div class=\"row\">");
+				for (int j = 0; j < 2; j++) {
+					sb.append("<div class=\"col-sm-6\">");
+					if (2 * i + j < listItemOption.length) {
+						MenuItemOption itemOption = listItemOption[2 * i + j];
+						sb.append(String.format("<div class=\"custom-control custom-%s\">", inputType));
+						sb.append(String.format("<input type=\"%s\" class=\"custom-control-input\" id=\"item-option-%s\" name=\"item-option-%s\" value=\"%s\" %s/>", inputType, (item.getId() + "-" + inputName + "-" + (2 * i + j)), inputName, itemOption.getName(), (i + j == 0 && !inputName.equals("topping")) ? "checked" : ""));
+						sb.append(String.format("<label class=\"custom-control-label text-success\" for=\"item-option-%s\">", (item.getId() + "-" + inputName + "-" + (2 * i + j))));
+						sb.append(itemOption.getName());
+						if (itemOption.getPrice() != 0) {
+							sb.append(" + ").append(getShowPriceWithUnit(itemOption.getPrice(), messages));
+						}
+						sb.append("</label>");
+						sb.append("</div>");
 					}
-					sb.append("</label>");
 					sb.append("</div>");
 				}
 				sb.append("</div>");
 			}
-			sb.append("</div>");
 		}
 		sb.append("</div>");
 		return sb.toString();
@@ -689,6 +693,9 @@ public class MilkTeaCommonFunc {
 				MenuInfo menuInfo =  it.next();
 				if (!menuInfo.isAvailableForUser(userInfo)) {
 					it.remove();
+					continue;
+				}
+				if (shopids.contains(menuInfo.getShopId())) {
 					continue;
 				}
 				shopids.add(menuInfo.getShopId());
@@ -1070,6 +1077,9 @@ public class MilkTeaCommonFunc {
 	}
 	
 	public static String getStringOptionAmount(String option) {
+		if (option.matches(".*[0-9]+/[0-9]+.*")) {
+			return option;
+		}
 		if (option.matches("[^0-9]*([0-9]+).*")) {
 			return option.replaceAll("[^0-9]*([0-9]+).*", "$1") + "%";
 		}
@@ -1088,13 +1098,13 @@ public class MilkTeaCommonFunc {
 		if (option.indexOf("không") >= 0 || option.indexOf("hot") >= 0 || option.indexOf("warm") >= 0
 				 || option.indexOf("ấm") >= 0 || option.indexOf("nóng") >= 0 || option.indexOf("ko-đá") >= 0) {
 			return 0;
-		} else if (option.indexOf("rất-ít") >= 0) {
+		} else if (option.indexOf("rất-ít") >= 0 || option.indexOf("1/3") >= 0) {
 			return 30;
-		} else if (option.indexOf("ít") >= 0) {
+		} else if (option.indexOf("ít") >= 0 || option.indexOf("1/2") >= 0) {
 			return 50;
-		} else if (option.indexOf("vừa") >= 0) {
+		} else if (option.indexOf("vừa") >= 0 || option.indexOf("2/3") >= 0) {
 			return 70;
-		} else if (option.indexOf("bình-thường") >= 0 || option.indexOf("normal") >= 0) {
+		} else if (option.indexOf("bình-thường") >= 0 || option.indexOf("normal") >= 0 || option.indexOf("full") >= 0) {
 			return 100;
 		} else if (option.indexOf("rất-nhiều") >= 0) {
 			return 130;

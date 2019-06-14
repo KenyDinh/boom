@@ -3,6 +3,8 @@ package dev.boom.dao.data;
 import java.lang.reflect.Field;
 import java.util.List;
 
+import org.hibernate.Session;
+
 import dev.boom.dao.core.DaoValue;
 import dev.boom.dao.core.IDaoFactory;
 import dev.boom.dao.fix.FixData;
@@ -62,6 +64,48 @@ public class DaoSurveyValidCodeData extends FixData implements IDaoFactory {
 	protected List<Field> getField() {
 		TblSurveyValidCodeData data = new TblSurveyValidCodeData();
 		return data.getFieldList();
+	}
+
+	@Override
+	public List<DaoValue> select(Session session, DaoValue dao) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object insert(Session session, DaoValue dao) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean update(Session session, DaoValue dao) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean delete(Session session, DaoValue dao) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public long count(Session session, DaoValue dao) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public long max(Session session, DaoValue dao) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public long min(Session session, DaoValue dao) {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 	
 }

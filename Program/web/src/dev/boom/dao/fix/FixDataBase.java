@@ -3,6 +3,8 @@
  */
 package dev.boom.dao.fix;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,13 +30,18 @@ public class FixDataBase {
 			if (obj == null) {
 				try {
 					Class<? extends Object> cls = Class.forName("dev.boom.dao.data.Dao" + key);
-					obj = (FixDataBase) cls.newInstance();
+					Constructor<? extends Object> constructer = cls.getConstructor();
+					obj = (FixDataBase) constructer.newInstance();
 				} catch (ClassNotFoundException e) {
 					throw new RuntimeException(key + " is not found");
+				} catch (NoSuchMethodException e) {
+					throw new RuntimeException(key + " no default constructer found.");
 				} catch (IllegalAccessException e) {
 					throw new RuntimeException(key + " cannot be accessed.");
 				} catch (InstantiationException e) {
 					throw new RuntimeException(key + " cannot be instantiated.");
+				} catch (InvocationTargetException e) {
+					throw new RuntimeException(key + " cannot be invoked.");
 				}
 			}
 			return obj;

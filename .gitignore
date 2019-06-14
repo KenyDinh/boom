@@ -9,3 +9,5 @@ fetch_menu/.settings/.jsdtscope
 fetch_menu/.settings/org.eclipse.wst.jsdt.ui.superType.container
 fetch_menu/.settings/org.eclipse.wst.jsdt.ui.superType.name
 Program/web/WebContent/WEB-INF/data/survey_valid_code_data.csv
+Program/web/WebContent/WEB-INF/data/survey_valid_code_data.csv
+plugins/dumbbot.py

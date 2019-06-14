@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<title>KTV Gala Vote</title>
+<title>KTV Event Vote</title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="shortcut icon" href="${context}/img/vote/vote-icon.png">
@@ -13,7 +13,7 @@ $!{headElements}
 	<div id="content" class="container" style="padding-bottom:10rem;">
 	<div class="row">
 		<div class="col-sm-12">
-			<img src="${context}/img/vote/Banner.png" style="max-width:100%;height: auto;display:block; margin:0 auto;"/>
+			<img src="${context}/img/vote/dev_banner.jpg" style="max-width:100%;height: auto;display:block; margin:0 auto;"/>
 			
 			<img src="${context}/img/vote/KTVlogo.png" style="max-width:20%;height: auto;display:block;position:absolute;top:2%;right:3%"/>
 		</div>
@@ -51,7 +51,11 @@ $!{headElements}
 						##<label class="font-weight-bold text-info" style="font-size:1.5rem;">Vote up....</label>
 					#end ##if (${retry})
 						##<br/>
-						<label class="font-weight-bold text-info" style="">You can only vote up max ${survey.getMaxChoice()} candidates</label>
+						#if (${survey.getMaxChoice()} == ${survey.getMinChoice()})
+							<label class="font-weight-bold text-info" style="">You can only vote up exactly for ${survey.getMaxChoice()} candidates</label>
+						#else
+							<label class="font-weight-bold text-info" style="">You can only vote up for ${survey.getMinChoice()} to ${survey.getMaxChoice()} candidates</label>
+						#end
 					</div>
 					</div>
 ##					<label class="text-danger" id="error"></label>
@@ -64,6 +68,7 @@ $!{headElements}
 					</form>
 					<div style="display:none;">
 					<span id="max_choice">${survey.getMaxChoice()}</span>
+					<span id="min_choice">${survey.getMinChoice()}</span>
 					</div>
 				#end ##if (${options})
 			#end ##if (${survey})

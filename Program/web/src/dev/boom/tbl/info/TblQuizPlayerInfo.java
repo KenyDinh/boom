@@ -29,6 +29,7 @@ public class TblQuizPlayerInfo extends DaoValueInfo {
 		this.correct_count = 0;
 		this.correct_point = 0;
 		this.updated = new Date();
+		Sync();
 	}
 
 	public long getUser_id() {

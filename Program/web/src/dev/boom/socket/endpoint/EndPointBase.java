@@ -73,7 +73,6 @@ public abstract class EndPointBase {
 	
 	@OnError
 	public void onError(Throwable t) {
-		t.printStackTrace();
 		GameLog.getInstance().error("[EndPointBase] (onError) error!");
 	}
 	

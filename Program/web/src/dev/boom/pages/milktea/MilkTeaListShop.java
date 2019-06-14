@@ -20,7 +20,7 @@ public class MilkTeaListShop extends MilkTeaMainPage {
 
 	private static final long serialVersionUID = 1L;
 	
-	private static final int MAX_VIEW_PER_PAGE = 25;
+	private static final int MAX_VIEW_PER_PAGE = 100;
 	private int page = 1;
 	private ShopInfo shopInfo = null;
 

@@ -8,10 +8,10 @@ import dev.boom.dao.core.DaoValue;
 import dev.boom.dao.core.IDaoFactory;
 import dev.boom.services.CommonDaoService;
 
-public class DaoDishInfo implements IDaoFactory {
+public class DaoQuizPlayerInfo implements IDaoFactory {
 
 	private final int readKey = 1;
-	
+
 	@Override
 	public List<DaoValue> select(DaoValue dao) {
 		return CommonDaoService._Select(dao);
@@ -86,5 +86,5 @@ public class DaoDishInfo implements IDaoFactory {
 	public long min(Session session, DaoValue dao) {
 		return CommonDaoService._Min(session, dao);
 	}
-
+	
 }
