@@ -24,8 +24,15 @@ import net.arnx.jsonic.JSONException;
 
 public class PatpatFunc {
 
+	private static final String WEB_HOOK_URL = "";
 	private static Log log = LogFactory.getLog(PatpatFunc.class);
 
+	public static void sendPostMessage(PatpatOutgoingMessage message) {
+		
+		
+
+	}
+	
 	public static PatpatOutgoingMessage processMessage(PatpatCommandType command, PatpatIncomingMessage message) {
 		if (command == null || message == null || !message.isValidMessage()) {
 			return null;
@@ -145,7 +152,7 @@ public class PatpatFunc {
 				existingQuizInfo.setStatus(QuizStatus.FINISHED.getStatus());
 				existingQuizInfo.setExpired(new Date());
 			} else if (existingQuizInfo.getHost() == quizPlayerInfo.getUserId() && existingQuizInfo.isPreparing()) {
-				QuizPlayerInfo newHost = QuizPlayerService.getQuizPlayerByQuizId(existingQuizInfo.getId(), " ORDER BY updated ASC");
+				QuizPlayerInfo newHost = QuizPlayerService.getQuizPlayerByQuizId(existingQuizInfo.getId(), "ORDER BY updated ASC");
 				if (newHost == null) {
 					log.warn("[processQuizMessage] Can not find a new host for this quiz!");
 					existingQuizInfo.setStatus(QuizStatus.FINISHED.getStatus());
@@ -270,11 +277,4 @@ public class PatpatFunc {
 		return null;
 	}
 
-	public static void main(String[] args) {
-		String test = "  asd asd \"q82u398 asjd     asdas\"  hdada \"   ahsdja   as das";
-		String[] arr = toArrayOptions(test);
-		for (String s : arr) {
-			System.out.println("\"" + s + "\"");
-		}
-	}
 }

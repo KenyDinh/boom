@@ -18,6 +18,7 @@ CREATE TABLE milktea_user_info (
 	total_sugar INT UNSIGNED NOT NULL,
 	total_ice INT UNSIGNED NOT NULL,
 	total_topping INT UNSIGNED NOT NULL,
+	free_ticket TINYINT NOT NULL,
 	latest_order_id INT UNSIGNED NOT NULL,
 	INDEX(user_id)
 ) ENGINE INNODB;

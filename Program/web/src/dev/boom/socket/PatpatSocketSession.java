@@ -1,8 +1,6 @@
 package dev.boom.socket;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.websocket.Session;
 
@@ -19,12 +17,11 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import dev.boom.socket.func.PatpatCommandType;
 import dev.boom.socket.func.PatpatFunc;
 import dev.boom.socket.func.PatpatIncomingMessage;
-import net.arnx.jsonic.JSON;
 
 public class PatpatSocketSession extends SocketSessionBase {
 	
 	private Log log = LogFactory.getLog(getClass());
-	private static final String WEBHOOK_URL = "http://192.168.89.168:8065/hooks/n7151ntg6tf4xqfgy7khx9qysa";
+	private static final String WEBHOOK_URL = "";
 
 	public PatpatSocketSession(Session session, String endPointName, String token) {
 		super(session, endPointName, token);

@@ -1,6 +1,8 @@
 package dev.boom.services;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -296,7 +298,7 @@ public class CommonDaoService {
 		}
 		return result;
 	}
-	
+
 	@SuppressWarnings("rawtypes")
 	public static List<DaoValue> _Select(DaoValue dao) {
 		List<DaoValue> ret = null;
@@ -335,7 +337,7 @@ public class CommonDaoService {
 		}
 		return ret;
 	}
-	
+
 	public static boolean _Delete(DaoValue dao) {
 		boolean result = false;
 		String deleteClause = dao.getUpdateWhereClause();
@@ -365,7 +367,7 @@ public class CommonDaoService {
 		}
 		return result;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public static long _Count(DaoValue dao) {
 		long count = 0;
@@ -405,7 +407,7 @@ public class CommonDaoService {
 
 		return count;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public static long _Max(DaoValue dao) {
 		long count = 0;
@@ -442,7 +444,7 @@ public class CommonDaoService {
 
 		return count;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public static long _Min(DaoValue dao) {
 		long count = 0;
@@ -479,7 +481,7 @@ public class CommonDaoService {
 
 		return count;
 	}
-	
+
 	public static boolean _Transactions(List<DaoValue> list) {
 		Session session = HibernateSessionFactory.openSession();
 		Transaction tx = null;
@@ -559,11 +561,11 @@ public class CommonDaoService {
 
 		return list;
 	}
-	
+
 	public static List<Object> executeNativeSQLQuery(String sqlQuery) {
 		return executeNativeSQLQuery(sqlQuery, null);
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public static List<Object> executeNativeSQLQuery(String sqlQuery, List<String> commands) {
 		List<Object> list = null;
@@ -591,7 +593,7 @@ public class CommonDaoService {
 
 		return list;
 	}
-	
+
 	@SuppressWarnings({ "unchecked" })
 	public static List<Object> selectWithFields(DaoValue dao) {
 		List<Object> list = null;
@@ -637,7 +639,7 @@ public class CommonDaoService {
 					field.setAccessible(true);
 					Object o1 = field.get(dao.getOriginal());
 					Object o2 = field.get(dao);
-					
+
 					if (o1.equals(o2)) {
 						continue;
 					}
@@ -647,14 +649,14 @@ public class CommonDaoService {
 					}
 				}
 				if (valid) {
-					ret.add(daoValue.getOriginal());
+					ret.add(daoValue);
 				}
 			}
 			return ret;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		return null;
 	}
 	
@@ -673,7 +675,7 @@ public class CommonDaoService {
 		}
 		return ret;
 	}
-	
+
 	public static boolean _Update(Session session, DaoValue dao) {
 		if (session == null || !session.isOpen()) {
 			return false;
@@ -697,7 +699,7 @@ public class CommonDaoService {
 		}
 		return result;
 	}
-	
+
 	@SuppressWarnings("rawtypes")
 	public static List<DaoValue> _Select(Session session, DaoValue dao) {
 		if (session == null || !session.isOpen()) {
@@ -733,7 +735,7 @@ public class CommonDaoService {
 		}
 		return ret;
 	}
-	
+
 	public static boolean _Delete(Session session, DaoValue dao) {
 		if (session == null || !session.isOpen()) {
 			return false;
@@ -756,7 +758,7 @@ public class CommonDaoService {
 		}
 		return result;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public static long _Count(Session session, DaoValue dao) {
 		if (session == null || !session.isOpen()) {
@@ -827,7 +829,7 @@ public class CommonDaoService {
 
 		return count;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public static long _Min(Session session, DaoValue dao) {
 		if (session == null || !session.isOpen()) {
@@ -861,7 +863,7 @@ public class CommonDaoService {
 
 		return count;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public static List<Object> executeQuery(Session session, String sqlQuery) {
 		if (session == null || !session.isOpen()) {
@@ -918,13 +920,18 @@ public class CommonDaoService {
 				String className = "dev.boom.dao.info.Dao" + strName.substring(3);
 				try {
 					Class<? extends Object> clazz = Class.forName(className);
-					daoFactory = (IDaoFactory) clazz.newInstance();
+					Constructor<? extends Object> constructor = clazz.getConstructor();
+					daoFactory = (IDaoFactory) constructor.newInstance();
 					daoData.put(strName, daoFactory);
 				} catch (ClassNotFoundException e) {
 					e.printStackTrace();
-				} catch (InstantiationException e) {
+				} catch (NoSuchMethodException e) {
 					e.printStackTrace();
 				} catch (IllegalAccessException e) {
+					e.printStackTrace();
+				} catch (InstantiationException e) {
+					e.printStackTrace();
+				} catch (InvocationTargetException e) {
 					e.printStackTrace();
 				}
 			}

@@ -15,7 +15,7 @@ public class TblSurveyValidCodeData extends DaoValueData {
 	private String name;
 	private String emp_id;
 	private int flag;
-	
+
 	public TblSurveyValidCodeData() {
 		this.id = 0;
 		this.code = "";
@@ -24,45 +24,25 @@ public class TblSurveyValidCodeData extends DaoValueData {
 		this.flag = 0;
 		Sync();
 	}
-	
+
 	public int getId() {
 		return id;
-	}
-
-	public void setId(int id) {
-		this.id = id;
 	}
 
 	public String getCode() {
 		return code;
 	}
 
-	public void setCode(String code) {
-		this.code = code;
-	}
-
 	public String getName() {
 		return name;
 	}
 
-	public void setName(String name) {
-		this.name = name;
-	}
-	
 	public String getEmp_id() {
 		return emp_id;
 	}
 
-	public void setEmp_id(String emp_id) {
-		this.emp_id = emp_id;
-	}
-
 	public int getFlag() {
 		return flag;
-	}
-
-	public void setFlag(int flag) {
-		this.flag = flag;
 	}
 
 	public List<String> getSubKey() {

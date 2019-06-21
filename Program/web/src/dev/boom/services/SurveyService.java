@@ -254,7 +254,7 @@ public class SurveyService {
 	
 	public static boolean isValidUserCode(String userCode) {
 		TblSurveyValidCodeData infoData = new TblSurveyValidCodeData();
-		infoData.setCode(userCode);
+		infoData.Set("code", userCode);
 		List<DaoValue> list = CommonDaoService.select(infoData);
 		if (list == null || list.isEmpty()) {
 			return false;
@@ -278,7 +278,7 @@ public class SurveyService {
 	
 	public static SurveyValidCodeData getSurveyValidData(String code) {
 		TblSurveyValidCodeData infoData = new TblSurveyValidCodeData();
-		infoData.setCode(code);
+		infoData.Set("code", code);
 		List<DaoValue> list = CommonDaoService.select(infoData);
 		if (list == null || list.size() != 1) {
 			return null;

@@ -129,7 +129,15 @@ public class MilkTeaOrderHistory extends MilkTeaMainPage {
 						sb.append("</td>");
 						sb.append("<td>");
 							if (shopMap.get(order.getShopId()) != null) {
-								sb.append("<div>").append(shopMap.get(order.getShopId()).getName()).append("</div>");
+								sb.append("<div>");
+								if (order.getMenuId() > 0) {
+									sb.append("<a href=\"" + getHostURL() + getContextPath() + "/milktea/milk_tea_menu.htm?id=" + order.getMenuId() + "\" style=\"color:#FFFFFF\" >");
+									sb.append(shopMap.get(order.getShopId()).getName());
+									sb.append("</a>");
+								} else {
+									sb.append(shopMap.get(order.getShopId()).getName());
+								}
+								sb.append("</div>");
 								sb.append("<div class=\"font-italic text-info\" data-toggle=\"tooltip\" data-placement=\"bottom\" style=\"max-width:12.5rem;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;font-size:0.75rem;\" title=\"");
 								sb.append(shopMap.get(order.getShopId()).getAddress()).append("\">").append(shopMap.get(order.getShopId()).getAddress()).append("</div>");
 							} else {

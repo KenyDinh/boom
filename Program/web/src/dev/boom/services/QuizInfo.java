@@ -1,6 +1,7 @@
 package dev.boom.services;
 
 import java.util.Date;
+import java.util.List;
 
 import dev.boom.common.game.QuizStatus;
 import dev.boom.tbl.info.TblQuizInfo;
@@ -159,6 +160,23 @@ public class QuizInfo {
 	
 	public boolean isFinish() {
 		return (getStatus() == QuizStatus.FINISHED.getStatus());
+	}
+	
+	public boolean initQuizData(List<QuizData> data) {
+		if (data == null || data.isEmpty()) {
+			return false;
+		}
+		StringBuilder sb = new StringBuilder();
+		for (QuizData quizData : data) {
+			if (sb.length() > 0) {
+				sb.append(",");
+			}
+			sb.append(quizData.getId());
+		}
+		setQuestionData(sb.toString());
+		setCurrentQuestion((byte)0);
+		setCurrentQuestionData(String.valueOf(data.get(0).getId()));
+		return true;
 	}
 	
 }

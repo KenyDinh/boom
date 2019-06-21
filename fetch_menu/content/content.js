@@ -10,13 +10,13 @@ function looking_for_menu(sendResponse) {
 		menu.set_image_url($('div.detail-restaurant-img > iframe').eq(0).attr('src'));
 	}
 	//console.log(JSON.stringify(menu));
-	let discount_code = $('div.promotions-order').find('.icon-discount-code').eq(0).parent();
+	let discount_code = $('div.promotions-order').find('.icon-discount').eq(0).parent();
 	if (discount_code.length > 0) {
 		let sale = parseInt(discount_code.find('strong').eq(0).text().replace('%', '').trim());
 		menu.set_sale(sale);
 		let code = discount_code.find('strong').eq(1).text().trim();
 		menu.set_code(code);
-		let max_discount = parseInt(discount_code.find('strong').eq(4).text().replace(',',''));
+		let max_discount = parseInt(discount_code.find('strong').eq(3).text().replace(',',''));
 		if (max_discount > 0) {
 			menu.set_max_discount(max_discount);
 		}

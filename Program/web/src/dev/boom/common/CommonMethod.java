@@ -12,6 +12,8 @@ import dev.boom.core.BoomProperties;
 
 public class CommonMethod {
 	
+	private static final Random random = new Random();
+	
 	private CommonMethod() {
 	}
 
@@ -121,11 +123,15 @@ public class CommonMethod {
 		int hour = (int)(timeMili - minute * 60 - second) / 3600;
 		return String.format("%02d:%02d:%02d", hour, minute, second);
 	}
-	
+	/**
+	 * 
+	 * @param min
+	 * @param max
+	 * @return random number from <code>min</code> (inclusive) to <code>max</code> (inclusive)
+	 */
 	public static int randomNumber(int min, int max) {
-		Random rn = new Random();
 		int range = max - min + 1;
-		int randomNum = rn.nextInt(range) + min;
+		int randomNum = random.nextInt(range) + min;
 		return randomNum;
 	}
 	

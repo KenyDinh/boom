@@ -11,12 +11,15 @@ public class UserService {
 	public static UserInfo getUser(String username, String password) {
 		TblUserInfo info = new TblUserInfo();
 		info.setUsername(username);
-		info.setPassword(CommonMethod.getEncryptMD5(password));
 		List<DaoValue> daos = CommonDaoService.select(info);
 		if (daos == null || daos.isEmpty() || daos.size() != 1) {
 			return null;
 		}
-		return new UserInfo((TblUserInfo) daos.get(0));
+		UserInfo ret = new UserInfo((TblUserInfo) daos.get(0));
+		if (ret.getPassword().equals(CommonMethod.getEncryptMD5(password))) {
+			return ret;
+		}
+		return null;
 	}
 	
 	public static UserInfo getUserById(long id) {
