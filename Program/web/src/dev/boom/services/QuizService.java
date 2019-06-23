@@ -1,5 +1,6 @@
 package dev.boom.services;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.hibernate.Session;
@@ -10,6 +11,8 @@ import dev.boom.common.game.QuizStatus;
 import dev.boom.connect.HibernateSessionFactory;
 import dev.boom.core.GameLog;
 import dev.boom.dao.core.DaoValue;
+import dev.boom.socket.func.PatpatFunc;
+import dev.boom.socket.func.PatpatOutgoingMessage;
 import dev.boom.tbl.info.TblQuizInfo;
 
 public class QuizService {
@@ -122,33 +125,59 @@ public class QuizService {
 	}
 	
 	public static boolean startQuiz(QuizInfo quiz) {
-		Session session = HibernateSessionFactory.openSession();
-		Transaction tx = null;
-		try {
-			GameLog.getInstance().info("Transaction Begin!");
-			tx = session.beginTransaction();
-			int ret = session.createQuery(String.format("UPDATE TblQuizInfo SET status = %d WHERE id = %d AND status = %d", QuizStatus.IN_SESSION.getStatus(), quiz.getId(), quiz.getStatus())).executeUpdate();
-			if (ret <= 0) {
-				tx.rollback();
-				return false;
-			}
-			ret = session.createQuery(String.format("UPDATE TblQuizPlayerInfo SET status = %d WHERE quiz_id = %d AND status = %d", QuizPlayerStatus.PLAYING.getStatus(), quiz.getId(), QuizPlayerStatus.INITIALIZED.getStatus())).executeUpdate();
-			if (ret <= 0) {
-				tx.rollback();
-				return false;
-			}
-			tx.commit();
-			GameLog.getInstance().info("Transaction Commit!");
-			return true;
-		} catch (Exception e) {
-			e.printStackTrace();
-			if (tx != null) {
-				tx.rollback();
-			}
-		} finally {
-			HibernateSessionFactory.closeSession(session);
+		List<String> list = new ArrayList<>();
+		if (!quiz.isInSession()) {
+			list.add(String.format("UPDATE quiz_info SET status = %d WHERE id = %d", QuizStatus.IN_SESSION.getStatus(), quiz.getId()));
 		}
-		return false;
+		list.add(String.format("UPDATE quiz_player_info SET status = %d WHERE quiz_id = %d", QuizPlayerStatus.PLAYING.getStatus(), quiz.getId()));
+		return CommonDaoService.executeQueryUpdate(list);
+	}
 	
+	public static boolean endQuiz(QuizInfo quiz) {
+		List<String> list = new ArrayList<>();
+		if (!quiz.isFinish()) {
+			list.add(String.format("UPDATE quiz_info SET status = %d WHERE id = %d", QuizStatus.FINISHED.getStatus(), quiz.getId()));
+		}
+		list.add(String.format("UPDATE quiz_player_info SET status = %d WHERE quiz_id = %d", QuizPlayerStatus.FINISHED.getStatus(), quiz.getId()));
+		return CommonDaoService.executeQueryUpdate(list);
+	}
+	
+	public static boolean nextQuizQuestion(QuizInfo quizInfo) {
+		if (quizInfo == null || quizInfo.isFinish()) {
+			return false;
+		}
+		byte currentQ = quizInfo.getCurrentQuestion();
+		List<Integer> questionList = quizInfo.getQuizDataIds();
+		if (questionList == null || questionList.isEmpty()) {
+			GameLog.getInstance().error("[nextQuizQuestion] no question data found!");
+			return false;
+		}
+		if (currentQ + 1 >= questionList.size()) {
+			GameLog.getInstance().info("[nextQuizQuestion] no more question!");
+			return false;
+		}
+		int nextQId = questionList.get(currentQ + 1);
+		QuizData nextQuestionData = QuizDataService.getQuizDataById(nextQId);
+		if (nextQuestionData == null) {
+			GameLog.getInstance().error("[nextQuizQuestion] next question is null!");
+			return false;
+		}
+		String channel = quizInfo.getName();
+		if (channel != null && !channel.isEmpty()) {
+			PatpatOutgoingMessage message = new PatpatOutgoingMessage();
+			message.setChannel(channel);
+			message.setMessage(nextQuestionData.getLabel());
+//			if (!PatpatFunc.sendMessageToChannel(PatpatFunc.convertOutgoingMessage(message))) {
+//				GameLog.getInstance().error("[nextQuizQuestion] send question error!");
+//				return false;
+//			}
+			System.out.println(PatpatFunc.convertOutgoingMessage(message));
+		}
+		quizInfo.setCurrentQuestion((byte) (currentQ + 1));
+		if (!CommonDaoService.update(quizInfo.getTblQuizInfo())) {
+			GameLog.getInstance().error("[nextQuizQuestion] update quiz failed!");
+			return false;
+		}
+		return true;
 	}
 }

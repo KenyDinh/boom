@@ -1,5 +1,7 @@
 package dev.boom.tbl.data;
 
+import com.sun.org.apache.xalan.internal.xsltc.compiler.sym;
+
 import dev.boom.dao.core.DaoValueData;
 
 public class TblQuizOptionData extends DaoValueData {
@@ -26,6 +28,7 @@ public class TblQuizOptionData extends DaoValueData {
 		this.option_4 = "";
 		this.option_5 = "";
 		this.description = "";
+		Sync();
 	}
 
 	public int getId() {

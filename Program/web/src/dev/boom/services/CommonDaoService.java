@@ -540,6 +540,33 @@ public class CommonDaoService {
 	
 	// ---------------------------------------------------------------------------- //
 	
+	public static boolean executeQueryUpdate(List<String> listQueries) {
+		Session session = HibernateSessionFactory.openSession();
+		Transaction tx = null;
+		try {
+			tx = session.beginTransaction();
+			for (String sqlQuery : listQueries) {
+				GameLog.getInstance().info(sqlQuery);
+				if (session.createQuery(toHQLQuery(sqlQuery)).executeUpdate() <= 0) {
+					GameLog.getInstance().error("[executeQueryUpdate] update failed!");
+					tx.rollback();
+					return false;
+				}
+			}
+			tx.commit();
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+			if (tx != null) {
+				tx.rollback();
+			}
+		} finally {
+			HibernateSessionFactory.closeSession(session);
+		}
+
+		return false;
+	}
+	
 	@SuppressWarnings("unchecked")
 	public static List<Object> executeQuery(String sqlQuery) {
 		List<Object> list = null;
@@ -889,7 +916,7 @@ public class CommonDaoService {
 		Matcher matcher = pattern.matcher(sql);
 		while (matcher.find()) {
 			String tbl_name = matcher.group().replaceAll("(FROM|from|JOIN|join|UPDATE|update)\\s", "");
-			String info_name = "";
+			String info_name = "Tbl";
 			if (tbl_name.indexOf("_") > 0) {
 				for (String word : tbl_name.split("_")) {
 					info_name += CommonMethod.capital(word);

@@ -36,12 +36,12 @@ public class TblQuizInfo extends DaoValueInfo {
 		this.name = "";
 		this.subject = 0;
 		this.level = 0;
-		this.max_player = QuizDefine.DEFAULT_MAX_PLAYER_NUM;
+		this.max_player = QuizDefine.DEFAULT_PLAYER_NUM;
 		this.question_num = QuizDefine.DEFAULT_QUESTION_NUM;
 		this.time_per_question = QuizDefine.DEFAULT_TIME_PER_QUESTION;
 		this.status = 0;
 		this.player_num = 0;
-		this.current_question = 0;
+		this.current_question = -1;
 		this.current_question_data = "";
 		this.question_data = "";
 		this.created = new Date();

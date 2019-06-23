@@ -18,6 +18,7 @@ public class TblQuizData extends DaoValueData {
 		this.level = 0;
 		this.type = 0;
 		this.label = "";
+		Sync();
 	}
 
 	public int getId() {

@@ -1,18 +1,28 @@
 package dev.boom.socket.func;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.HttpClientBuilder;
 
 import dev.boom.common.game.QuizFun;
-import dev.boom.common.game.QuizPlayerStatus;
+import dev.boom.common.game.QuizStaticData;
 import dev.boom.common.game.QuizStatus;
 import dev.boom.common.game.QuizSubject;
+import dev.boom.common.game.QuizTimer;
 import dev.boom.dao.core.DaoValue;
 import dev.boom.services.CommonDaoService;
+import dev.boom.services.QuizDataService;
 import dev.boom.services.QuizInfo;
 import dev.boom.services.QuizPlayerInfo;
 import dev.boom.services.QuizPlayerService;
@@ -24,14 +34,8 @@ import net.arnx.jsonic.JSONException;
 
 public class PatpatFunc {
 
-	private static final String WEB_HOOK_URL = "";
+	private static final String WEBHOOK_URL = "";
 	private static Log log = LogFactory.getLog(PatpatFunc.class);
-
-	public static void sendPostMessage(PatpatOutgoingMessage message) {
-		
-		
-
-	}
 	
 	public static PatpatOutgoingMessage processMessage(PatpatCommandType command, PatpatIncomingMessage message) {
 		if (command == null || message == null || !message.isValidMessage()) {
@@ -72,6 +76,7 @@ public class PatpatFunc {
 		QuizInfo existingQuizInfo = QuizService.getNotFinishQuizByName(channel);
 		QuizPlayerInfo quizPlayerInfo = QuizPlayerService.getQuizPlayerById(userInfo.getId());
 		List<DaoValue> updateList;
+		QuizTimer quizTimer;
 		String msg;
 		switch (command) {
 		case QUIZ_INIT: // [type] [level] [max_player] [number of question] [time per question]
@@ -89,9 +94,32 @@ public class PatpatFunc {
 				log.error("[processQuizMessage] Invalid quiz subject!");
 				return null;
 			}
+//			byte level = (byte)quizSubject.getMinLevel();
+//			
+//			if (arr.length > 1) {
+//				String strLevel = arr[1];
+//				if (!CommonMethod.isValidNumeric(strLevel, quizSubject.getMinLevel(), quizSubject.getMaxLevel())) {
+//					log.error("[processQuizMessage] Invalid " + quizSubject.getName() + "'s level");
+//					return null;
+//				}
+//			}
 			existingQuizInfo = new QuizInfo();
 			existingQuizInfo.setHost(userInfo.getId());
 			existingQuizInfo.setName(channel);
+			existingQuizInfo.setSubject(quizSubject.getSubject());
+			List<Integer> questionIdList = QuizDataService.getRandomQuizDataIdList(existingQuizInfo.getQuestionNum());
+			if (questionIdList == null || questionIdList.isEmpty()) {
+				log.error("[processQuizMessage] No quiz data found!");
+				return null;
+			}
+			StringBuilder quizData = new StringBuilder();
+			for (Integer id : questionIdList) {
+				if (quizData.length() > 0) {
+					quizData.append(",");
+				}
+				quizData.append(id.intValue());
+			}
+			existingQuizInfo.setQuestionData(quizData.toString());
 			if (quizPlayerInfo == null) {
 				quizPlayerInfo = new QuizPlayerInfo();
 				quizPlayerInfo.setUserId(userInfo.getId());
@@ -134,7 +162,7 @@ public class PatpatFunc {
 			break;
 		case QUIZ_QUIT:
 			if (existingQuizInfo == null) {
-				log.error("[processQuizMessage] No quiz to join!");
+				log.error("[processQuizMessage] No quiz to quit!");
 				return null;
 			}
 			if (quizPlayerInfo == null) {
@@ -146,13 +174,13 @@ public class PatpatFunc {
 				log.error("[processQuizMessage] " + msg);
 				return null;
 			}
-			quizPlayerInfo.setStatus(QuizPlayerStatus.FINISHED.getStatus());
+			quizPlayerInfo.setQuizId(0);
 			existingQuizInfo.setPlayerNum((byte)(existingQuizInfo.getPlayerNum() - 1));
 			if (existingQuizInfo.getPlayerNum() <= 0) {
 				existingQuizInfo.setStatus(QuizStatus.FINISHED.getStatus());
 				existingQuizInfo.setExpired(new Date());
 			} else if (existingQuizInfo.getHost() == quizPlayerInfo.getUserId() && existingQuizInfo.isPreparing()) {
-				QuizPlayerInfo newHost = QuizPlayerService.getQuizPlayerByQuizId(existingQuizInfo.getId(), "ORDER BY updated ASC");
+				QuizPlayerInfo newHost = QuizPlayerService.getQuizPlayerByQuizId(existingQuizInfo.getId(), "AND user_id <> " + quizPlayerInfo.getUserId() + " ORDER BY updated ASC");
 				if (newHost == null) {
 					log.warn("[processQuizMessage] Can not find a new host for this quiz!");
 					existingQuizInfo.setStatus(QuizStatus.FINISHED.getStatus());
@@ -175,7 +203,7 @@ public class PatpatFunc {
 			break;
 		case QUIZ_START:
 			if (existingQuizInfo == null) {
-				log.error("[processQuizMessage] No quiz to join!");
+				log.error("[processQuizMessage] No quiz to start!");
 				return null;
 			}
 			if (quizPlayerInfo == null) {
@@ -194,10 +222,41 @@ public class PatpatFunc {
 				log.error("[processQuizMessage] Start quiz fail!");
 				return null;
 			}
-			// TODO
+			existingQuizInfo.getTblQuizInfo().Sync();
+			// TODO send message
+			if (!QuizService.nextQuizQuestion(existingQuizInfo)) {
+				log.error("[processQuizMessage] Start quiz fail!");
+				return null;
+			}
+			quizTimer = new QuizTimer(existingQuizInfo.getId(), existingQuizInfo.getTimePerQuestion());
+			QuizStaticData.addQuizTimer(quizTimer);
+			quizTimer.start();
 			break;
 		case QUIZ_STOP:
-			log.error("[processQuizMessage] Not available!");
+			if (existingQuizInfo == null) {
+				log.error("[processQuizMessage] No quiz to stop!");
+				return null;
+			}
+			if (quizPlayerInfo == null) {
+				log.error("[processQuizMessage] User is not in any quiz!");
+				return null;
+			}
+			if (!existingQuizInfo.isInSession()) {
+				log.error("[processQuizMessage] This quiz is not in session!");
+				return null;
+			}
+			if (existingQuizInfo.getHost() != quizPlayerInfo.getUserId()) {
+				log.error("[processQuizMessage] Don't have permission to stop!");
+				return null;
+			}
+			if (!QuizService.endQuiz(existingQuizInfo)) {
+				log.error("[processQuizMessage] end quiz failed!, id: " + existingQuizInfo.getId());
+				return null;
+			}
+			quizTimer = QuizStaticData.getQuizTimerByQuizId(existingQuizInfo.getId());
+			if (quizTimer != null) {
+				quizTimer.cancel();
+			}
 			return null;
 		case QUIZ_INFO:
 			log.error("[processQuizMessage] Not available!");
@@ -276,5 +335,25 @@ public class PatpatFunc {
 		}
 		return null;
 	}
-
+	
+	public static boolean sendMessageToChannel(String jsonData) {
+		if (jsonData == null || jsonData.isEmpty()) {
+			return false;
+		}
+		HttpClient client = HttpClientBuilder.create().build();
+		HttpPost post = new HttpPost(WEBHOOK_URL);
+		StringEntity entity = new StringEntity(jsonData, ContentType.APPLICATION_JSON);
+		post.setEntity(entity);
+		try {
+			HttpResponse response = client.execute(post);
+			System.out.println("Response Code : " + response.getStatusLine().getStatusCode());
+			return true;
+		} catch (ClientProtocolException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+	
 }

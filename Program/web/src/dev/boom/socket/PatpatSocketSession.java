@@ -1,18 +1,9 @@
 package dev.boom.socket;
 
-import java.io.IOException;
-
 import javax.websocket.Session;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.HttpClientBuilder;
 
 import dev.boom.socket.func.PatpatCommandType;
 import dev.boom.socket.func.PatpatFunc;
@@ -21,7 +12,6 @@ import dev.boom.socket.func.PatpatIncomingMessage;
 public class PatpatSocketSession extends SocketSessionBase {
 	
 	private Log log = LogFactory.getLog(getClass());
-	private static final String WEBHOOK_URL = "";
 
 	public PatpatSocketSession(Session session, String endPointName, String token) {
 		super(session, endPointName, token);
@@ -38,18 +28,4 @@ public class PatpatSocketSession extends SocketSessionBase {
 		command.processCommand(incomingMessage);
 	}
 
-	private void sendPostMessage(String jsondata) {
-		HttpClient client = HttpClientBuilder.create().build();
-		HttpPost post = new HttpPost(WEBHOOK_URL);
-		StringEntity entity = new StringEntity(jsondata, ContentType.APPLICATION_JSON);
-		post.setEntity(entity);
-		try {
-			HttpResponse response = client.execute(post);
-			System.out.println("Response Code : " + response.getStatusLine().getStatusCode());
-		} catch (ClientProtocolException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
 }

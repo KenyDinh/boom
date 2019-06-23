@@ -12,6 +12,8 @@ public class FixDataLoader {
 			// { ClassName, DataFileName[.csv] }
 			{ "SurveyValidCodeData", "survey_valid_code_data" },
 			{ "CannonBlockData", "cannon_block_data" },
+			{ "QuizData", "quiz_data" },
+			{ "QuizOptionData", "quiz_option_data" },
 
 	};
 

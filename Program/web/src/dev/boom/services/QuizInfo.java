@@ -1,9 +1,12 @@
 package dev.boom.services;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import dev.boom.common.CommonMethod;
 import dev.boom.common.game.QuizStatus;
+import dev.boom.core.GameLog;
 import dev.boom.tbl.info.TblQuizInfo;
 
 public class QuizInfo {
@@ -162,6 +165,10 @@ public class QuizInfo {
 		return (getStatus() == QuizStatus.FINISHED.getStatus());
 	}
 	
+	public boolean isExpired(Date now) {
+		return getExpired().before(now);
+	}
+	
 	public boolean initQuizData(List<QuizData> data) {
 		if (data == null || data.isEmpty()) {
 			return false;
@@ -177,6 +184,24 @@ public class QuizInfo {
 		setCurrentQuestion((byte)0);
 		setCurrentQuestionData(String.valueOf(data.get(0).getId()));
 		return true;
+	}
+	
+	public List<Integer> getQuizDataIds() {
+		String qList = getQuestionData();
+		if (qList == null || qList.isEmpty()) {
+			return null;
+		}
+		List<Integer> ret = new ArrayList<>();
+		String[] arr = qList.split(",");
+		if (arr.length != getQuestionNum()) {
+			GameLog.getInstance().warn("[getQuizDataIds] number of question not match!");
+		}
+		for (String strId : arr) {
+			if (CommonMethod.isValidNumeric(strId, 1, Integer.MAX_VALUE)) {
+				ret.add(Integer.valueOf(strId));
+			}
+		}
+		return ret;
 	}
 	
 }
