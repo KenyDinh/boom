@@ -11,21 +11,21 @@ public class TblSurveyOptionInfo extends DaoValueInfo {
 	private static final String PRIMARY_KEY = "id";
 
 	private long id;
-	private long survey_id;
-	private String name;
+	private long question_id;
+	private byte type;
+	private String title;
 	private String content;
-	private String image;
-	private String video;
-	private String ref_url;
+	private String description;
+	private int param;
 
 	public TblSurveyOptionInfo() {
 		this.id = 0;
-		this.survey_id = 0;
-		this.name = "";
+		this.question_id = 0;
+		this.type = 0;
+		this.title = "";
 		this.content = "";
-		this.image = "";
-		this.video = "";
-		this.ref_url = "";
+		this.description = "";
+		this.param = 0;
 		Sync();
 	}
 
@@ -37,20 +37,28 @@ public class TblSurveyOptionInfo extends DaoValueInfo {
 		this.id = id;
 	}
 
-	public long getSurvey_id() {
-		return survey_id;
+	public long getQuestion_id() {
+		return question_id;
 	}
 
-	public void setSurvey_id(long survey_id) {
-		this.survey_id = survey_id;
+	public void setQuestion_id(long question_id) {
+		this.question_id = question_id;
 	}
 
-	public String getName() {
-		return name;
+	public byte getType() {
+		return type;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public void setType(byte type) {
+		this.type = type;
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
 	}
 
 	public String getContent() {
@@ -61,28 +69,20 @@ public class TblSurveyOptionInfo extends DaoValueInfo {
 		this.content = content;
 	}
 
-	public String getImage() {
-		return image;
+	public String getDescription() {
+		return description;
 	}
 
-	public void setImage(String image) {
-		this.image = image;
+	public void setDescription(String description) {
+		this.description = description;
 	}
 
-	public String getVideo() {
-		return video;
+	public int getParam() {
+		return param;
 	}
 
-	public void setVideo(String video) {
-		this.video = video;
-	}
-
-	public String getRef_url() {
-		return ref_url;
-	}
-
-	public void setRef_url(String ref_url) {
-		this.ref_url = ref_url;
+	public void setParam(int param) {
+		this.param = param;
 	}
 
 	public List<String> getSubKey() {

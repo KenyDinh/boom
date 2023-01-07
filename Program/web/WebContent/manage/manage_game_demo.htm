@@ -1,0 +1,39 @@
+#if(${gameDemo})
+	${gameDemo}
+#else
+	<form action="${context}/manage/manage_game_demo.htm?update=1" method="post" style="margin: auto; width: 95%;">
+		<input type="hidden" id="demo-id" name="demo-id" required value="${demoId}">
+		#if(${demoContent})
+			<input type="hidden" id="demo-content" name="demo-content" required value='${demoContent}'>
+		#else
+			<input type="hidden" id="demo-content" name="demo-content" required value=''>
+		#end
+		<div class="form-group">
+			<label for="demo-time"><b>Demo time:
+			#if(${demoTime})
+				<input type="text" id="demo-time" name="demo-time" value="${demoTime}"></b></label>
+			#else
+				<input type="text" id="demo-time" name="demo-time" value=""></b></label>
+			#end
+			<div class="row" style="min-width: 768px; border: 1px solid #FFF;">
+				<div class="col-md-8"">
+					<div id="demotimepicker"></div>
+				</div>
+			</div>
+		</div>
+		<div class="form-group">
+			<label for="demo-location"><b>Demo location:</b></label>
+			#if(${demoLocation})
+				<input type="input" class="form-control" id="demo-location" name="demo-location" placeholder="Meeting Room 1" value="${demoLocation}" required>
+			#else
+				<input type="input" class="form-control" id="demo-location" name="demo-location" placeholder="Meeting Room 1" value="" required>
+			#end
+		</div>
+		<div class="form-group">
+			<label for="demo-location"><b>Number of games:</b></label>
+			<input type="number" class="form-control" id="demo-number" required>
+			<div id="demo-games-container"></div>
+		</div>
+		<input type="submit" class="btn btn-primary">
+	</form>
+#end

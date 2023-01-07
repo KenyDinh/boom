@@ -22,9 +22,11 @@ public class TblQuizInfo extends DaoValueInfo {
 	private byte question_num;
 	private long time_per_question;
 	private byte status;
+	private byte retry;
+	private byte flag;
 	private byte player_num;
 	private byte current_question;
-	private String current_question_data;
+	private String current_option_order;
 	private String question_data;
 	private Date created;
 	private Date expired;
@@ -40,9 +42,11 @@ public class TblQuizInfo extends DaoValueInfo {
 		this.question_num = QuizDefine.DEFAULT_QUESTION_NUM;
 		this.time_per_question = QuizDefine.DEFAULT_TIME_PER_QUESTION;
 		this.status = 0;
+		this.retry = 1;
+		this.flag = 0;
 		this.player_num = 0;
-		this.current_question = -1;
-		this.current_question_data = "";
+		this.current_question = 0;
+		this.current_option_order = "";
 		this.question_data = "";
 		this.created = new Date();
 		this.expired = new Date(this.created.getTime() + 15 * CommonDefine.MILLION_SECOND_MINUTE);
@@ -106,6 +110,22 @@ public class TblQuizInfo extends DaoValueInfo {
 		this.status = status;
 	}
 
+	public byte getRetry() {
+		return retry;
+	}
+
+	public void setRetry(byte retry) {
+		this.retry = retry;
+	}
+
+	public byte getFlag() {
+		return flag;
+	}
+
+	public void setFlag(byte flag) {
+		this.flag = flag;
+	}
+
 	public byte getMax_player() {
 		return max_player;
 	}
@@ -138,12 +158,12 @@ public class TblQuizInfo extends DaoValueInfo {
 		this.subject = subject;
 	}
 
-	public String getCurrent_question_data() {
-		return current_question_data;
+	public String getCurrent_option_order() {
+		return current_option_order;
 	}
 
-	public void setCurrent_question_data(String current_question_data) {
-		this.current_question_data = current_question_data;
+	public void setCurrent_option_order(String current_option_order) {
+		this.current_option_order = current_option_order;
 	}
 
 	public String getQuestion_data() {

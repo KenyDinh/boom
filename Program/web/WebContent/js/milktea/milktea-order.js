@@ -59,14 +59,14 @@ function placeTheOrder(menuId,itemId) {
 //				console.log("count sugar: " + countSugar);
 //				return;
 //			}
-			if (countTopping > listTopping.length || countTopping > MAX_TOPPING) {
-				console.log("count topping: " + countTopping);
-				return;
-			}
-			if (countAddition > listAddition.length || countAddition > MAX_TOPPING) {
-				console.log("count addition: " + countAddition);
-				return;
-			}
+//			if (countTopping > listTopping.length || countTopping > MAX_TOPPING) {
+//				console.log("count topping: " + countTopping);
+//				return;
+//			}
+//			if (countAddition > listAddition.length || countAddition > MAX_TOPPING) {
+//				console.log("count addition: " + countAddition);
+//				return;
+//			}
 		}
 		$j.ajax({
 			url:CONTEXT + "/milktea/milk_tea_manage_order.htm",

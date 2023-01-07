@@ -1,25 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<title>KTV Gala Vote</title>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="shortcut icon" href="${context}/img/vote/vote-icon.png">
-##<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/solid.css" integrity="sha384-Rw5qeepMFvJVEZdSo1nDQD5B6wX0m7c5Z/pLNvjkB14W6Yki1hKbSEQaX9ffUbWe" crossorigin="anonymous">
-##<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/fontawesome.css" integrity="sha384-GVa9GOgVQgOk+TNYXu7S/InPTfSDTtBalSgkgqQ7sCik56N9ztlkoTr2f/T44oKV" crossorigin="anonymous">
-$!{headElements}
-<style type="text/css">
-img.survey-opt-image{
-	width:200px;
-	height:125px;
-	object-fit:cover;
-	border-radius: 0.25rem;
-    border: 1px solid #1e78d2;
-}
-</style>
-</head>
-<body style="background-color:#333;">
-	<div id="content" class="container" style="padding-bottom:10rem;">
+
+<div style="padding-bottom:10rem;">
 	<div class="row">
 ##		<form action="${context}/vote/manage_vote.htm" method="post" enctype="multipart/form-data">
 ##		<input type="file" accept="image/*" name="file"/>
@@ -30,160 +10,167 @@ img.survey-opt-image{
 				<div class="col-lg-10 col-12">
 					#if (${result})
 						<div style="margin-top:2rem;margin-bottom:0.5rem;">
-						#if (${resultCount} > 0)
-							<label class="text-success font-weight-bold">There are <span id="result-count">${resultCount}</span> people had up-voted</label>
-						#else ###if (${resultCount} == 0)
-							<label class="text-success font-weight-bold">No one had up-voted</label>
-						#end ###if (${resultCount} == 0)
 						</div>
-						<div style="margin-bottom:1rem;">
-							<button class="btn btn-info" id="collapse-detail">More Detail</button>
-							<button class="btn btn-success" id="refresh-detail" style="display:none;margin-left:1rem;">Refresh</button>
-						</div>
-						<div id="detail-wrapper" class="collapse" style="margin-bottom:1rem;">
-						</div>
-						$!{result}
-						<div style="margin-top:1rem;">
-							<button class="btn btn-info" id="collapse-chart">Show Chart</button>
-							<a href="${context}/vote/manage_vote.htm?survey_id=${survey.getId()}" style="margin-left:1rem;">
-								<button class="btn btn-secondary">&nbsp;Back&nbsp;</button>
-							</a>
-						</div>
-						<div id="chart-wrapper" class="collapse">
-							<canvas id="vote_chart"></canvas>
-							<span id="survey_id" style="display:none;">${survey.getId()}</span>
-						</div>
+						${result}
+##						<div style="margin-top:1rem;">
+##							<button class="btn btn-info" id="collapse-chart">Show Chart</button>
+##							<a href="${context}/vote/manage_vote.htm?survey_id=${survey.getId()}" style="margin-left:1rem;">
+##								<button class="btn btn-secondary">&nbsp;Back&nbsp;</button>
+##							</a>
+##						</div>
+##						<div id="chart-wrapper" class="collapse">
+##							<canvas id="vote_chart"></canvas>
+##							<span id="survey_id" style="display:none;">${survey.getId()}</span>
+##						</div>
 					#elseif (${detail})
 						$!{detail}
 					#elseif (${survey_form})
 						<div class="row">
 						<div class="col-lg-6 col-12">
 						<label class="text-info font-weight-bold" style="font-size:1.2rem;margin-top:2rem;">${title}</label>
-						<form action="${context}/vote/manage_vote.htm" method="post">
-							<input type="hidden" name="survey_id" value="${survey_form.getId()}" />
-							<input type="hidden" name="mode" value="${mode}" />
-							<div class="form-group">
-								<label for="name">Name:</label>
-								<input class="form-control" type="text" name="name" id="name" value="${survey_form.getName()}" />
-							</div>
-							<div class="form-group">
-								<label>Status:</label>
-								#if (${survey_form.isActive()})
-									<div class="custom-control custom-radio">
-										<input class="custom-control-input" type="radio" id="stt-on" name="status" value="1" checked/>
-										<label for="stt-on" class="custom-control-label">On</label>
-									</div>
-									<div class="custom-control custom-radio">
-										<input class="custom-control-input" type="radio" id="stt-off" name="status" value="0" />
-										<label for="stt-off" class="custom-control-label">Off</label>
-									</div>
-								#else
-									<div class="custom-control custom-radio">
-										<input class="custom-control-input" type="radio" id="stt-on" name="status" value="1" />
-										<label for="stt-on" class="custom-control-label">On</label>
-									</div>
-									<div class="custom-control custom-radio">
-										<input class="custom-control-input" type="radio" id="stt-off" name="status" value="0" checked/>
-										<label for="stt-off" class="custom-control-label">Off</label>
-									</div>
-								#end
-							</div>
-##							<div class="form-group">
-##								<label for="description">Description:</label>
-##								<textarea class="form-control" name="description" id="description">${survey_form.getDescription()}</textarea>
-##							</div>
-							<div class="form-group">
-								<label for="min_choice">Min Choice:</label>
-								<input type="number" class="form-control" name="min_choice" id="min_choice" min="1" value="${survey_form.getMinChoice()}" />
-							</div>
-							<div class="form-group">
-								<label for="max_choice">Max Choice:</label>
-								<input type="number" class="form-control" name="max_choice" id="max_choice" min="1" value="${survey_form.getMaxChoice()}" />
-							</div>
-							<div class="form-group">
-								<label for="max_retry">Max Retry:</label>
-								<input type="number" class="form-control" name="max_retry" id="max_retry" min="0" value="${survey_form.getMaxRetry()}" />
-							</div>
-							<div class="form-group">
-								<label for="expired">Expire Date:</label>
-								<input type="text" class="form-control" name="expired" id="expired" value="${survey_form.getFormatStringExpireDate()}" />
-							</div>
-							<div class="row justify-content-md-center">
-								<div class="col-md-4 col-6">
-									<button type="submit" class="btn btn-info" style="width:100%;margin-top:1rem;">Submit</button>
-								</div>
-								<div class="col-md-4 col-6">
-									<button id="delete-button" type="button" class="btn btn-danger" style="width:100%;margin-top:1rem;">Clear</button>
-								</div>
-								<div class="col-md-4 col-12">
-									#if (${survey})
-										<a href="${context}/vote/manage_vote.htm?survey_id=${survey.getId()}">
-									#else ##if (${back_param})
-										<a href="${context}/vote/manage_vote.htm">
-									#end ##if (${back_param})
+				<form action="${context}/vote/manage_vote.htm" method="post" enctype="multipart/form-data">
+					<input type="hidden" name="survey_id" value="${survey_form.getId()}" />
+					<input type="hidden" name="mode" value="${mode}" />
+					<div class="form-group">
+						<label for="name">Name:</label>
+						<input class="form-control" type="text" name="name" id="name" value="${survey_form.getName()}" />
+					</div>
+					<div class="form-group">
+						<label for="status">Status:</label>
+						${status_list}
+					</div>
+					<div class="form-group">
+						<label for="desc">Description:</label>
+						<textarea class="form-control" name="desc" id="desc">${survey_form.getDescription()}</textarea>
+					</div>
+					<div class="form-group">
+						<label for="expired">Expire Date:</label>
+						<input type="text" class="form-control" name="expired" id="expired" value="${expired}" />
+					</div>
+					<div class="form-group">
+						<label for="expired">User Access List:</label>
+						<input type="file" class="form-control" name="access_list" id="access_list"/>
+					</div>
+					<div class="row justify-content-md-center">
+						<div class="col-md-4 col-6">
+							<button type="submit" class="btn btn-info" style="width:100%;margin-top:1rem;">Submit</button>
+						</div>
+						<div class="col-md-4 col-6">
+						#if (${survey})
+							<button id="delete-button" type="button" class="btn btn-danger" style="width:100%;margin-top:1rem;">Clear Results</button>
+						#end
+						</div>
+						<div class="col-md-4 col-12">
+							#if (${survey})
+								<a href="${context}/vote/manage_vote.htm?survey_id=${survey.getId()}">
+								<button type="button" class="btn btn-secondary" style="width:100%;margin-top:1rem;">Cancel</button>
+								</a>
+							#else ##if (${back_param})
+								<a href="${context}/vote/manage_vote.htm">
 									<button type="button" class="btn btn-secondary" style="width:100%;margin-top:1rem;">Cancel</button>
-									</a>
-								</div>
-							</div>
-						</form>
+								</a>
+							#end ##if (${back_param})
 						</div>
-						</div>
-					#elseif (${option_form})
-						<div class="row">
-						<div class="col-lg-6 col-12">
-						<label class="text-info font-weight-bold" style="font-size:1.2rem;margin-top:2rem;">${title}</label>
-						<form action="${context}/vote/manage_vote.htm" method="post" enctype="multipart/form-data">
-							<input type="hidden" name="option_id" value="${option_form.getId()}" />
-							<input type="hidden" name="mode" value="${mode}" />
-							<div class="form-group">
-								<label for="name">Name:</label>
-								<input class="form-control" type="text" name="name" id="name" value="${option_form.getName()}" />
-							</div>
-							<div class="form-group">
-								<label for="survey_id">Option for:</label>
-								${survey_list}
-							</div>
-							<div class="form-group">
-								<label for="content">Content:</label>
-								<textarea class="form-control" name="content" id="content">${option_form.getContent()}</textarea>
-							</div>
-							<div class="form-group">
-								<label for="image">Image:</label>
-								<input type="file" class="form-control" name="image" id="image"/>
-							</div>
-							<div class="row justify-content-md-center">
-								<div class="col-md-4 col-6">
-									<button type="submit" class="btn btn-info" style="width:100%;margin-top:1rem;">Submit</button>
-								</div>
-								<div class="col-md-4 col-6">
-									<button id="delete-button" type="button" class="btn btn-danger" style="width:100%;margin-top:1rem;">Delete</button>
-								</div>
-								<div class="col-md-4 col-12">
-									#if (${survey})
-										<a href="${context}/vote/manage_vote.htm?survey_id=${survey.getId()}">
-									#else ##if (${back_param})
-										<a href="${context}/vote/manage_vote.htm">
-									#end ##if (${back_param})
-									<button type="button" class="btn btn-secondary" style="width:100%;margin-top:1rem;">Cancel</button>
-									</a>
-								</div>
-							</div>
-						</form>
-						</div>
-						</div>
-					#end ##if (${show_result})
+					</div>
+				</form>
 				</div>
-			</div>
+				</div>
+			#elseif (${question_form})
+				<div class="row">
+				<div class="col-lg-6 col-12">
+				<label class="text-info font-weight-bold" style="font-size:1.2rem;margin-top:2rem;">${title}</label>
+				<form action="${context}/vote/manage_vote.htm" method="post">
+					<input type="hidden" name="survey_id" value="${survey.getId()}" />
+					<input type="hidden" name="question_id" value="${question_form.getId()}" />
+					<input type="hidden" name="mode" value="${mode}" />
+					<div class="form-group">
+						<label for="type">Type:</label>
+						${type_list}
+					</div>
+					<div class="form-group">
+						<label for="name">Title:</label>
+						<input class="form-control" type="text" name="title" id="title" value="${question_form.getTitle()}" />
+					</div>
+					<div class="form-group">
+						<label for="content">Content:</label>
+						<textarea class="form-control" name="content" id="content">${question_form.getContent()}</textarea>
+					</div>
+					<div class="form-group">
+						<label class="label-dynamic" for="max" data-label='["Max option:","Max length:","Next question if Yes"]'>Max option:</label>
+						<input type="number" class="form-control" name="max" id="max" value="${question_form.getMax_choice()}" />
+					</div>
+					<div class="form-group">
+						<label class="label-dynamic" for="min" data-label='["Min option:","Min length:","Next question if No"]'>Min option:</label>
+						<input type="number" class="form-control" name="min" id="min" value="${question_form.getMin_choice()}" />
+					</div>
+					<div class="form-group">
+						<label for="optional">Optional:</label>
+						#if (${question_form.isRequired()})
+							<input type="checkbox" name="optional" id="optional"/>
+						#else
+							<input type="checkbox" name="optional" id="optional" checked/>
+						#end
+					</div>
+					<div class="row justify-content-md-center">
+						<div class="col-md-4 col-6">
+							<button type="submit" class="btn btn-info" style="width:100%;margin-top:1rem;">Submit</button>
+						</div>
+						<div class="col-md-4 col-6">
+							<button id="delete-button" type="button" class="btn btn-danger" style="width:100%;margin-top:1rem;">Delete</button>
+						</div>
+						<div class="col-md-4 col-12">
+							<a href="${context}/vote/manage_vote.htm?survey_id=${survey.getId()}">
+								<button type="button" class="btn btn-secondary" style="width:100%;margin-top:1rem;">Cancel</button>
+							</a>
+						</div>
+					</div>
+				</form>
+				</div>
+				</div>
+			#elseif (${option_form})
+				<div class="row">
+				<div class="col-lg-6 col-12">
+				<label class="text-info font-weight-bold" style="font-size:1.2rem;margin-top:2rem;">${title}</label>
+				<form action="${context}/vote/manage_vote.htm" method="post" enctype="multipart/form-data">
+					<input type="hidden" name="survey_id" value="${survey.getId()}" />
+					<input type="hidden" name="question_id" value="${question_id}" />
+					<input type="hidden" name="option_id" value="${option_form.getId()}" />
+					<input type="hidden" name="mode" value="${mode}" />
+					<div class="form-group">
+						<label for="type">Type:</label>
+						${type_list}
+					</div>
+					<div class="form-group">
+						<label for="title">Title:</label>
+						<input class="form-control" type="text" name="title" id="title" value="${option_form.getTitle()}" />
+					</div>
+					<div class="form-group">
+						<label for="content">Content:</label>
+						<input type="file" class="form-control" name="content" id="content"/>
+					</div>
+					<div class="form-group">
+						<label for="desc">Description:</label>
+						<input class="form-control" type="text" name="desc" id="desc" value="${option_form.getDescription()}" />
+					</div>
+					<div class="row justify-content-md-center">
+						<div class="col-md-4 col-6">
+							<button type="submit" class="btn btn-info" style="width:100%;margin-top:1rem;">Submit</button>
+						</div>
+						<div class="col-md-4 col-6">
+							<button id="delete-button" type="button" class="btn btn-danger" style="width:100%;margin-top:1rem;">Delete</button>
+						</div>
+						<div class="col-md-4 col-12">
+							<a href="${context}/vote/manage_vote.htm?survey_id=${survey.getId()}">
+								<button type="button" class="btn btn-secondary" style="width:100%;margin-top:1rem;">Cancel</button>
+							</a>
+						</div>
+					</div>
+				</form>
+				</div>
+				</div>
+			#end ##if (${show_result})
 		</div>
 	</div>
 	</div>
-	$!{jsElements}
-	<script type="text/javascript">
-	//<![CDATA[
-	#if(${context})
-		var CONTEXT = '${context}';
-	#end
-	//]]>
-	</script>
-</body>
-</html>
+</div>
+</div>

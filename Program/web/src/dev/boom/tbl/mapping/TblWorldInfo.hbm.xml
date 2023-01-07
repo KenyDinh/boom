@@ -11,5 +11,8 @@
         <property name="event_flag" type="java.lang.Integer">
             <column name="event_flag" not-null="true" />
         </property>
+        <property name="game_flag" type="java.lang.Integer">
+            <column name="game_flag" not-null="true" />
+        </property>
     </class>
 </hibernate-mapping>

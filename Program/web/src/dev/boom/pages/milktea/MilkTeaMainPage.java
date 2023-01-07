@@ -1,5 +1,6 @@
 package dev.boom.pages.milktea;
 
+import dev.boom.common.enums.FridayThemes;
 import dev.boom.common.enums.MainNavBarEnum;
 import dev.boom.common.milktea.MilkTeaTabEnum;
 import dev.boom.pages.BoomMainPage;
@@ -10,6 +11,7 @@ public class MilkTeaMainPage extends BoomMainPage {
 	
 	
 	public MilkTeaMainPage() {
+		initTheme(FridayThemes.RAINBOW);
 	}
 	
 	@Override
@@ -41,7 +43,7 @@ public class MilkTeaMainPage extends BoomMainPage {
 		sb.append("<div class=\"row\" id=\"milktea-banner\">");
 		sb.append("<div class=\"col-lg-12\">");
 		
-		sb.append("<ul class=\"nav nav-tabs bg-light\" role=\"tablist\">");
+		sb.append("<ul class=\"nav nav-tabs\" role=\"tablist\">");
 		for (MilkTeaTabEnum tab : MilkTeaTabEnum.values()) {
 			if (tab.isLoginRequire() && getUserInfo() == null) {
 				continue;

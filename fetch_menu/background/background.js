@@ -1,7 +1,7 @@
 var access_token = '';
 //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_//
 function looking_for_menu() {
-	CommonMethod.getTabId('www.now.vn', function (tab) {
+	CommonMethod.getTabId('shopeefood.vn', function (tab) {
 		if (CommonMethod.isValidData(tab)) {
 			Log.info("Start looking for the menu.");
 			chrome.tabs.sendMessage(tab.id, {type:'looking_for_menu'}, retreiveMenu);
@@ -9,6 +9,23 @@ function looking_for_menu() {
 			Log.error("Can not find the tab's id");
 		}
 	});
+}
+//_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_//
+function openMenu() {
+	if (CommonMethod.isValidData(milktea_menu)) {
+		if (CommonMethod.isValidData(milktea_menu.url) && milktea_menu.status == 0) {
+			chrome.tabs.query({active:true,currentWindow:true},function(tabs){
+				chrome.tabs.update(tabs[0].id,{url:milktea_menu.url,active:true});
+				milktea_menu.status = 1;
+			});
+		}
+	}
+}
+function feedbackMenu(result) {
+	if (CommonMethod.isValidData(milktea_menu)) {
+		milktea_menu = null;
+		sendMessageSocket("OPEN_FEED_BACK:" + result);
+	}
 }
 //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_//
 function feedbackOrder(result) {
@@ -48,42 +65,29 @@ function sendOrderItem() {
 		headers: get_headers(),
 		success: function(ret) {
 			if (ret.result == 'success') {
+				menu_order.store_id = ret.reply.restaurant_id;
+				menu_order.delivery_type = 1;
+				menu_order.shipping_type = 1;
+				menu_order.delivery_time = get_format_now();
+				delete menu_order.cart_id;
+				console.log(JSON.stringify(menu_order));
+				///order
 				$.ajax({
-					url: 'https://gappapi.deliverynow.vn/api/cart/draft',
+					url: 'https://gappapi.deliverynow.vn/api/v5/cart/add_items',
 					type: 'post',
-					data: '{"delivery_id":' + ret.reply.delivery_id + '}',
+					data: JSON.stringify(menu_order),
 					dataType: 'json',
 					contentType: 'application/json; charset=utf-8',
-					headers: get_headers(),
+					headers: get_headers_2(),
 					success: function(ret) {
-						if (ret.result == 'success') {
-							menu_order.cart_id = ret.reply.id;
-							console.log(JSON.stringify(menu_order));
-							///order
-							$.ajax({
-								url: 'https://gappapi.deliverynow.vn/api/cart/set_items',
-								type: 'post',
-								data: JSON.stringify(menu_order),
-								dataType: 'json',
-								contentType: 'application/json; charset=utf-8',
-								headers: get_headers(),
-								success: function(ret) {
-									let _result;
-									if (ret.result == 'success') {
-										_result = 'success';
-									} else {
-										_result = 'error';
-									}
-									milktea_order = null;
-									feedbackOrder(_result);
-								},
-								error: function() {
-									console.log('error request!');
-								}
-							});
+						let _result;
+						if (ret.msg == 'success') {
+							_result = 'success';
 						} else {
-							console.log(JSON.stringify(ret));
+							_result = 'error';
 						}
+						milktea_order = null;
+						feedbackOrder(_result);
 					},
 					error: function() {
 						console.log('error request!');
@@ -105,13 +109,35 @@ function get_headers() {
 		'x-foody-client-id': '',
 		'x-foody-client-language': 'vi',
 		'x-foody-client-type': 1,
-		'x-foody-client-version': '3.0.0'
+		'x-foody-client-version': '3.0.0',
 	};
+}
+function get_headers_2() {
+	return {
+		'x-foody-access-token': access_token,
+		'x-foody-api-version': 1,
+		'x-foody-app-type': 1004,
+		'x-foody-client-id': '25328836-4543-4657-93a1-cda1a866e4cd',
+		'x-foody-client-language': 'vi',
+		'x-foody-client-type': 4,
+		'x-foody-client-version': '5.28.1',
+	};
+}
+function get_format_now() {
+	const dateNow = new Date();
+	let date = dateNow.getDate();
+	let month = dateNow.getMonth() + 1;
+	let year = dateNow.getFullYear();
+	let hour = dateNow.getHours();
+	let minute = dateNow.getMinutes();
+	let second = dateNow.getSeconds();
+	return '' + year + '-' + (month < 10 ? '0' + month : month) + '-' + (date < 10 ? '0' + date : date) + ' ' + (hour < 10 ? '0' + hour : hour) + ':' + (minute < 10 ? '0' + minute : minute) + ':' + (second < 10 ? '0' + second : second);
 }
 //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_//
 function retreiveMenu(response) {
 	if (typeof response === 'undefined') {
 		console.log('no response for menu data!');
+		feedbackMenu('No response for menu data!');
 		return;
 	}
 	let menu = response.menu_data;
@@ -135,6 +161,7 @@ function retreiveMenu(response) {
 							let menuDatas = ret.reply;
 							if (menuDatas == null) {
 								console.log('No menu data!');
+								feedbackMenu('No menu found!');
 								return;
 							}
 							console.log(ret.reply);
@@ -211,8 +238,16 @@ function addMenuItem(menu, menuData) {
 						menu_item.limit_select.sugar_opt_id = option_type_id;
 					} else if (attribute_name.toLocaleLowerCase().includes('topping') || attribute_name.toLocaleLowerCase().includes('toping')) {
 						menu_item.add_topping(option);
-						menu_item.limit_select.topping_min = min_select;
-						menu_item.limit_select.topping_max = max_select;
+						if (menu_item.limit_select.topping_min) {
+							menu_item.limit_select.topping_min = Math.max(menu_item.limit_select.topping_min,min_select);
+						} else {
+							menu_item.limit_select.topping_min = min_select;
+						} 
+						if (menu_item.limit_select.topping_max) {
+							menu_item.limit_select.topping_max = Math.max(menu_item.limit_select.topping_max,max_select);
+						} else {
+							menu_item.limit_select.topping_max = max_select;
+						}
 						menu_item.limit_select.topping_opt_id = option_type_id;
 					} else if (attribute_name.toLocaleLowerCase().includes('size')) {
 						menu_item.add_size(option);
@@ -236,6 +271,7 @@ function addMenuItem(menu, menuData) {
 	}
 	if (menu.list_item.length == 0) {
 		console.log("No menu item found!");
+		feedbackMenu('No menu item found!');
 		return;
 	}
 	//adjust menu image
@@ -252,11 +288,11 @@ function addMenuItem(menu, menuData) {
 //	Log.info(JSON.stringify(menu));
 }
 //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_//
-function reInitSocket() {
+function connectSocket(api_key) {
 	if (isSocketOpened()) {
-		return;
+		invalidSocket();
 	}
-	initWebSocket();
+	return initWebSocket(api_key);
 }
 //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_//
 //page update
@@ -275,10 +311,20 @@ chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
 	if (request) {
 		switch (request.type) {
 		case 'looking_for_menu':
-			looking_for_menu();
+			if (isSocketOpened()) {
+				looking_for_menu();
+			}
 			break;
-		case 'init_socket':
-			reInitSocket();
+		case 'connect_socket':
+			const _ret = connectSocket(request.api_key);
+			sendResponse({ret: _ret});
+			break;
+		case 'socket_info':
+			let _stt = isSocketOpened() ? "Open" : "Closed";
+			sendResponse({
+				key: API_KEY,
+				stt: _stt
+			});
 			break;
 		default:
 			break;
@@ -305,4 +351,26 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
 		urls : [ 'https://gappapi.deliverynow.vn/*' ]
 	},
 	["requestHeaders"]
+);
+//_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_//
+chrome.webRequest.onCompleted.addListener(
+	function(details) {
+		if (details.url.includes('get_detail')) {
+			if (CommonMethod.isValidData(milktea_menu)) {
+				if (milktea_menu.status == 1) {
+					milktea_menu.status = 2;
+					setTimeout(looking_for_menu, 1000);
+				}
+			}
+		}
+		return 
+		{
+			responseHeaders : details.responseHeaders
+		};
+	},
+	// filters
+	{
+		urls : [ 'https://gappapi.deliverynow.vn/*' ]
+	},
+	["responseHeaders"]
 );

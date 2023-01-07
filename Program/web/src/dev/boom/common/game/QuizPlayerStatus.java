@@ -3,7 +3,7 @@ package dev.boom.common.game;
 public enum QuizPlayerStatus {
 	INITIALIZED((byte)0),
 	PLAYING((byte)1),
-	FINISHED((byte)2),
+	FINISHED((byte)9),
 	;
 	
 	private byte status;

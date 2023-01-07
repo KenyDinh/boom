@@ -17,7 +17,7 @@ public abstract class SocketSessionBase {
 
 	private long userId;
 
-	private String name;
+	private String username;
 
 	private String token;
 
@@ -26,6 +26,8 @@ public abstract class SocketSessionBase {
 	private Date start_date;
 	
 	private Date expire_date;
+	
+	private Object refSocketId;
 	
 	public SocketSessionBase(Session session, String endPointName, String token) {
 		this.session = session;
@@ -47,12 +49,12 @@ public abstract class SocketSessionBase {
 		this.userId = userId;
 	}
 
-	public String getName() {
-		return name;
+	public String getUsername() {
+		return username;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public void setUsername(String username) {
+		this.username = username;
 	}
 
 	public String getToken() {
@@ -90,6 +92,14 @@ public abstract class SocketSessionBase {
 	public boolean isExpired() {
 		// not available now
 		return false;
+	}
+
+	public Object getRefSocketId() {
+		return refSocketId;
+	}
+
+	public void setRefSocketId(Object refSocketId) {
+		this.refSocketId = refSocketId;
 	}
 
 	public void sendMessage(String message) {

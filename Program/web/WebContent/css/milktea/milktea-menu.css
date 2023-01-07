@@ -26,3 +26,39 @@
 .follow-item:hover {
 	text-decoration:underline;
 }
+.overlay {
+	position:relative;
+	z-index: 2;
+}
+.overlay .text-info,span[data-toggle="modal"]{
+	position:relative;
+	z-index: 2;
+}
+.overlay a{
+	position:relative;
+	z-index: 2;
+}
+#milktea-banner,.pagination,.form-control {
+	position:relative;
+	z-index: 2;
+}
+span.item-comment-all {
+	margin-left: 0.25rem;
+	cursor: pointer;
+}
+.block-comment {
+	font-family:'Lucida Console', Monaco, monospace;
+}
+.block-comment .para-content {
+	font-size: 13px;
+	border-radius: 1rem;
+	border: 1px solid #9E9E9E;
+	padding: 0 1rem;
+	background-color: #4c4c4cc4;
+	color: var(--info);
+}
+.block-comment .para-content p {
+	margin: 0.25rem 0;
+	text-align: justify;
+	min-height: 1rem;
+}

@@ -11,6 +11,23 @@ import dev.boom.tbl.info.TblDishRatingInfo;
 
 public class DishRatingService {
 
+	public static List<DishRatingInfo> getDishRatingList(String option) {
+		TblDishRatingInfo info = new TblDishRatingInfo();
+		info.setSelectOption("WHERE id > 0");
+		if (option != null && option.length() > 0) {
+			info.setSelectOption(option);
+		}
+		List<DaoValue> list = CommonDaoService.select(info);
+		if (list == null || list.size() == 0) {
+			return null;
+		}
+		List<DishRatingInfo> ret = new ArrayList<>();
+		for (DaoValue dao : list) {
+			ret.add(new DishRatingInfo((TblDishRatingInfo) dao));
+		}
+		
+		return ret;
+	}
 	
 	public static DishRatingInfo getDishRatingInfoById(long id) {
 		TblDishRatingInfo info = new TblDishRatingInfo();

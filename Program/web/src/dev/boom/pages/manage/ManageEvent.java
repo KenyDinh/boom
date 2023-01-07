@@ -4,9 +4,11 @@ import java.util.Map;
 
 import dev.boom.common.CommonMethod;
 import dev.boom.common.enums.EventFlagEnum;
+import dev.boom.common.enums.ManageLogType;
 import dev.boom.core.GameLog;
 import dev.boom.pages.Home;
 import dev.boom.services.CommonDaoService;
+import dev.boom.services.ManageLogService;
 
 public class ManageEvent extends ManagePageBase{
 
@@ -17,7 +19,16 @@ public class ManageEvent extends ManagePageBase{
 
 	@Override
 	public boolean onSecurityCheck() {
-		return super.onSecurityCheck();
+		if (!super.onSecurityCheck()) {
+			setRedirect(Home.class);
+			return false;
+		}
+		if (userInfo == null || !userInfo.isAdministrator()) {
+			setRedirect(Home.class);
+			return false;
+		}
+		
+		return true;
 	}
 	
 	@Override
@@ -51,6 +62,7 @@ public class ManageEvent extends ManagePageBase{
 			GameLog.getInstance().error("[ManageEvent] update failed!");
 			return;
 		}
+		ManageLogService.createManageLog(userInfo, ManageLogType.EVENT_UPDATE, "");
 	}
 	
 	@Override
@@ -60,7 +72,7 @@ public class ManageEvent extends ManagePageBase{
 		sb.append("<form id=\"form-event\" method=\"post\" action=\"" + getPagePath(this.getClass()) + "\">");
 		sb.append("<div class=\"form-group\">");
 		sb.append("<div class=\"row\"><div class=\"col-lg-6\">");
-		sb.append("<label class=\"font-weight-bold text-info\" style=\"font-size:1.125rem;\">").append("Events List").append("</label>");
+		sb.append("<label class=\"font-weight-bold text-info\" style=\"font-size:1.125rem;\">").append("Event List").append("</label>");
 		sb.append("</div></div>");
 		for (EventFlagEnum event : EventFlagEnum.values()) {
 			if (event == EventFlagEnum.INVALID || !event.isAvailable()) {
@@ -83,4 +95,9 @@ public class ManageEvent extends ManagePageBase{
 		addBackLink(Home.class, "MSG_MAIN_NAV_BAR_HOME");
 	}
 
+	@Override
+	protected int getTabIndex() {
+		return 1;
+	}
+	
 }

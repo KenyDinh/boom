@@ -1,0 +1,33 @@
+.dv-action {
+	min-width: 6rem;
+}
+.autocomplete-suggestions {
+	border-radius: 0.25rem;
+}
+.device-image {
+	width: 64px;
+	height: 64px;
+	object-fit: cover;
+	margin-right:0.5rem;
+}
+.file-field input[type=file] {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    opacity: 0;
+    overflow: visible;
+    box-sizing: border-box;
+}
+.file-field span {
+    cursor: pointer;
+    box-sizing: border-box;
+    padding: .5rem .5rem;
+    font-size: .8rem;
+    color: #fff;
+}

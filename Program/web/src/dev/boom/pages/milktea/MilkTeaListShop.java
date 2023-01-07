@@ -3,24 +3,21 @@ package dev.boom.pages.milktea;
 import java.util.List;
 
 import org.apache.click.element.CssImport;
-import org.apache.click.element.JsImport;
 
 import dev.boom.common.CommonMethod;
 import dev.boom.common.milktea.MilkTeaCommonFunc;
+import dev.boom.common.milktea.MilkTeaSocketMessage;
 import dev.boom.common.milktea.MilkTeaTabEnum;
 import dev.boom.milktea.object.MenuItem;
-import dev.boom.services.CommonDaoService;
 import dev.boom.services.MenuInfo;
 import dev.boom.services.MenuService;
 import dev.boom.services.ShopInfo;
 import dev.boom.services.ShopService;
-import dev.boom.tbl.info.TblShopInfo;
 
 public class MilkTeaListShop extends MilkTeaMainPage {
 
 	private static final long serialVersionUID = 1L;
 	
-	private static final int MAX_VIEW_PER_PAGE = 100;
 	private int page = 1;
 	private ShopInfo shopInfo = null;
 
@@ -33,7 +30,7 @@ public class MilkTeaListShop extends MilkTeaMainPage {
 		if (headElements == null) {
 			headElements = super.getHeadElements();
 		}
-		headElements.add(new JsImport("/js/milktea/milktea-menu.js"));
+		headElements.add(importJs("/js/milktea/milktea-menu.js"));
 		headElements.add(new CssImport("/css/milktea/milktea-menu.css"));
 		return headElements;
 	}
@@ -59,6 +56,7 @@ public class MilkTeaListShop extends MilkTeaMainPage {
 		} else {
 			initListShop();
 		}
+		addModel("msg_id", MilkTeaSocketMessage.UPDATE_SHOP_LIST.getId());
 	}
 	
 	private void initShopDetail() {
@@ -79,20 +77,7 @@ public class MilkTeaListShop extends MilkTeaMainPage {
 	}
 	
 	private void initListShop() {
-		int total = (int)CommonDaoService.count(new TblShopInfo());
-		if (total <= 0) {
-			return;
-		}
-		int maxPage = (total - 1) / MAX_VIEW_PER_PAGE + 1;
-		if (page > maxPage) {
-			page = maxPage;
-		}
-		int offset = (page - 1) * MAX_VIEW_PER_PAGE;
-		List<ShopInfo> shopList = ShopService.getShopList("ORDER BY opening_count DESC", MAX_VIEW_PER_PAGE, offset);
-		if (shopList == null || shopList.isEmpty()) {
-			return;
-		}
-		addModel("shop_list", MilkTeaCommonFunc.getHtmlListShop(shopList, getHostURL() + getContextPath(), getMessages()));
+		addModel("shop_list", MilkTeaCommonFunc.getHtmlListShop(getHostURL() + getContextPath(), getMessages(), page));
 	}
 	
 	@Override

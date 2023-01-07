@@ -11,14 +11,14 @@ public enum PatpatCommandType {
 	QUIZ_START("quiz start", PatpatCommandCategory.QUIZ),
 	QUIZ_STOP("quiz stop", PatpatCommandCategory.QUIZ),
 	QUIZ_INFO("quiz info", PatpatCommandCategory.QUIZ),
-	QUIZ_CHECK("are you okay to start the quiz?", PatpatCommandCategory.QUIZ),
+	QUIZ_HELP("quiz", PatpatCommandCategory.QUIZ),
 	QUIZ_OPTION_A("A", PatpatCommandCategory.QUIZ),
 	QUIZ_OPTION_B("B", PatpatCommandCategory.QUIZ),
 	QUIZ_OPTION_C("C", PatpatCommandCategory.QUIZ),
 	QUIZ_OPTION_D("D", PatpatCommandCategory.QUIZ),
 	QUIZ_OPTION_E("E", PatpatCommandCategory.QUIZ),
 	QUIZ_OPTION_F("F", PatpatCommandCategory.QUIZ),
-	
+	DEVICE("device", PatpatCommandCategory.DEVICE),
 	;
 	
 	private String command;
@@ -31,6 +31,10 @@ public enum PatpatCommandType {
 	
 	public String getCommand() {
 		return command;
+	}
+	
+	public String getFullCommand() {
+		return "patpat " + getCommand();
 	}
 	
 	public PatpatCommandCategory getCategory() {
@@ -56,20 +60,24 @@ public enum PatpatCommandType {
 			return PatpatCommandType.INVALID;
 		}
 		PatpatCommandType[] values = PatpatCommandType.values();
-		String strCommand;
-		int cmdLength;
+		String[] _input = text.split(" ");
+		String[] _command;
 		for (PatpatCommandType type : values) {
-			strCommand = type.getCommand();
-			cmdLength = strCommand.length();
-			if (cmdLength == 0) {
+			_command = type.getCommand().split(" ");
+			if (_input.length < _command.length) {
 				continue;
 			}
-			if (cmdLength > text.length()) {
+			boolean match = true;
+			for (int i = 0; i < _command.length ; i++) {
+				if (!_input[i].equalsIgnoreCase(_command[i])) {
+					match = false;
+					break;
+				}
+			}
+			if (!match) {
 				continue;
 			}
-			if (text.substring(0, cmdLength).equalsIgnoreCase(strCommand)) {
-				return type;
-			}
+			return type;
 		}
 		return PatpatCommandType.INVALID;
 	}

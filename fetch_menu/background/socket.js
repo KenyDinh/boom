@@ -1,13 +1,15 @@
-var socket = null;
+let socket = null;
+let API_KEY = '';
 //initWebSocket();
 
-function initWebSocket() {
+function initWebSocket(api_key) {
 	if ("WebSocket" in window) {
 		try {
-			socket = new WebSocket("ws://localhost/friday/socket/friday?friday_token=6b41bb111698cadeba27964ce0691834");
+			API_KEY = api_key;
+			socket = new WebSocket("ws://10.24.36.13/friday/socket/friday?friday_token=" + API_KEY);
 		} catch (e) {
 			console.log(JSON.stringify(e));
-			return;
+			return false;
 		}
 		if (socket != null) {
 			socket.onopen = function(event) {
@@ -28,20 +30,25 @@ function initWebSocket() {
 				console.log('onerror::' + JSON.stringify(event, null, 4));
 			}
 			
-			window.beforeunload = function() {
+			window.onbeforeunload = function() {
 				socket.close();
 			}
+			return true;
 		}
 	} else {
 		alert("Your Browser is NOT support WebSocket!");
 	}
-	
+	return false;
 }
 function isSocketOpened() {
-	if (socket != null && socket.readyState == WebSocket.OPEN) {
+	if (socket !== undefined && socket !== null && socket.readyState == WebSocket.OPEN) {
 		return true;
 	}
 	return false;
+}
+function invalidSocket() {
+	socket.close();
+	socket = null;
 }
 function onMessageSocket(msg) {
 	var msg_object = JSON.parse(msg);
@@ -52,16 +59,28 @@ function onMessageSocket(msg) {
 	case "milktea_order":
 		doMilkteaOrder(msg_object);
 		break;
+	case "open_menu":
+		doOpenMenu(msg_object.url);
+		break;
 	default:
 		break;
 	}
 }
 function sendMessageSocket(msg) {
-	if (socket != null && socket.readyState == WebSocket.OPEN) {
+	if (socket !== undefined && socket != null && socket.readyState == WebSocket.OPEN) {
 		socket.send(msg);
 	} else {
 		console.log("Socket is not open yet!");
 	}
+}
+//=============================================//
+var milktea_menu;
+function doOpenMenu(url) {
+	milktea_menu = {
+		"url" : url,
+		"status" : 0
+	};
+	openMenu(milktea_menu);
 }
 
 //=============================================//
@@ -69,9 +88,10 @@ var milktea_order;
 function doMilkteaOrder(obj) {
 	switch (obj.step) {
 	case "prepare":
-		milktea_order = {};
-		milktea_order.url = obj.url;
-		milktea_order.menu_order = obj.menu_order;
+		milktea_order = {
+			"url" : obj.url,
+			"menu_order" : obj.menu_order
+		};
 		placeOrder();
 		break;
 	default:
@@ -111,6 +131,27 @@ function loopSendingMessage() {
 		index = 0;
 		list_object = [];
 		sendMessageSocket('finish_update');
+		feedbackMenu('complete');
 	}
 }
 //=============================================//
+var timeout = null;
+var fail_count = 0;
+function keepConnecting() {
+	if (timeout) {
+		clearTimeout(timeout);
+	}
+	if (fail_count > 30) {
+		console.error("Socket connection fail more than 5 times, stop retrying!");
+		return;
+	}
+	if (!isSocketOpened()) {
+		fail_count++;
+		initWebSocket();
+	} else {
+		fail_count = 0;
+	}
+	timeout = setTimeout(() => {
+		keepConnecting();
+	}, 30000);
+}

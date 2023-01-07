@@ -1,0 +1,19 @@
+#if(${search})
+<div class="col-lg-3 col-md-6 col-sm-12" style="margin-top:1rem;">
+${search}
+<hr>
+</div>
+<div><a href="${context}/manage/manage_user.htm?update=1"><button class="btn btn-info">Create new</button></a></div>
+#end ##if(${search})
+#if(${table})
+<div style="margin-top:1rem;">
+${table}
+</div>
+#end ##if(${table})
+#if(${form})
+<div class="col-lg-3 col-md-6 col-sm-12" style="margin-top:1rem;">
+${form}
+</div>
+<br>
+<div><a href="${context}/manage/manage_user.htm">Back</a></div>
+#end ##if(${form})

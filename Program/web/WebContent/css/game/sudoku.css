@@ -1,0 +1,56 @@
+:root {
+	--tbb: #bdbdbfde;
+	--tbn: #999999ab;
+	--chv: #47506cba;
+}
+body {
+	height: 100vh;
+	overflow-y: hidden;
+}
+div#warpper-table {
+	width: 540px;
+	margin: 0 auto;
+	padding-top: 5rem;
+}
+table#sudoku {
+	width: 540px;
+	height: 540px;
+	border-collapse:collapse;
+	border-top: 2px solid var(--tbb);
+	border-left: 2px solid var(--tbb);
+}
+table#sudoku td:not(.init-num){
+	width: 60px;
+	height: 60px;
+	text-align: center;
+	color: #3498db;
+}
+table#sudoku td.init-num{
+	width: 60px;
+	height: 60px;
+	text-align: center;
+	color: #E0E0E0;
+	font-weight: 700;
+}
+table#sudoku td.cell-relate{
+	background-color: var(--chv);
+}
+table#sudoku td.invalid {
+	color: #e74c3c;
+	text-decoration: line-through;
+}
+input.n-input {
+	width: 40px;
+    text-align: center;
+	background-color: transparent;
+    outline: none;
+    color: white;
+    border: none;
+}
+label.init-num-lb {
+	-moz-user-select: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+	-o-user-select: none;
+	user-select: none;    
+}

@@ -3,6 +3,8 @@ package dev.boom.socket.endpoint;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
+import org.apache.commons.lang.RandomStringUtils;
+
 import dev.boom.socket.PatpatSocketSession;
 import dev.boom.socket.SocketSessionBase;
 
@@ -31,7 +33,7 @@ public class PatpatEndPoint extends EndPointBase {
 //			if (!values.isEmpty()) {
 //				String token = values.get(0);
 //				if (SocketSessionPool.isValidToken(token)) {
-					return new PatpatSocketSession(session, getEndPointName(), "xxxx");
+					return new PatpatSocketSession(session, getEndPointName(), RandomStringUtils.random(10, true, true));
 //				}
 //			}
 //		}

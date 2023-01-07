@@ -1,0 +1,25 @@
+<div style="margin-top:1rem;">
+<table class="table table-striped table-hover nowrap">
+	<thead>
+		<tr role="row" class="text-info">
+			<th>ID</th>
+			<th>Username</th>
+			<th>Content</th>
+			<th>Created</th>
+		</tr>
+	</thead>
+	<tbody>
+	#if (${manage_log})
+	#foreach (${log} in ${manage_log})
+		<tr role="row">
+			<td>${log.getId()}</td>
+			<td>${log.getUsername()}</td>
+			<td>${log.getContent(${messages})}</td>
+			<td>${log.getStrCreated()}</td>
+		</tr>
+	#end ##foreach (${log} in ${manage_log})
+	#end ##if (${manage_log})
+	</tbody>
+</table>
+</div>
+$!{paging}

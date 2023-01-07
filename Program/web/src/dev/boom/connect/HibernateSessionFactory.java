@@ -34,12 +34,27 @@ public class HibernateSessionFactory {
 			"TblSurveyInfo",
 			"TblSurveyOptionInfo",
 			"TblSurveyResultInfo",
+			"TblSurveyQuestionInfo",
+			"TblSurveyUserAccessInfo",
 			//_/_/_/_/_/_/_/_/_/_/_/_//
-			"TblCannonPlayerInfo",
-			"TblCannonBlockInfo",
+			"TblCarouselInfo",
 			//_/_/_/_/_/_/_/_/_/_/_/_//
 			"TblQuizInfo",
 			"TblQuizPlayerInfo",
+			"TblQuizLogInfo",
+			//_/_/_/_/_/_/_/_/_/_/_/_//
+			"TblDeviceInfo",
+			"TblDeviceRegisterInfo",
+			//_/_/_/_/_/_/_/_/_/_/_/_//
+			"TblManageLogInfo",
+			//_/_/_/_/_/_/_/_/_/_/_/_//
+			"TblAuthTokenInfo",
+			//_/_/_/_/_/_/_/_/_/_/_/_//
+			"TblQuizOptionInfo",
+			"TblQuizQuestionInfo",
+			//_/_/_/_/_/_/_/_/_/_/_/_//
+			"TblDemoSessionInfo",
+			"TblDemoSignupInfo",
 			//_/_/_/_/_/_/_/_/_/_/_/_//
 	};
 

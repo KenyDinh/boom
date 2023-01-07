@@ -11,20 +11,23 @@
 		<property name="survey_id" type="java.lang.Long">
 			<column name="survey_id" not-null="true" />
 		</property>
-		<property name="user" type="java.lang.String">
-			<column name="user" length="32" not-null="true" />
+		<property name="user_id" type="java.lang.String">
+			<column name="user_id" not-null="true" />
 		</property>
-		<property name="info" type="java.lang.String">
-			<column name="info" length="32" not-null="true" />
+		<property name="username" type="java.lang.String">
+			<column name="username" not-null="true" />
+		</property>
+		<property name="department" type="java.lang.String">
+			<column name="department" length="64" not-null="true" />
 		</property>
 		<property name="result" type="java.lang.String">
 			<column name="result" not-null="true" />
 		</property>
-		<property name="retry_remain" type="java.lang.Byte">
-			<column name="retry_remain" not-null="true" />
+		<property name="progress" type="java.lang.Byte">
+			<column name="progress" not-null="true" />
 		</property>
-		<property name="created" type="java.util.Date">
-			<column name="created" not-null="true" />
+		<property name="updated" type="java.util.Date">
+			<column name="updated" not-null="true" />
 		</property>
 	</class>
 </hibernate-mapping>

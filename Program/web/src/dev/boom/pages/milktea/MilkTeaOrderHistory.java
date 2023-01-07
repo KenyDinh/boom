@@ -5,12 +5,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.click.element.CssImport;
-import org.apache.click.element.JsImport;
+import org.apache.click.element.JsScript;
 
 import dev.boom.common.CommonDefine;
 import dev.boom.common.CommonMethod;
 import dev.boom.common.enums.EventFlagEnum;
+import dev.boom.common.enums.FridayThemes;
 import dev.boom.common.milktea.MilkTeaCommonFunc;
 import dev.boom.common.milktea.MilkTeaItemOptionType;
 import dev.boom.common.milktea.MilkTeaTabEnum;
@@ -26,6 +26,7 @@ public class MilkTeaOrderHistory extends MilkTeaMainPage {
 
 	public MilkTeaOrderHistory() {
 		setDataTableFormat(true);
+		initTheme(FridayThemes.STAR);
 	}
 	
 	@Override
@@ -46,8 +47,9 @@ public class MilkTeaOrderHistory extends MilkTeaMainPage {
 		if (headElements == null) {
 			headElements = super.getHeadElements();
 		}
-		headElements.add(new CssImport("/css/milktea/milktea-menu.css"));
-		headElements.add(new JsImport("/js/milktea/milktea-history.js"));
+		headElements.add(importCss("/css/milktea/milktea-menu.css"));
+		headElements.add(importJs("/js/milktea/milktea-history.js"));
+		headElements.add(new JsScript("$j('#canvas').css('z-index','1');"));
 		
 		return headElements;
 	}
@@ -103,19 +105,19 @@ public class MilkTeaOrderHistory extends MilkTeaMainPage {
 		}
 		StringBuilder sb = new StringBuilder();
 		StringBuilder sbModal = new StringBuilder();
-		sb.append("<table id=\"order-history-table\" class=\"table table-striped table-hover nowrap\" style=\"width:100%;\">");
+		sb.append("<table id=\"order-history-table\" class=\"table table-hover nowrap\" style=\"width:100%;\">");
 			sb.append("<thead>");
 				sb.append("<tr role=\"row\" class=\"text-success\">");
-					sb.append("<th>").append("Order Name").append("</th>");
-					sb.append("<th>").append("Shop").append("</th>");
-					sb.append("<th>").append("Ice").append("</th>");
-					sb.append("<th>").append("Sugar").append("</th>");
-					sb.append("<th>").append("Option").append("</th>");
-					sb.append("<th>").append("Quantity").append("</th>");
-					sb.append("<th>").append("Price").append("</th>");
-					sb.append("<th>").append("Ordering time").append("</th>");
+					sb.append("<th><span class=\"overlay\">").append(getMessage("MSG_MILK_TEA_ORDER_COLUMN_ORDERNAME")).append("</span></th>");
+					sb.append("<th><span class=\"overlay\">").append(getMessage("MSG_MILK_TEA_TAB_SHOP")).append("</span></th>");
+					sb.append("<th><span class=\"overlay\">").append(getMessage("MSG_MILK_TEA_OPTION_ICE")).append("</span></th>");
+					sb.append("<th><span class=\"overlay\">").append(getMessage("MSG_MILK_TEA_OPTION_SUGAR")).append("</span></th>");
+					sb.append("<th><span class=\"overlay\">").append(getMessage("MSG_MILK_TEA_ORDER_COLUMN_OPTION")).append("</span></th>");
+					sb.append("<th><span class=\"overlay\">").append(getMessage("MSG_MILK_TEA_ORDER_COLUMN_QUANTITY")).append("</span></th>");
+					sb.append("<th><span class=\"overlay\">").append(getMessage("MSG_MILK_TEA_ORDER_COLUMN_PRICE")).append("</span></th>");
+					sb.append("<th><span class=\"overlay\">").append(getMessage("MSG_MILK_TEA_ORDER_ORDERTIME")).append("</span></th>");
 					if (worldInfo.isActiveEventFlag(EventFlagEnum.ORDER_VOTING)) {
-						sb.append("<th>").append("Rating").append("</th>");
+						sb.append("<th><span class=\"overlay\">").append(getMessage("MSG_MILK_TEA_ORDER_RATING")).append("</span></th>");
 					}
 				sb.append("</tr>");
 			sb.append("</thead>");
@@ -124,10 +126,10 @@ public class MilkTeaOrderHistory extends MilkTeaMainPage {
 			if (list != null && !list.isEmpty()) {
 				for (OrderInfo order : list) {
 					sb.append("<tr role=\"row\">");
-						sb.append("<td>");
+						sb.append("<td class=\"overlay\">");
 							sb.append(order.getDishName());
 						sb.append("</td>");
-						sb.append("<td>");
+						sb.append("<td><span class=\"overlay\">");
 							if (shopMap.get(order.getShopId()) != null) {
 								sb.append("<div>");
 								if (order.getMenuId() > 0) {
@@ -143,27 +145,18 @@ public class MilkTeaOrderHistory extends MilkTeaMainPage {
 							} else {
 								sb.append("---");
 							}
-						sb.append("</td>");
+						sb.append("</span></td>");
 						
-						sb.append("<td>").append(order.getTotalOption(MilkTeaItemOptionType.ICE) + "%").append("</td>");
-						sb.append("<td>").append(order.getTotalOption(MilkTeaItemOptionType.SUGAR) + "%").append("</td>");
-						sb.append("<td>").append(order.getOptionList()).append("</td>");
-						sb.append("<td>").append(order.getQuantity()).append("</td>");
-						sb.append("<td>").append(CommonMethod.getFormatNumberThousandComma(order.getFinalPrice())).append("</td>");
-						sb.append("<td>").append(CommonMethod.getFormatDateString(order.getCreated(), CommonDefine.DATE_FORMAT_PATTERN)).append("</td>");
+						sb.append("<td><span class=\"overlay\">").append(order.getTotalOption(MilkTeaItemOptionType.ICE) + "%").append("</span></td>");
+						sb.append("<td><span class=\"overlay\">").append(order.getTotalOption(MilkTeaItemOptionType.SUGAR) + "%").append("</span></td>");
+						sb.append("<td><span class=\"overlay\">").append(order.getOptionList()).append("</span></td>");
+						sb.append("<td><span class=\"overlay\">").append(order.getQuantity()).append("</span></td>");
+						sb.append("<td><span class=\"overlay\">").append(CommonMethod.getFormatNumberThousandComma(order.getFinalPrice())).append("</span></td>");
+						sb.append("<td><span class=\"overlay\">").append(CommonMethod.getFormatDateString(order.getCreated(), CommonDefine.DATE_FORMAT_PATTERN)).append("</span></td>");
 						if (worldInfo.isActiveEventFlag(EventFlagEnum.ORDER_VOTING)) {
-							sb.append("<td>");
-							if (order.isVoted() && order.getVotingStar() > 0) {
-								sb.append(MilkTeaCommonFunc.getOrderRating(order));
-							} else {
-								sb.append(String.format("<div id=\"order-rating-%d\">", order.getId()));
-									sb.append("<div class=\"text-success\" style=\"cursor:pointer;\">");
-									sb.append(String.format("<span data-toggle=\"modal\" data-target=\"#voting-up-order-%d\">Upvote</span>", order.getId()));
-									sb.append("</div>");
-								sb.append("</div>");
-								sbModal.append(MilkTeaCommonFunc.getOrderVotingModal(order, getMessages()));
-							}
-							sb.append("</td>");
+							sb.append("<td><span class=\"overlay\">");
+							sb.append(MilkTeaCommonFunc.getOrderRatingWithComment(order));
+							sb.append("</span></td>");
 						}
 					sb.append("</tr>");
 				}

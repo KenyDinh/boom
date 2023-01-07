@@ -59,7 +59,7 @@ public class MilkTeaManageOrder extends ManagePageBase {
 			}
 			orderList = OrderService.getOrderInfoListByMenuId(menuInfo.getId(), "ORDER BY (dish_price + attr_price) * quantity ASC");
 			addModel("menuInfo", menuInfo);
-			addModel("orderList", MilkTeaCommonFunc.getHtmlListOrder(orderList, menuInfo, userInfo, getHostURL() + getContextPath(), getMessages(), true));
+			addModel("orderList", MilkTeaCommonFunc.getHtmlListOrder(orderList, menuInfo, userInfo, getHostURL() + getContextPath(), getMessages(), true, getWorldInfo()));
 			String token = SocketSessionPool.generateValidToken(ManageMilkTeaEndPoint.ENDPOINT_NAME, userInfo);
 			String params = "?" + ManageMilkTeaEndPoint.VALIDATION_KEY + "=" + token;
 			addModel("socket_url", getSocketUrl(ManageMilkTeaEndPoint.SOCKET_PATH, params));
@@ -156,6 +156,12 @@ public class MilkTeaManageOrder extends ManagePageBase {
 		if (getModel().get("error") != null) {
 			return;
 		}
+	}
+	
+	@Override
+	protected int getTabIndex() {
+		// TODO Auto-generated method stub
+		return 1;
 	}
 	
 }

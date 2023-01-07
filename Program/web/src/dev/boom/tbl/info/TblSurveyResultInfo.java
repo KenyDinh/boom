@@ -13,20 +13,22 @@ public class TblSurveyResultInfo extends DaoValueInfo {
 
 	private long id;
 	private long survey_id;
-	private String user;
-	private String info;
+	private String user_id;
+	private String username;
+	private String department;
 	private String result;
-	private byte retry_remain;
-	private Date created;
+	private byte progress;
+	private Date updated;
 
 	public TblSurveyResultInfo() {
 		this.id = 0;
 		this.survey_id = 0;
-		this.user = "";
-		this.info = "";
+		this.user_id = "";
+		this.username = "";
+		this.department = "";
 		this.result = "";
-		this.retry_remain = 0;
-		this.created = new Date();
+		this.progress = 0;
+		this.updated = new Date();
 		Sync();
 	}
 
@@ -46,22 +48,6 @@ public class TblSurveyResultInfo extends DaoValueInfo {
 		this.survey_id = survey_id;
 	}
 
-	public String getUser() {
-		return user;
-	}
-
-	public void setUser(String user) {
-		this.user = user;
-	}
-
-	public String getInfo() {
-		return info;
-	}
-
-	public void setInfo(String info) {
-		this.info = info;
-	}
-
 	public String getResult() {
 		return result;
 	}
@@ -70,20 +56,52 @@ public class TblSurveyResultInfo extends DaoValueInfo {
 		this.result = result;
 	}
 
-	public byte getRetry_remain() {
-		return retry_remain;
+	public String getUser_id() {
+		return user_id;
 	}
 
-	public void setRetry_remain(byte retry_remain) {
-		this.retry_remain = retry_remain;
+	public void setUser_id(String user_id) {
+		this.user_id = user_id;
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public String getDepartment() {
+		return department;
+	}
+
+	public void setDepartment(String department) {
+		this.department = department;
+	}
+
+	public byte getProgress() {
+		return progress;
+	}
+
+	public void setProgress(byte progress) {
+		this.progress = progress;
+	}
+
+	public Date getUpdated() {
+		return updated;
+	}
+
+	public void setUpdated(Date updated) {
+		this.updated = updated;
 	}
 
 	public Date getCreated() {
-		return created;
+		return updated;
 	}
 
 	public void setCreated(Date created) {
-		this.created = created;
+		this.updated = created;
 	}
 
 	public List<String> getSubKey() {

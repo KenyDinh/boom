@@ -10,10 +10,18 @@ public class FixDataLoader {
 
 	private static final String[][] fixDataClassNames = {
 			// { ClassName, DataFileName[.csv] }
-			{ "SurveyValidCodeData", "survey_valid_code_data" },
-			{ "CannonBlockData", "cannon_block_data" },
-			{ "QuizData", "quiz_data" },
-			{ "QuizOptionData", "quiz_option_data" },
+			{ "CardData", "card_data" },
+			{ "CardBaseData", "card_base_data" },
+			{ "SkillData", "skill_data" },
+			{ "SkillBaseData", "skill_base_data" },
+			{ "QuizToeicData", "quiz_toeic_data" },
+			{ "QuizOptionToeicData", "quiz_option_toeic_data" },
+			{ "QuizProgrammingData", "quiz_programming_data" },
+			{ "QuizOptionProgrammingData", "quiz_option_programming_data" },
+			{ "QuizJapaneseData", "quiz_japanese_data" },
+			{ "QuizOptionJapaneseData", "quiz_option_japanese_data" },
+			{ "SudokuData", "sudoku_data" },
+			{ "BoomGameItemData", "boom_game_item_data" },
 
 	};
 

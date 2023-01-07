@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<class name="dev.boom.tbl.info.TblBattleDirectionInfo" table="battle_direction_info" catalog="boom">
+		<id name="id" type="java.lang.Long">
+			<column name="id" />
+			<generator class="increment" />
+		</id>
+		<property name="type" type="java.lang.Byte">
+			<column name="type" not-null="true" />
+		</property>
+		<property name="target_npc_id" type="java.lang.Long">
+			<column name="target_npc_id" not-null="true" />
+		</property>
+		<property name="land_type" type="java.lang.Byte">
+			<column name="land_type" not-null="true" />
+		</property>
+		<property name="map_point_index" type="java.lang.Short">
+			<column name="map_point_index" not-null="true" />
+		</property>
+		<property name="weather" type="java.lang.Byte">
+			<column name="weather" not-null="true" />
+		</property>
+		<property name="result" type="java.lang.Byte">
+			<column name="result" not-null="true" />
+		</property>
+		<property name="save_flag" type="java.lang.Byte">
+			<column name="save_flag" not-null="true" />
+		</property>
+		<property name="total_turn" type="java.lang.Byte">
+			<column name="total_turn" not-null="true" />
+		</property>
+		<property name="reason" type="java.lang.Byte">
+			<column name="reason" not-null="true" />
+		</property>
+		<property name="max_kill_index" type="java.lang.Byte">
+			<column name="max_kill_index" not-null="true" />
+		</property>
+		<property name="max_defence_index" type="java.lang.Byte">
+			<column name="max_defence_index" not-null="true" />
+		</property>
+		<property name="retreat_flag_1" type="java.lang.Byte">
+			<column name="retreat_flag_1" not-null="true" />
+		</property>
+		<property name="retreat_flag_2" type="java.lang.Byte">
+			<column name="retreat_flag_2" not-null="true" />
+		</property>
+		<property name="attack_count_1" type="java.lang.Short">
+			<column name="attack_count_1" not-null="true" />
+		</property>
+		<property name="attack_count_2" type="java.lang.Short">
+			<column name="attack_count_2" not-null="true" />
+		</property>
+		<property name="leader_attack_count_1" type="java.lang.Short">
+			<column name="leader_attack_count_1" not-null="true" />
+		</property>
+		<property name="leader_attack_count_2" type="java.lang.Short">
+			<column name="leader_attack_count_2" not-null="true" />
+		</property>
+		<property name="skill_active_count_1" type="java.lang.Integer">
+			<column name="skill_active_count_1" not-null="true" />
+		</property>
+		<property name="skill_active_count_2" type="java.lang.Integer">
+			<column name="skill_active_count_2" not-null="true" />
+		</property>
+		<property name="joint_skill_count_1" type="java.lang.Short">
+			<column name="joint_skill_count_1" not-null="true" />
+		</property>
+		<property name="joint_skill_count_2" type="java.lang.Short">
+			<column name="joint_skill_count_2" not-null="true" />
+		</property>
+	</class>
+</hibernate-mapping>

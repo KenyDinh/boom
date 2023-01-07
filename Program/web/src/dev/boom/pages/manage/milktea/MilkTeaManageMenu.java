@@ -10,6 +10,8 @@ import org.apache.commons.lang.StringEscapeUtils;
 
 import dev.boom.common.CommonDefine;
 import dev.boom.common.CommonMethod;
+import dev.boom.common.enums.Department;
+import dev.boom.common.enums.ManageLogType;
 import dev.boom.common.milktea.MilkTeaCommonFunc;
 import dev.boom.common.milktea.MilkTeaItemOptionType;
 import dev.boom.common.milktea.MilkTeaMenuStatus;
@@ -22,6 +24,7 @@ import dev.boom.dao.core.DaoValue;
 import dev.boom.pages.manage.ManagePageBase;
 import dev.boom.pages.milktea.MilkTeaMenu;
 import dev.boom.services.CommonDaoService;
+import dev.boom.services.ManageLogService;
 import dev.boom.services.MenuInfo;
 import dev.boom.services.MenuService;
 import dev.boom.services.MilkTeaUserInfo;
@@ -32,6 +35,8 @@ import dev.boom.services.ShopInfo;
 import dev.boom.services.ShopService;
 import dev.boom.services.UserInfo;
 import dev.boom.services.UserService;
+import dev.boom.socket.SocketSessionPool;
+import dev.boom.socket.endpoint.ManageMilkTeaEndPoint;
 import dev.boom.socket.endpoint.MilkTeaEndPoint;
 
 public class MilkTeaManageMenu extends ManagePageBase {
@@ -136,15 +141,28 @@ public class MilkTeaManageMenu extends ManagePageBase {
 				}
 				menuInfo.setFlag(0);
 				update = true;
-				String[] showFlags = getContext().getRequestParameterValues("show_flag");
-				if (showFlags != null && showFlags.length > 0) {
-					for (String strFlag : showFlags) {
+				String[] menuFlags = getContext().getRequestParameterValues("menu_flag");
+				if (menuFlags != null && menuFlags.length > 0) {
+					for (String strFlag : menuFlags) {
 						if (CommonMethod.isValidNumeric(strFlag, 1, Integer.MAX_VALUE)) {
 							MilkteaMenuFlag mmf = MilkteaMenuFlag.valueOf(Integer.parseInt(strFlag));
 							if (mmf == MilkteaMenuFlag.INVALID) {
 								continue;
 							}
 							menuInfo.addFlag(mmf);
+						}
+					}
+				}
+				menuInfo.setDept(0);
+				String[] showFlags = getContext().getRequestParameterValues("show_flag");
+				if (showFlags != null && showFlags.length > 0) {
+					for (String strFlag : showFlags) {
+						if (CommonMethod.isValidNumeric(strFlag, 1, Integer.MAX_VALUE)) {
+							Department dept = Department.valueOf(Integer.parseInt(strFlag));
+							if (dept == Department.NONE) {
+								continue;
+							}
+							menuInfo.addDeptFlag(dept);
 						}
 					}
 				}
@@ -192,23 +210,37 @@ public class MilkTeaManageMenu extends ManagePageBase {
 				}
 				sb.append("</select>");
 				addModel("selectStatus", sb.toString());
-				StringBuilder display = new StringBuilder();
+				sb.setLength(0);
 				for (MilkteaMenuFlag mmf : MilkteaMenuFlag.values()) {
 					if (mmf == MilkteaMenuFlag.INVALID) {
 						continue;
 					}
-					display.append("<div class=\"custom-control custom-checkbox\">");
-					display.append("<input type=\"checkbox\" class=\"custom-control-input\" name=\"show_flag\" id=\"show-flag-" + mmf.ordinal() + "\" value=\"" + mmf.getFlag() + "\" " + (menuInfo.isActiveFlag(mmf) ? "checked" : "") + "/>");
-					display.append("<label class=\"custom-control-label\" for=\"show-flag-" + mmf.ordinal() + "\">").append(getMessage(mmf.getLabel())).append("</label>");
-					display.append("</div>");
+					sb.append("<div class=\"custom-control custom-checkbox\">");
+					sb.append("<input type=\"checkbox\" class=\"custom-control-input\" name=\"menu_flag\" id=\"menu-flag-" + mmf.ordinal() + "\" value=\"" + mmf.getFlag() + "\" " + (menuInfo.isActiveFlag(mmf) ? "checked" : "") + "/>");
+					sb.append("<label class=\"custom-control-label\" for=\"menu-flag-" + mmf.ordinal() + "\">").append(getMessage(mmf.getLabel())).append("</label>");
+					sb.append("</div>");
 				}
-				addModel("display", display.toString());
+				addModel("flags", sb.toString());
+				sb.setLength(0);
+				for (Department dept : Department.values()) {
+					if (dept == Department.NONE) {
+						continue;
+					}
+					sb.append("<div class=\"custom-control custom-checkbox\">");
+					sb.append("<input type=\"checkbox\" class=\"custom-control-input\" name=\"show_flag\" id=\"show-flag-" + dept.ordinal() + "\" value=\"" + dept.getFlag() + "\" " + (menuInfo.isActiveDeptFlag(dept.getFlag()) ? "checked" : "") + "/>");
+					sb.append("<label class=\"custom-control-label\" for=\"show-flag-" + dept.ordinal() + "\">").append(getMessage(dept.getLabel())).append("</label>");
+					sb.append("</div>");
+				}
+				addModel("display", sb.toString());
 			}
 			break;
 		default:
 			byte[] status = new byte[] {MilkTeaMenuStatus.INIT.getStatus(), MilkTeaMenuStatus.OPENING.getStatus(), MilkTeaMenuStatus.DELIVERING.getStatus()};
 			List<MenuInfo> menuList = MenuService.getMenuListByStatusList(status);
 			initTableMenuList(menuList);
+			String token = SocketSessionPool.generateValidToken(ManageMilkTeaEndPoint.ENDPOINT_NAME, userInfo);
+			String params = "?" + ManageMilkTeaEndPoint.VALIDATION_KEY + "=" + token;
+			addModel("socket_url", getSocketUrl(ManageMilkTeaEndPoint.SOCKET_PATH, params));
 			break;
 		}
 	}
@@ -251,16 +283,17 @@ public class MilkTeaManageMenu extends ManagePageBase {
 				table.append("<td>").append(MilkTeaMenuStatus.valueOf(menu.getStatus()).name()).append("</td>");
 				table.append("<td>");
 					String show = "";
-					for (MilkteaMenuFlag mmf : MilkteaMenuFlag.values()) {
-						if (mmf == MilkteaMenuFlag.INVALID) {
+					for (Department dept : Department.values()) {
+						if (dept == Department.NONE) {
 							continue;
 						}
-						if (mmf.isValidFlag(menu.getFlag())) {
-							if (show.length() > 0) {
-								show += ",";
-							}
-							show += mmf.getName();
+						if (!menu.isActiveDeptFlag(dept.getFlag())) {
+							continue;
 						}
+						if (show.length() > 0) {
+							show += ",";
+						}
+						show += dept.name();
 					}
 					show = (show.length() > 0) ? show : "---";
 					table.append(show);
@@ -351,7 +384,16 @@ public class MilkTeaManageMenu extends ManagePageBase {
 			}
 		}
 		if (!CommonDaoService.update(updates)) {
-			GameLog.getInstance().error("update failed!");
+			GameLog.getInstance().error("[MilkteaManageMenu] update menu failed!");
+		} else {
+			ManageLogService.createManageLog(userInfo, ManageLogType.UPDATE_MENU, menuInfo.getName());
 		}
 	}
+
+	@Override
+	protected int getTabIndex() {
+		// TODO Auto-generated method stub
+		return 1;
+	}
+	
 }

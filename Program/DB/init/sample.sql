@@ -1016,4 +1016,4 @@ insert  into `nihongo_word_info`(`id`,`word`,`sideword`,`wordtype`,`meaning`,`de
 (996,'ボタン','',0,'nút','',16,'2018-01-31 11:26:01','2018-01-31 11:26:25'),
 (997,'アジア','神社',0,'châu Á','',16,'2018-01-31 11:26:01','2018-01-31 11:26:01');
 
-INSERT INTO world_info VALUES(1,0);
+INSERT INTO world_info VALUES(1,0,0);

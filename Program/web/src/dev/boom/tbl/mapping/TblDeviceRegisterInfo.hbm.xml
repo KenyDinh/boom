@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="dev.boom.tbl.info.TblDeviceRegisterInfo" table="device_register_info" catalog="boom">
+        <id name="id" type="java.lang.Long">
+            <column name="id" />
+            <generator class="increment" />
+        </id>
+        <property name="device_id" type="java.lang.Integer">
+            <column name="device_id" not-null="true" />
+        </property>
+        <property name="device_name" type="java.lang.String">
+            <column name="device_name" not-null="true" />
+        </property>
+        <property name="user_id" type="java.lang.Long">
+            <column name="user_id" not-null="true" />
+        </property>
+        <property name="username" type="java.lang.String">
+            <column name="username" not-null="true" />
+        </property>
+        <property name="expired" type="java.lang.Byte">
+            <column name="expired" not-null="true" />
+        </property>
+        <property name="start_date" type="java.util.Date">
+            <column name="start_date" not-null="true" />
+        </property>
+        <property name="end_date" type="java.util.Date">
+            <column name="end_date" not-null="true" />
+        </property>
+        <property name="updated" type="java.util.Date">
+			<column name="updated" not-null="true" />
+		</property>
+    </class>
+</hibernate-mapping>

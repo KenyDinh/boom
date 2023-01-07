@@ -7,10 +7,14 @@ import java.util.Map;
 
 import javax.websocket.Session;
 
+import dev.boom.common.CommonMethod;
+import dev.boom.common.enums.ManageLogType;
 import dev.boom.dao.core.DaoValue;
 import dev.boom.milktea.object.Menu;
 import dev.boom.milktea.object.MenuItem;
 import dev.boom.services.CommonDaoService;
+import dev.boom.services.ManageLogService;
+import dev.boom.services.UserInfo;
 import dev.boom.socket.endpoint.ManageMilkTeaEndPoint;
 import dev.boom.socket.func.FridayStaticData;
 import dev.boom.tbl.info.TblDishInfo;
@@ -68,8 +72,25 @@ public class FridaySocketSession extends SocketSessionBase {
 				return;
 			}
 			manageMilkTeaSS.process(message);
-		}
-		else {
+		} else if (message.startsWith("OPEN_FEED_BACK:")) {
+			if (getRefSocketId() == null || !CommonMethod.isValidNumeric(getRefSocketId().toString(), 1, Long.MAX_VALUE)) {
+				logError("[FridaySocketSession] (process) Not found mmsocket!");
+				return;
+			}
+			SocketSessionBase manageMilkTeaSS = SocketSessionPool.getStoredSocketSessionByUserId(Long.parseLong(getRefSocketId().toString()), ManageMilkTeaEndPoint.ENDPOINT_NAME);
+			if (manageMilkTeaSS == null) {
+				logError("[FridaySocketSession] (process) Not found mmsocket! id : " + getRefSocketId().toString());
+				return;
+			}
+			String response = message.replace("OPEN_FEED_BACK:", "");
+			logInfo("[ManageMilkTeaSocketSession] " + response);
+			if (response.equals("complete")) {
+				manageMilkTeaSS.sendMessage("{\"message\":\"menu_open\"}");
+			} else {
+				manageMilkTeaSS.sendMessage(String.format("{\"message\":\"menu_open\",\"error\":\"%s\"}", response));
+			}
+			setRefSocketId(null);
+		} else {
 			logError("[FridaySocketSession] (process) invalid message!");
 		}
 	}
@@ -128,6 +149,11 @@ public class FridaySocketSession extends SocketSessionBase {
 		}
 		if (!CommonDaoService.update(updateList)) {
 			logError("[FridaySocketSession] (update) update failed!");
+		} else {
+			UserInfo userInfo = new UserInfo();
+			userInfo.setId(getUserId());
+			userInfo.setUsername(getUsername());
+			ManageLogService.createManageLog(userInfo, ManageLogType.ADD_MENU, menu.getMenu_name());
 		}
 	}
 

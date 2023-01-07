@@ -1,0 +1,15 @@
+#if (${user})
+<div style="position:relative">
+	<div id="game-board" style="flex-direction: column;align-items: center;justify-content:center;margin-top:10rem;font-family: monospace;display:flex;">
+		<canvas id="canvas" class="none-select" style="max-width:1000px;max-height:680px"> </canvas>
+	</div>
+	<span id="socket_url" style="display:none;">${socket_url}</span>
+</div>
+<script type="text/javascript">
+//<![CDATA[
+#if(${js_variable})
+	${js_variable}
+#end
+//]]>
+</script>
+#end

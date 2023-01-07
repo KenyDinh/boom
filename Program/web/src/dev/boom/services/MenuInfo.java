@@ -4,7 +4,7 @@ import java.util.Date;
 
 import dev.boom.common.CommonDefine;
 import dev.boom.common.CommonMethod;
-import dev.boom.common.enums.UserFlagEnum;
+import dev.boom.common.enums.Department;
 import dev.boom.common.milktea.MilkTeaMenuStatus;
 import dev.boom.common.milktea.MilkteaMenuFlag;
 import dev.boom.tbl.info.TblMenuInfo;
@@ -96,6 +96,14 @@ public class MenuInfo {
 	public void setStatus(byte status) {
 		this.info.setStatus(status);
 	}
+	
+	public int getDept() {
+		return this.info.getDept();
+	}
+	
+	public void setDept(int dept) {
+		this.info.setDept(dept);
+	}
 
 	public int getFlag() {
 		return this.info.getFlag();
@@ -165,6 +173,17 @@ public class MenuInfo {
 		setFlag(newFlag);
 	}
 	
+	public void addDeptFlag(Department dept) {
+		if (dept == Department.NONE) {
+			return;
+		}
+		setDept((getDept() | dept.getFlag())); 
+	}
+	
+	public boolean isActiveDeptFlag(int dept) {
+		return (getDept() & dept) > 0;
+	}
+	
 	public boolean isActiveFlag(MilkteaMenuFlag mmf) {
 		if (mmf == MilkteaMenuFlag.INVALID) {
 			return false;
@@ -173,24 +192,19 @@ public class MenuInfo {
 	}
 	
 	public boolean isAvailableForUser(UserInfo userInfo) {
-		if (userInfo != null) {
-			if (userInfo.isMenuAvailable(this)) {
-				return true;
-			}
-			return false;
+		if (getDept() == 0 ) {
+			return true;
 		}
-		for (MilkteaMenuFlag mmf : MilkteaMenuFlag.values()) {
-			if (mmf == MilkteaMenuFlag.INVALID) {
-				continue;
-			}
-			if (mmf.getUserFlag() == UserFlagEnum.INVALID) {
-				continue;
-			}
-			if (!mmf.isValidFlag(getFlag())) {
-				return false;
-			}
+		if (getDept() == Department.getAllFlag()) {
+			return true;
+		}
+		if (userInfo != null && userInfo.isMilkteaAdmin()) {
+			return true;
+		}
+		if (userInfo != null && (getDept() & userInfo.getDept()) > 0) {
+			return true;
 		}
 		
-		return true;
+		return false;
 	}
 }

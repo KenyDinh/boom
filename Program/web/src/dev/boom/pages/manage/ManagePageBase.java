@@ -2,7 +2,6 @@ package dev.boom.pages.manage;
 
 import org.apache.click.Page;
 
-import dev.boom.common.enums.UserFlagEnum;
 import dev.boom.core.BoomSession;
 import dev.boom.core.GameLog;
 import dev.boom.pages.Home;
@@ -33,7 +32,7 @@ public class ManagePageBase extends ManageTemplate {
 			setRedirect(Home.class);
 			return false;
 		}
-		if (!UserFlagEnum.ADMINISTRATOR.isValid(userInfo.getFlag())) {
+		if (!userInfo.hasAdminRole()) {
 			GameLog.getInstance().error("[ManagePageBase] user is invalid!");
 			getContext().getSession().invalidate();
 			setRedirect(Home.class);
@@ -45,11 +44,15 @@ public class ManagePageBase extends ManageTemplate {
 	@Override
 	public void onInit() {
 		super.onInit();
+		if (userInfo != null) {
+			addModel("user", userInfo);
+		}
 	}
 
 	@Override
 	public void onRender() {
 		super.onRender();
+		addModel("t_idx", getTabIndex());
 	}
 	
 	protected void addBackLink(Class<? extends Page> clazz, String label) {
@@ -64,6 +67,10 @@ public class ManagePageBase extends ManageTemplate {
 		sb.append("<a href=\"").append(getPagePath(clazz)).append("\">").append(getMessage(label)).append("</a>");
 		sb.append("</p>");
 		addModel("home", sb.toString());
+	}
+	
+	protected int getTabIndex() {
+		return 0;
 	}
 	
 }

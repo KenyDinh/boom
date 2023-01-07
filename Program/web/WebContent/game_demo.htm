@@ -1,0 +1,81 @@
+<div class="demo-content">
+	<x-sign class="bigtitle">GAME DEMO</x-sign>
+	#if (${nextSession})
+		#if (${nextSession.isInSession()})
+		<x-sign class="smalltitle">Current Session: ${nextSession.getFormattedDemoTime()}</x-sign>
+		#else
+		<x-sign class="smalltitle">Next Session: ${nextSession.getFormattedDemoTime()}</x-sign>
+		#end
+		<x-sign class="smalltitle">${nextSession.getDemoLocation()}</x-sign>
+	#end
+	<div class="banner-box">
+		<div class="banner-holder">
+			#if (${nextSession})
+				#foreach (${singleContent} in ${sessionContent})
+					#set ($contentImage = ${singleContent.getImageUrl()})
+					<div class="banner-item" style="background-image: url(${contentImage})"></div>
+				#end
+			#else
+				<x-sign class="smalltitle">No upcoming session available</x-sign>
+			#end
+		</div>
+		<div class="spaceship"></div>
+		<div class="upcoming-box">
+			<div class="upcoming-title">Upcoming</div>
+			#if (${upcomingContent})
+				#set ($upcomingImage = ${upcomingContent.getImageUrl()})
+				<div class="upcoming-item" style="background-image: url(${upcomingImage})">
+					<div class="upcoming-date">${upcomingDate}</div>
+				</div>
+			#else
+				<div class="upcoming-empty">TBD</div>
+			#end
+		</div>
+		<div class="upcoming-all-btn" onclick="showScheduleBox()">See schedule</div>
+		<div class="demo-signup-box">
+			<div class="demo-signup-title">See a Friday without any session?</div>
+			<div class="demo-signup-btn" onclick="showSignUpBox()">Sign up to be the speaker</div>
+		</div>
+	</div>
+
+</div>
+<div id="signup-container" class="hidden-item">
+	<div class="signup-margin">
+		<x-sign class="smalltitle">Demo Session sign up form</x-sign>
+		<form action="${context}/game_demo.htm?submit=1" method="post" style="margin: auto; width: 95%;">
+			<div class="signup-title">Speaker name</div>
+			<input type="input" class="form-control" id="speaker-name" name="speaker-name" placeholder="Your name" value="" required>
+			
+			<div class="signup-title">Game you want to demo</div>
+			<input type="input" class="form-control" id="game-name" name="game-name" placeholder="Name of the game" value="" required>
+			
+			<div class="signup-title">Short description (or whatever you want to say)</div>
+			<textarea class="form-control" id="description" name="description" rows="5"></textarea>
+			<br><input type="submit" class="signup-btn">
+			<br><div class="signup-cancel-btn" onclick="closeSignUpBox()">Cancel</div>
+			<div class="signup-title">*We'll contact you later to confirm the submission and decide the demo date.</div>
+		</form>
+	</div>
+</div>
+<div id="schedule-container" class="hidden-item">
+	<div class="signup-margin">
+		<div class="schedule-display-box">
+		#if (${scheduledContents})
+			#set ($index = 0)
+			#foreach (${scheduledContent} in ${scheduledContents})
+				<div class="schedule-small-box">
+					${scheduledSessions.get($index).getFormattedDemoTime()} | <span style="color: red">${scheduledContent.getContent().get(0).getName()}</span> by ${scheduledContent.getContent().get(0).getSpeaker()}
+					
+				</div>
+				#set ($index = $index + 1)
+			#end
+		#end
+		</div>
+		<br><div class="signup-cancel-btn" onclick="closeScheduleBox()">Cancel</div>
+	</div>
+</div>
+#if (${submitted})
+	<div class="signup-confirm-box">
+		<div class="signup-title">Thank you for your submission!</div>
+	</div>
+#end

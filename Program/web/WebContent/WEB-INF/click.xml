@@ -27,6 +27,8 @@
   	<page classname="Template" path="template.htm"/>
   	<page classname="Home" path="home.htm"/>
   	<page classname="Game" path="game.htm"/>
+  	<page classname="Tools" path="tools.htm"/>
+  	<page classname="GameDemo" path="game_demo.htm"/>
   	<page classname="About" path="about.htm"/>
   	<!-- Vote -->
   	<page classname="vote.Vote" path="vote.htm"/>
@@ -42,18 +44,36 @@
   	<page classname="milktea.MilkTeaRanking" path="milktea/milk_tea_ranking.htm"/>
   	<page classname="milktea.MilkTeaOrderHistory" path="milktea/milk_tea_order_history.htm"/>
   	<page classname="milktea.MilkTeaManageOrder" path="milktea/milk_tea_manage_order.htm"/>
+  	<page classname="milktea.MilkteaCommentLoader" path="milktea/milk_tea_comment_loader.htm"/>
   	<!-- Game -->
   	<page classname="game.Nihongo" path="game/nihongo.htm"/>
   	<page classname="game.json.NihongoJson" path="game/json/nihongo_json.json"/>
+  	<page classname="game.Sudoku" path="game/sudoku.htm"/>
+  	<page classname="game.json.SudokuLoader" path="game/json/sudoku_loader.json"/>
+  	<page classname="game.Boom" path="game/boom.htm"/>
+  	<page classname="game.Poker" path="game/poker.htm"/>
+  	<page classname="game.json.BoomConfirm" path="game/json/boom_confirm.json"/>
+  	<page classname="game.json.BoomLobby" path="game/json/boom_lobby.htm"/>
   	
-  	<page classname="game.cannon.CannonBlockMenu" path="game/cannon_block/cannon_block_menu.htm"/>
-  	<page classname="game.cannon.CannonBlockPlay" path="game/cannon_block/cannon_block_play.htm"/>
-  	<page classname="game.json.cannon.CannonSwapJson" path="game/json/cannon_swap_json.json"/>
-  	<page classname="game.json.cannon.CannonFireJson" path="game/json/cannon_fire_json.json"/>
+  	<!-- Tools -->
+  	<page classname="tools.NyagaCatSearch" path="tools/nyaga_cat_search.htm"/>
+  	<page classname="tools.DeviceManager" path="tools/game_list.htm"/>
+  	<page classname="tools.FileUploadTest" path="tools/file_upload_test.htm"/>
+  	
+  	<!-- Json Sub Pages -->
+  	<page classname="sub.SearchUser" path="sub/search_user.htm"/>
+  	<page classname="sub.PatpatCommand" path="sub/patpat_command.htm"/>
+  	<page classname="tools.sub.DeviceConfirm" path="tools/sub/device_confirm.json"/>
+  	<page classname="tools.sub.DeviceLoader" path="tools/sub/device_loader.htm"/>
+  	
   	
   	<!-- Manage Pages -->
   	<page classname="manage.milktea.MilkTeaManageMenu" path="manage/milktea/milk_tea_manage_menu.htm"/>
   	<page classname="manage.ManageEvent" path="manage/manage_event.htm"/>
+  	<page classname="manage.ManageGame" path="manage/manage_game.htm"/>
+  	<page classname="manage.ManageUser" path="manage/manage_user.htm"/>
+  	<page classname="manage.ChangeLog" path="manage/change_log.htm"/>
+  	<page classname="manage.ManageGameDemo" path="manage/manage_game_demo.htm"/>
   </pages>
 
 </click-app>

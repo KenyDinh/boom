@@ -3,6 +3,8 @@ package dev.boom.common;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
+
 public class CommonHtmlFunc {
 
 	public static final int GRID_LAYOUT_MAX_COL = 12;
@@ -20,10 +22,10 @@ public class CommonHtmlFunc {
 					sb.append("</div>");
 					//body
 					sb.append("<div class=\"modal-body\">");
-						sb.append("<form id=\"login-form\">");
+						sb.append("<form id=\"login-form\" style=\"margin-bottom: 2rem;\">");
 							sb.append("<div class=\"form-group\">");
 								sb.append("<label for=\"form-login-username\">").append(messages.get("MSG_GENERAL_USERNAME") + ":").append("</label>");
-								sb.append("<input type=\"text\" class=\"form-control\" id=\"form-login-username\" name=\"form-login-username\" max-length=16 required placeholder=\"\"/>");
+								sb.append("<input type=\"text\" class=\"form-control\" id=\"form-login-username\" name=\"form-login-username\" maxlength=32 required placeholder=\"\"/>");
 							sb.append("</div>");
 							sb.append("<div class=\"form-group\">");
 								sb.append("<label for=\"form-login-password\">").append(messages.get("MSG_GENERAL_PASSWORD") +":").append("</label>");
@@ -31,12 +33,15 @@ public class CommonHtmlFunc {
 							sb.append("</div>");
 							sb.append("<div class=\"form-group\" id=\"login-message\">");
 							sb.append("</div>");
-							sb.append("<button type=\"submit\" class=\"btn btn-info\" onclick=\"onclickLogin();this.blur();return false;\">").append(messages.get("MSG_GENERAL_SUBMIT")).append("</button>");
+							sb.append("<div class=\"row\">");
+							sb.append("<div class=\"col-lg-4 col-md-6 col-sm-12\">");
+							sb.append("<div class=\"custom-control custom-checkbox\"><input type=\"checkbox\" class=\"custom-control-input\" id=\"remember-me\"><label class=\"custom-control-label\" for=\"remember-me\">Remember me</label></div>");
+							sb.append("</div>");
+							sb.append("<div class=\"col-lg-8 col-md-6 col-sm-12\" style=\"text-align: right;\">");
+							sb.append("<button type=\"submit\" style=\"width: 50%;\" class=\"btn btn-info\" onclick=\"onclickLogin();this.blur();return false;\">").append(messages.get("MSG_GENERAL_SUBMIT")).append("</button>");
+							sb.append("</div>");
+							sb.append("</div>");
 						sb.append("</form>");
-					sb.append("</div>");
-					//footer
-					sb.append("<div class=\"modal-footer\">");
-						sb.append("<button type=\"button\" class=\"btn btn-danger\" data-dismiss=\"modal\">").append(messages.get("MSG_GENERAL_CLOSE")).append("</button>");
 					sb.append("</div>");
 				sb.append("</div>");
 			sb.append("</div>");
@@ -60,7 +65,7 @@ public class CommonHtmlFunc {
 						sb.append("<form id=\"regist-form\">");
 							sb.append("<div class=\"form-group\">");
 								sb.append("<label for=\"form-regist-username\">").append(messages.get("MSG_GENERAL_USERNAME") + ":").append("</label>");
-								sb.append("<input type=\"text\" class=\"form-control\" id=\"form-regist-username\" name=\"form-regist-username\" max-length=16 required placeholder=\"should be firstname.lastname\"/>");
+								sb.append("<input type=\"text\" class=\"form-control\" id=\"form-regist-username\" name=\"form-regist-username\" maxlength=16 required placeholder=\"lastname[number].firstname\"/>");
 							sb.append("</div>");
 							sb.append("<div class=\"form-group\">");
 								sb.append("<label for=\"form-regist-password\">").append(messages.get("MSG_GENERAL_PASSWORD") +":").append("</label>");
@@ -210,20 +215,47 @@ public class CommonHtmlFunc {
 		return sb.toString();
 	}
 	
-	public static String getPagination(String url, int page, int maxPage, String style) {
+	public static String getPagination(String url, int page, int maxPage, String options) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("<div>");
-			sb.append(String.format("<ul class=\"pagination\" style=\"%s\">", (style != null ? style : "")));
-				sb.append(String.format("<li class=\"page-item %s\">", (page <= 1 ? "disabled" : "")));
-					sb.append("<a class=\"page-link\" href=\"").append(url).append(page - 1).append("\">Previous</a>");
+			sb.append(String.format("<ul class=\"pagination\" %s>", (StringUtils.isNotBlank(options) ? options : "")));
+				sb.append(String.format("<li class=\"page-item %s\" data-page=\"%d\">", (page <= 1 ? "disabled" : ""), Math.max(0, page - 1)));
+					sb.append("<a class=\"page-link\" href=\"").append(((page > 1 && url != null) ? (url + (page - 1)) : "javascript:void(0);")).append("\">Previous</a>");
 				sb.append("</li>");
-				for (int i = 1; i <= maxPage; i++) {
-					sb.append(String.format("<li class=\"page-item %s\">", (i == page ? "active" : "")));
-						sb.append("<a class=\"page-link\" href=\"").append(url + i + "\">").append(i).append("</a>");
+				if (maxPage > 1) {
+					sb.append(String.format("<li class=\"page-item %s\" data-page=\"1\">", (page == 1 ? "active" : "")));
+					sb.append("<a class=\"page-link\" href=\"").append(url != null ? (url + "1") : "javascript:void(0);").append("\">1</a>");
+					sb.append("</li>");
+					int pStart, pEnd;
+					if (page - 1 < maxPage - page) {
+						pStart = Math.max(2, page - 2);
+						pEnd = Math.min(maxPage - 1, pStart + 4);
+					} else {
+						pEnd = Math.min(maxPage - 1, page + 2);
+						pStart = Math.max(2, pEnd - 4);
+						
+					}
+					for (int i = pStart; i <= pEnd; i++) {
+						if ((i == pStart && i - 1 > 1) || (i == pEnd && i + 1 < maxPage)) {
+							sb.append("<li class=\"page-item disabled\">");
+							sb.append("<a class=\"page-link\" href=\"javascript:void(0);\">...</a>");
+							sb.append("</li>");
+							continue;
+						}
+						sb.append(String.format("<li class=\"page-item %s\" data-page=\"%d\">", (i == page ? "active" : ""), i));
+						sb.append("<a class=\"page-link\" href=\"").append(url != null ? (url + i) : "javascript:void(0);").append("\">").append(i).append("</a>");
+						sb.append("</li>");
+					}
+					sb.append(String.format("<li class=\"page-item %s\" data-page=\"%d\">", (page == maxPage ? "active" : ""), maxPage));
+					sb.append("<a class=\"page-link\" href=\"").append(url != null ? (url + maxPage) : "javascript:void(0);").append("\">" + maxPage + "</a>");
+					sb.append("</li>");
+				} else {
+					sb.append(String.format("<li class=\"page-item %s\" data-page=\"1\">", "active"));
+					sb.append("<a class=\"page-link\" href=\"").append(url != null ? (url + "1") : "javascript:void(0);").append("\">1</a>");
 					sb.append("</li>");
 				}
-				sb.append(String.format("<li class=\"page-item %s\">", (page >= maxPage ? "disabled" : "")));
-					sb.append("<a class=\"page-link\" href=\"").append(url).append(page - 1).append("\">Next</a>");
+				sb.append(String.format("<li class=\"page-item %s\" data-page=\"%d\">", (page >= maxPage ? "disabled" : ""), Math.min(maxPage, page + 1)));
+					sb.append("<a class=\"page-link\" href=\"").append(((page < maxPage && url != null) ? (url + (page + 1)) : "javascript:void(0);")).append("\">Next</a>");
 				sb.append("</li>");
 			sb.append("</ul>");
 		sb.append("</div>");

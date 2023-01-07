@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.click.element.CssImport;
 import org.apache.click.element.JsImport;
 
+import dev.boom.common.game.GameTypeEnum;
 import dev.boom.pages.Game;
 import dev.boom.pages.Home;
 
@@ -41,4 +42,10 @@ public class Nihongo extends Game {
 		headElements.add(new JsImport("/js/game/nihongo.js"));
 		return headElements;
 	}
+
+	@Override
+	protected int getGameIndex() {
+		return GameTypeEnum.NIHONGO.getIndex();
+	}
+	
 }

@@ -14,4 +14,10 @@ public class QuizStaticData {
 	public static QuizTimer getQuizTimerByQuizId(long quizId) {
 		return quizTimerMap.get(quizId);
 	}
+	
+	public static void removeQuizTimer(QuizTimer quizTimer) {
+		if (quizTimerMap.containsKey(quizTimer.getQuizId())) {
+			quizTimerMap.remove(quizTimer.getQuizId());
+		}
+	}
 }

@@ -2,8 +2,6 @@ package dev.boom.pages.manage;
 
 import java.util.List;
 
-import org.apache.click.element.JsImport;
-
 import dev.boom.pages.PageBase;
 
 public class ManageTemplate extends PageBase {
@@ -21,8 +19,8 @@ public class ManageTemplate extends PageBase {
 		if (headElements == null) {
 			headElements = super.getHeadElements();
 		}
-		headElements.add(new JsImport("/js/manage/common.js"));
-		headElements.add(new JsImport("/js/socket.js"));
+		headElements.add(importJs("/js/manage/common.js"));
+		headElements.add(importJs("/js/socket.js"));
 		
 		return headElements;
 	}

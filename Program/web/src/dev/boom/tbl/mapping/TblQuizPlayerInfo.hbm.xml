@@ -16,6 +16,9 @@
         <property name="status" type="java.lang.Byte">
             <column name="status" not-null="true" />
         </property>
+        <property name="retry" type="java.lang.Byte">
+            <column name="retry" not-null="true" />
+        </property>
         <property name="answer" type="java.lang.String">
             <column name="answer" not-null="true" />
         </property>

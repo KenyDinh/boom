@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<class name="dev.boom.tbl.info.TblBattleEntryInfo" table="battle_entry_info" catalog="boom">
+		<id name="id" type="java.lang.Long">
+			<column name="id" />
+			<generator class="increment" />
+		</id>
+		<property name="battle_direction_id" type="java.lang.Long">
+			<column name="battle_direction_id" not-null="true" />
+		</property>
+		<property name="player_id" type="java.lang.Long">
+			<column name="player_id" not-null="true" />
+		</property>
+		<property name="side" type="java.lang.Byte">
+			<column name="side" not-null="true" />
+		</property>
+		<property name="leader" type="java.lang.Byte">
+			<column name="leader" not-null="true" />
+		</property>
+		<property name="formation_index" type="java.lang.Byte">
+			<column name="formation_index" not-null="true" />
+		</property>
+		<property name="joint_skill_index_1" type="java.lang.Integer">
+			<column name="joint_skill_index_1" not-null="true" />
+		</property>
+		<property name="joint_skill_index_2" type="java.lang.Integer">
+			<column name="joint_skill_index_2" not-null="true" />
+		</property>
+		<property name="joint_skill_index_3" type="java.lang.Integer">
+			<column name="joint_skill_index_3" not-null="true" />
+		</property>
+		<property name="joint_skill_index_4" type="java.lang.Integer">
+			<column name="joint_skill_index_4" not-null="true" />
+		</property>
+		<property name="joint_skill_index_5" type="java.lang.Integer">
+			<column name="joint_skill_index_5" not-null="true" />
+		</property>
+		<property name="card_index_1" type="java.lang.Integer">
+			<column name="card_index_1" not-null="true" />
+		</property>
+		<property name="card_index_2" type="java.lang.Integer">
+			<column name="card_index_2" not-null="true" />
+		</property>
+		<property name="card_index_3" type="java.lang.Integer">
+			<column name="card_index_3" not-null="true" />
+		</property>
+		<property name="card_index_4" type="java.lang.Integer">
+			<column name="card_index_4" not-null="true" />
+		</property>
+		<property name="card_index_5" type="java.lang.Integer">
+			<column name="card_index_5" not-null="true" />
+		</property>
+		<property name="start_hp_1" type="java.lang.Integer">
+			<column name="start_hp_1" not-null="true" />
+		</property>
+		<property name="start_hp_2" type="java.lang.Integer">
+			<column name="start_hp_2" not-null="true" />
+		</property>
+		<property name="start_hp_3" type="java.lang.Integer">
+			<column name="start_hp_3" not-null="true" />
+		</property>
+		<property name="start_hp_4" type="java.lang.Integer">
+			<column name="start_hp_4" not-null="true" />
+		</property>
+		<property name="start_hp_5" type="java.lang.Integer">
+			<column name="start_hp_5" not-null="true" />
+		</property>
+		<property name="end_hp_1" type="java.lang.Integer">
+			<column name="end_hp_1" not-null="true" />
+		</property>
+		<property name="end_hp_2" type="java.lang.Integer">
+			<column name="end_hp_2" not-null="true" />
+		</property>
+		<property name="end_hp_3" type="java.lang.Integer">
+			<column name="end_hp_3" not-null="true" />
+		</property>
+		<property name="end_hp_4" type="java.lang.Integer">
+			<column name="end_hp_4" not-null="true" />
+		</property>
+		<property name="end_hp_5" type="java.lang.Integer">
+			<column name="end_hp_5" not-null="true" />
+		</property>
+	</class>
+</hibernate-mapping>

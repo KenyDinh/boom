@@ -1,6 +1,8 @@
 package dev.boom.services;
 
 import dev.boom.common.enums.EventFlagEnum;
+import dev.boom.common.game.GameTypeEnum;
+import dev.boom.common.tools.ToolsEnum;
 import dev.boom.tbl.info.TblWorldInfo;
 
 public class WorldInfo {
@@ -35,6 +37,15 @@ public class WorldInfo {
 		this.info.setEvent_flag(event_flag);
 	}
 	
+	public int getGameFlag() {
+		return this.info.getGame_flag();
+	}
+
+	public void setGameFlag(int game_flag) {
+		this.info.setGame_flag(game_flag);
+	}
+
+	
 	public void addEventFlag(int index) {
 		if (index <= 0) {
 			return;
@@ -55,5 +66,35 @@ public class WorldInfo {
 	
 	public boolean isActiveEventFlag(EventFlagEnum eventFlag) {
 		return isActiveEventFlag(eventFlag.getIndex());
+	}
+	
+	public void addGameFlag(int index) {
+		if (index <= 0) {
+			return;
+		}
+		setGameFlag(getGameFlag() | (1 << (index - 1)));
+	}
+	
+	public void addGameFlag(GameTypeEnum gameTypeEnum) {
+		addGameFlag(gameTypeEnum.getIndex());
+	}
+	
+	public boolean isActiveGameFlag(int index) {
+		if (index <= 0) {
+			return false;
+		}
+		return (getGameFlag() & (1 << (index - 1))) > 0;
+	}
+	
+	public boolean isActiveGameFlag(GameTypeEnum gameTypeEnum) {
+		return isActiveGameFlag(gameTypeEnum.getIndex());
+	}
+	
+	public boolean isActiveToolsFlag(int index) {
+		return true;
+	}
+	
+	public boolean isActiveToolsFlag(ToolsEnum tool) {
+		return true;
 	}
 }

@@ -15,6 +15,7 @@ public class TblQuizPlayerInfo extends DaoValueInfo {
 	private String username;
 	private long quiz_id;
 	private byte status;
+	private byte retry;
 	private String answer;
 	private byte correct_count;
 	private int correct_point;
@@ -25,6 +26,7 @@ public class TblQuizPlayerInfo extends DaoValueInfo {
 		this.username = "";
 		this.quiz_id = 0;
 		this.status = 0;
+		this.retry = 0;
 		this.answer = "";
 		this.correct_count = 0;
 		this.correct_point = 0;
@@ -62,6 +64,14 @@ public class TblQuizPlayerInfo extends DaoValueInfo {
 
 	public void setStatus(byte status) {
 		this.status = status;
+	}
+
+	public byte getRetry() {
+		return retry;
+	}
+
+	public void setRetry(byte retry) {
+		this.retry = retry;
 	}
 
 	public String getAnswer() {

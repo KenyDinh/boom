@@ -1,10 +1,14 @@
 package dev.boom.pages.account;
 
+import javax.servlet.http.Cookie;
+
 import org.apache.commons.lang.StringUtils;
 
 import dev.boom.common.CommonMethod;
 import dev.boom.core.GameLog;
 import dev.boom.pages.JsonPageBase;
+import dev.boom.services.AuthToken;
+import dev.boom.services.AuthTokenService;
 import dev.boom.services.CommonDaoService;
 
 public class ChangePassword extends JsonPageBase {
@@ -59,6 +63,31 @@ public class ChangePassword extends JsonPageBase {
 			GameLog.getInstance().error("[ChangePassword] update failed!");
 			putJsonData("error", getMessage("MSG_GENERAL_ERROR"));
 			return;
+		}
+		
+		boolean remember = false;
+		Cookie[] cookies = getContext().getRequest().getCookies();
+		if (cookies != null && cookies.length > 0) {
+			for (Cookie cookie : cookies) {
+				if (cookie.getName().equals(AuthTokenService.USER_TOKEN_KEY)) {
+					AuthToken authToken = AuthTokenService.getAuthToken(cookie.getValue());
+					if (authToken != null) {
+						remember = true;
+					}
+					break;
+				}
+			}
+		}
+		
+		if (!AuthTokenService.deleteAllUserToken(userInfo)) {
+			GameLog.getInstance().error("Delete all token fail!");
+		}
+		if (remember) {
+			AuthToken authToken = AuthTokenService.generateAuthToken(userInfo);
+			if (authToken != null) {
+				putJsonData("remember_me", AuthTokenService.getTokenValidator(authToken));
+				putJsonData("expired", AuthTokenService.TOKEN_EXPIRED_DAY);
+			}
 		}
 		putJsonData("success", 1);
 	}

@@ -9,10 +9,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.click.element.JsImport;
-
 import dev.boom.common.CommonDefine;
 import dev.boom.common.CommonMethod;
+import dev.boom.common.enums.FridayThemes;
 import dev.boom.common.milktea.MilkTeaItemOptionType;
 import dev.boom.common.milktea.MilkTeaOrderFlag;
 import dev.boom.common.milktea.MilkTeaTabEnum;
@@ -37,6 +36,7 @@ public class MilkTeaRanking extends MilkTeaMainPage {
 	
 	public MilkTeaRanking() {
 		setDataTableFormat(true);
+		initTheme(FridayThemes.PARALLAX);
 	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -45,7 +45,7 @@ public class MilkTeaRanking extends MilkTeaMainPage {
 		if (headElements == null) {
 			headElements = super.getHeadElements();
 		}
-		headElements.add(new JsImport("/js/milktea/milktea-ranking.js"));
+		headElements.add(importJs("/js/milktea/milktea-ranking.js"));
 		
 		return headElements;
 	}
@@ -96,7 +96,7 @@ public class MilkTeaRanking extends MilkTeaMainPage {
 	private void initRankingTable() {
 		List<Map<String, String>> listData = getRankingList();
 		StringBuilder sb = new StringBuilder();
-		sb.append("<table id=\"milktea-ranking-table\" class=\"table table-striped table-hover nowrap\" style=\"width:100%;\">");
+		sb.append("<table id=\"milktea-ranking-table\" class=\"table table-hover nowrap\" style=\"width:100%;\">");
 			sb.append("<thead>");
 				sb.append("<tr role=\"row\" class=\"text-success\">");
 					sb.append("<th>").append("Username").append("</th>");
@@ -224,7 +224,7 @@ public class MilkTeaRanking extends MilkTeaMainPage {
 			}
 			break;
 		default:
-			List<MilkTeaUserInfo> list = MilkTeaUserService.getMilkteaUserInfo("ORDER BY total_money DESC");
+			List<MilkTeaUserInfo> list = MilkTeaUserService.getMilkteaUserInfo("WHERE order_count >= 10 ORDER BY total_money DESC");
 			if (list != null && !list.isEmpty()) {
 				for (MilkTeaUserInfo mku : list) {
 					Map<String, String> map = new HashMap<>();

@@ -1,12 +1,12 @@
 package dev.boom.services;
 
-import dev.boom.tbl.data.TblQuizData;
+import dev.boom.dao.core.DaoValue;
 
 public class QuizData {
 
-	private TblQuizData tblQuizData;
+	private DaoValue tblQuizData;
 
-	public QuizData(TblQuizData tblQuizData) {
+	public QuizData(DaoValue tblQuizData) {
 		this.tblQuizData = tblQuizData;
 	}
 
@@ -14,18 +14,22 @@ public class QuizData {
 	}
 
 	public int getId() {
-		return this.tblQuizData.getId();
+		return (Integer) tblQuizData.Get("id");
 	}
 
 	public short getLevel() {
-		return this.tblQuizData.getLevel();
+		return (Short) tblQuizData.Get("level");
 	}
 
 	public byte getType() {
-		return this.tblQuizData.getType();
+		return (Byte) tblQuizData.Get("type");
 	}
 
 	public String getLabel() {
-		return this.tblQuizData.getLabel();
+		return (String) tblQuizData.Get("label");
+	}
+	
+	public String getDescriptionLabel() {
+		return (String) tblQuizData.Get("desc_label");
 	}
 }

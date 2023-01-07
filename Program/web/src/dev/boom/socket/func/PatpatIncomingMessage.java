@@ -5,6 +5,7 @@ public class PatpatIncomingMessage {
 	private String username;
 	private String channel;
 	private String message;
+	private boolean slash;
 
 	public PatpatIncomingMessage() {
 	}
@@ -33,6 +34,14 @@ public class PatpatIncomingMessage {
 		this.message = message;
 	}
 	
+	public boolean isSlash() {
+		return slash;
+	}
+
+	public void setSlash(boolean slash) {
+		this.slash = slash;
+	}
+
 	public boolean isValidMessage() {
 		return (channel != null && !channel.isEmpty() && username != null && !username.isEmpty() && message != null);
 	}

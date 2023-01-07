@@ -1,0 +1,9 @@
+canvas {
+	display:none;
+	top: 0;
+	left: 0;
+	background-color: black;
+}
+html,body{
+	overflow-x:hidden;
+}

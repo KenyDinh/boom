@@ -69,11 +69,19 @@ public class DishRatingInfo {
 		this.info.setStar_count(star_count);;
 	}
 	
-	public String getFormatRating() {
+	public double getRating() {
 		if (getOrderCount() <= 0 || getStarCount() <= 0) {
-			return null;
+			return 0;
 		}
 		double rate = (double) getStarCount() / getOrderCount();
+		return rate;
+	}
+	
+	public String getFormatRating() {
+		double rate = getRating();
+		if (rate == 0) {
+			return null;
+		}
 		DecimalFormat df= new DecimalFormat("#.#");
 		return df.format(rate);
 	}

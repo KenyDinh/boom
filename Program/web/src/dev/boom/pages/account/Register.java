@@ -2,6 +2,7 @@ package dev.boom.pages.account;
 
 import org.apache.commons.lang.StringUtils;
 
+import dev.boom.common.CommonDefine;
 import dev.boom.common.enums.EventFlagEnum;
 import dev.boom.core.BoomSession;
 import dev.boom.pages.JsonPageBase;
@@ -47,11 +48,11 @@ public class Register extends JsonPageBase {
 		String username = getContext().getRequestParameter("username");
 		String password = getContext().getRequestParameter("password");
 		String rePassword = getContext().getRequestParameter("re_password");
-		if (StringUtils.isBlank(username) || StringUtils.isBlank(password) || StringUtils.isBlank(rePassword)) {
+		if (StringUtils.isBlank(username) || StringUtils.isBlank(password) || StringUtils.isBlank(rePassword) || password.length() > CommonDefine.MAX_LENGTH_PASSWORD) {
 			putJsonData("error", getMessage("MSG_ACCOUNT_INCORRECT_VALUE"));
 			return;
 		}
-		if (!username.matches("[a-z]+\\d?\\.[a-z]+") || username.length() > 32) {
+		if (!username.matches("[a-z]+\\d?\\.[a-z]+") || username.length() > CommonDefine.MAX_LENGTH_USERNAME) {
 			putJsonData("error", getMessage("MSG_ACCOUNT_USERNAME_INVALID"));
 			return;
 		}

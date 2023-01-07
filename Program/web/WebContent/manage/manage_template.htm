@@ -13,13 +13,35 @@ $!{headElements}
 		<h3 class="text-info">Management Site</h3>
 		<div class="row" id="manage-bar">
 			<div class="col-lg-12">
-				<ul class="nav nav-tabs bg-light" role="tablist">
+				<ul class="nav nav-tabs" role="tablist">
 					<li class="nav-item dropdown">
+						#if (${t_idx} == 1)
 						<a class="nav-link dropdown-toggle bg-info" data-toggle="dropdown" href="#">Operation</a>
+						#else
+						<a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Operation</a>
+						#end
+						#if (${user})
 						<div class="dropdown-menu">
+						#if (${user.isAdministrator()})
+							<a class="dropdown-item" href="${context}/manage/manage_user.htm">Manage User</a>
+						#end ##if (${user.isAdministrator()})
+						#if (${user.isMilkteaAdmin()})
 							<a class="dropdown-item" href="${context}/manage/milktea/milk_tea_manage_menu.htm">Milktea Menu</a>
+						#end ##if (${user.isAdministrator()})
+						#if (${user.isAdministrator()})
 							<a class="dropdown-item" href="${context}/manage/manage_event.htm">Event Setup</a>
+							<a class="dropdown-item" href="${context}/manage/manage_game.htm">Game Setup</a>
+							<a class="dropdown-item" href="${context}/manage/manage_game_demo.htm">Game demo Setup</a>
+						#end ##if (${user.isAdministrator()})
 						</div>
+						#end ##if (${user})
+					</li>
+					<li class="nav-item dropdown">
+						#if (${t_idx} == 2)
+						<a class="nav-link bg-info" href="${context}/manage/change_log.htm">Update Log</a>
+						#else
+						<a class="nav-link" href="${context}/manage/change_log.htm">Update Log</a>
+						#end
 					</li>
 				</ul>
 			</div>

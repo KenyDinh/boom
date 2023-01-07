@@ -1,11 +1,13 @@
 package dev.boom.socket;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -18,9 +20,10 @@ public class SocketSessionPool {
 	
 	private static Log log = LogFactory.getLog(SocketSessionPool.class);
 
-	private static Map<String, Map<String, SocketSessionBase>> mapSocketSession = new HashMap<>();
-	private static Set<String> listValidToken = new HashSet<>();
-	private static Map<String, Long> mapTokenUserId = new HashMap<>();
+	private static Map<String, Map<String, SocketSessionBase>> mapSocketSession = new ConcurrentHashMap<>();
+	private static Set<String> listValidToken = Collections.synchronizedSet(new HashSet<>());
+	private static Map<String, UserInfo> mapTokenUser = new ConcurrentHashMap<>();
+	private static Map<String, String> mapTokenUUID = new ConcurrentHashMap<>();
 
 	public static void applySocketSession(SocketSessionBase socketSession) {
 		String endPointName = socketSession.getEndPointName();
@@ -34,8 +37,12 @@ public class SocketSessionPool {
 			GameLog.getInstance().error("[SocketSessionPool] (applySocketSession) socket session is already in session pool!");
 			return;
 		}
-		if (mapTokenUserId.containsKey(token)) {
-			socketSession.setUserId(mapTokenUserId.get(token));
+		if (mapTokenUser.containsKey(token)) {
+			socketSession.setUserId(mapTokenUser.get(token).getId());
+			socketSession.setUsername(mapTokenUser.get(token).getUsername());
+		} else if (mapTokenUUID.containsKey(token)) {
+			socketSession.setUsername(mapTokenUUID.get(token));
+			GameLog.getInstance().error("[SocketSessionPool] (applySocketSession) this socket session is using UUID");
 		} else {
 			GameLog.getInstance().error("[SocketSessionPool] (applySocketSession) this socket session doesn't have user_id!");
 		}
@@ -97,6 +104,18 @@ public class SocketSessionPool {
 		return null;
 	}
 	
+	public static SocketSessionBase getStoredSocketSessionByUserId(String uuid, String endPointName) {
+		if (mapSocketSession.containsKey(endPointName)) {
+			for (String key : mapSocketSession.get(endPointName).keySet()) {
+				SocketSessionBase ssb = mapSocketSession.get(endPointName).get(key);
+				if (ssb.getEndPointName().equals(endPointName) && ssb.getUserId() == 0 && ssb.getUsername() != null && ssb.getUsername().equals(uuid)) {
+					return ssb;
+				}
+			}
+		}
+		return null;
+	}
+	
 	public static List<SocketSessionBase> getListSocketSessionByUserId(long userId) {
 		List<SocketSessionBase> listSocketSession = null;
 		for (String endPointName : mapSocketSession.keySet()) {
@@ -135,8 +154,11 @@ public class SocketSessionPool {
 		if (listValidToken.contains(token)) {
 			listValidToken.remove(token);
 		}
-		if (mapTokenUserId.containsKey(token)) {
-			mapTokenUserId.remove(token);
+		if (mapTokenUser.containsKey(token)) {
+			mapTokenUser.remove(token);
+		}
+		if (mapTokenUUID.containsKey(token)) {
+			mapTokenUUID.remove(token);
 		}
 	}
 	
@@ -156,7 +178,7 @@ public class SocketSessionPool {
 		String key = getPlayerKey(endpoint, userInfo);
 		log.info("Generate token for " + endpoint + ", token:" + key);
 		listValidToken.add(key);
-		mapTokenUserId.put(key, userInfo.getId());
+		mapTokenUser.put(key, userInfo);
 		return key;
 	}
 	
@@ -170,6 +192,7 @@ public class SocketSessionPool {
 		String key = CommonMethod.getEncryptMD5(base);
 		log.info("Generate token for " + endpoint + ", token:" + key);
 		listValidToken.add(key);
+		mapTokenUUID.put(key, uuid);
 		return key;
 	}
 	

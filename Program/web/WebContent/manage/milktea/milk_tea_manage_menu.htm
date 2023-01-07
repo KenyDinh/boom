@@ -59,6 +59,12 @@
 				</div>
 				<div class="form-group">
 				  <fieldset>
+				    <label class="control-label" >Menu flag</label>
+				    $!{flags}
+				  </fieldset>
+				</div>
+				<div class="form-group">
+				  <fieldset>
 				    <label class="control-label" >Display adjust</label>
 				    $!{display}
 				  </fieldset>
@@ -76,9 +82,36 @@
 			</p>
 		</div>
 	#elseif (${table}) ##if (${menuInfo}) 
+		<div><button class="btn btn-info" data-toggle="modal" data-target="#open-menu-modal">Open Menu</button></div>
 		<h5 class="text-center font-weight-bold text-info">List Available Menu</h5>
 		<div>
 			${table}
+		</div>
+		<div id="open-menu-modal" class="modal fade" role="dialog">
+			<div class="modal-dialog modal-dialog-centered">
+				<div class="modal-content">
+					<div class="modal-header bg-info">
+						<h5 class="modal-title" id="exampleModalLabel">Open new menu</h5>
+				        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+				          <span aria-hidden="true">&times;</span>
+				        </button>
+					</div>
+					<div class="modal-body">
+						<form id="form-open-menu" class="form-inline my-2 my-lg-0">
+		                    <input id="menu-url" class="form-control mr-sm-2" type="text" required pattern="^https:\/\/shopeefood\.vn\/ha-noi\/[a-z-0-9]+" placeholder="https://shopeefood.vn/ha-noi/tra-sua-sharetea-pho-nha-tho" style="width:calc(100% - 4.5rem);">
+		                    <button class="btn btn-secondary my-2 my-sm-0" type="submit" style="width:4rem;">Open</button>
+		            	</form>
+					</div>
+				</div>
+			</div>
+		</div>
+		#if (${socket_url})
+			<span id="socket_url">${socket_url}</span>
+		#end
+		<div id="menu-loading" class="d-none" style="position:absolute;top:0;left:0;width:100vw;height:100vh;background:#222222c1;z-index:99999;">
+			<div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);">
+				#parse("WEB-INF/svg/loading-svg.html")
+			</div>
 		</div>
 	#end ##if (${menuInfo}) 
 

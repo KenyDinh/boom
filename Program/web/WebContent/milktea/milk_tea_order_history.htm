@@ -14,4 +14,34 @@ ${milkTeaBanner}
 	</div>
 	<div class="row" style="height:3.125rem;">
 	</div>
+
+<div class="modal fade" id="voting-up-order">
+	<div class="modal-dialog modal-dialog-centered modal-md">
+		<div class="modal-content" style="background-color:#2d455f;">
+			<div>
+				<span id="vote-order-name" class="text-info font-weight-bold" style="font-size: 1rem; padding-left: 1rem;"></span>
+				<button type="button" class="close" style="padding-right: 0.5rem;" data-dismiss="modal">×</button>
+			</div>
+			<div class="modal-body text-center">
+				<form id="voting-up-order-form">
+					<input type="hidden" id="vote-order-id" value="" />
+					<div class="form-group text-center" style="margin-bottom:0.5rem;">
+					#foreach($idx in [1,2,3,4,5])
+						<span class="order-star" data-index="${idx}" style="cursor: pointer; font-size: 3rem;">
+							<i class="fas fa-star"></i>
+						</span> 
+					#end
+					</div>
+					<div style="color:#607D8B;">
+						Visit <a href="https://apps.timwhitlock.info/emoji/tables/unicode" target="_blank" data-toggle="tooltip" data-placement="top" title="Copy icon from Native column">Here</a> for rich text in comment.
+					</div>
+					<div style="margin-bottom:1rem;">
+						<textarea id="vote-comment" style="width:80%;height:100px;resize:none;border-radius:0.5rem;padding:0.5rem 0.5rem;outline:none;" placeholder="comment..."></textarea>
+					</div>
+					<button id="btn-up-vote" type="button" class="btn btn-success" style="width: 40%;">Submit</button>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
 #end

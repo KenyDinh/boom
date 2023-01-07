@@ -22,8 +22,9 @@ var BoomSocket = function(url) {
 					this.socket.onerror = obj.onerror;
 				}
 			}
-			window.beforeunload = function() {
-				this.close.bind(this)();
+			window.onbeforeunload = () => {
+				console.log("---closing---");
+				this.close();
 			}
 		}
 	}
@@ -35,8 +36,8 @@ var BoomSocket = function(url) {
 	}
 	this.close = function() {
 		if (this.socket !== undefined && this.socket !== null) {
-			console.log("close----------")
 			this.socket.close();
+			console.log("---socket closed---");
 		}
 	}
 	this.sendMessage = function(msg) {

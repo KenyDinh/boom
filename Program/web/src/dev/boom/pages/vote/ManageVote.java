@@ -1,44 +1,62 @@
 package dev.boom.pages.vote;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.click.element.JsImport;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFFont;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.CellStyle;
 
 import dev.boom.common.CommonDefine;
 import dev.boom.common.CommonMethod;
+import dev.boom.common.VoteFuncs;
+import dev.boom.common.enums.SurveyOptionType;
+import dev.boom.common.enums.SurveyQuestionType;
+import dev.boom.common.enums.SurveyStatus;
 import dev.boom.core.GameLog;
-import dev.boom.core.SurveySession;
-import dev.boom.pages.PageBase;
+import dev.boom.dao.core.DaoValue;
 import dev.boom.services.CommonDaoService;
-import dev.boom.services.SurveyInfo;
-import dev.boom.services.SurveyOptionInfo;
 import dev.boom.services.SurveyService;
-import dev.boom.services.SurveyValidCodeData;
+import dev.boom.services.json.SurveyOptionStatistics;
+import dev.boom.services.json.SurveyResultObject;
+import dev.boom.tbl.info.TblSurveyInfo;
+import dev.boom.tbl.info.TblSurveyOptionInfo;
+import dev.boom.tbl.info.TblSurveyQuestionInfo;
+import dev.boom.tbl.info.TblSurveyResultInfo;
+import dev.boom.tbl.info.TblSurveyUserAccessInfo;
 
-public class ManageVote extends PageBase {
+public class ManageVote extends VotePageBase {
 
 	private static final long serialVersionUID = 1L;
 	private static final int MODE_SURVEY_NEW = 1;
 	private static final int MODE_SURVEY_EDIT = 2;
-	private static final int MODE_OPTION_NEW = 3;
-	private static final int MODE_OPTION_EDIT = 4;
-	private static final int MODE_SHOW_RESULT = 5;
-	private static final String SURVEY_SESSION = "servey_session";
+	private static final int MODE_QUESTION_NEW = 3;
+	private static final int MODE_QUESTION_EDIT = 4;
+	private static final int MODE_OPTION_NEW = 5;
+	private static final int MODE_OPTION_EDIT = 6;
+	private static final int MODE_SHOW_RESULT = 7;
+	private static final int MODE_EXPORT_RESULT = 8;
 	
-	private SurveySession surveySession = null;
-	private SurveyValidCodeData data = null;
-	private SurveyInfo survey = null;
+	private TblSurveyInfo survey = null;
 	private int mode = 0;
 	private boolean error = false;
 
@@ -50,19 +68,12 @@ public class ManageVote extends PageBase {
 		if (!super.onSecurityCheck()) {
 			return false;
 		}
-		surveySession = (SurveySession) getContext().getSessionAttribute(SURVEY_SESSION);
-		if (surveySession == null) {
-			GameLog.getInstance().error("[ManageVote] survey session is null!");
-			setRedirect(Vote.class);
-			return false;
-		}
-		data = SurveyService.getSurveyValidData(surveySession.getCode());
-		if (data == null) {
+		if (userInfo == null) {
 			GameLog.getInstance().error("[ManageVote] survey valid data is null!");
 			setRedirect(Vote.class);
 			return false;
 		}
-		if (!data.isEditable() && !data.isReadonly()) {
+		if (!userInfo.isVoteAdmin()) {
 			GameLog.getInstance().error("[ManageVote] not allow to access!");
 			setRedirect(Vote.class);
 			return false;
@@ -78,8 +89,7 @@ public class ManageVote extends PageBase {
 		}
 		initHeadElementsLocalForTableData();
 		headElements.add(new JsImport("/js/lib/chart-2.7.2.js"));
-		headElements.add(new JsImport("/js/lib/random-color.min.js"));
-		headElements.add(new JsImport("/js/vote/manage_vote.js"));
+		headElements.add(importJs("/js/vote/manage_vote.js"));
 		
 		return headElements;
 	}
@@ -89,7 +99,7 @@ public class ManageVote extends PageBase {
 		super.onInit();
 		String strSurveyId = getContext().getRequestParameter("survey_id");
 		if (CommonMethod.isValidNumeric(strSurveyId, 1, Long.MAX_VALUE)) {
-			survey = SurveyService.getSurveyById(Long.parseLong(strSurveyId));
+			survey = SurveyService.getSurveyInfoById(Long.parseLong(strSurveyId));
 		}
 		if (survey != null) {
 			addModel("survey", survey);
@@ -99,22 +109,8 @@ public class ManageVote extends PageBase {
 			mode = Integer.parseInt(strMode);
 		}
 		addModel("mode", mode);
-		if (data == null) {
-			setRedirect(Vote.class);
-			return;
-		}
-		if (data.isEditable()) {
-		} else if (data.isReadonly()) {
-			if (mode != MODE_SHOW_RESULT) {
-				GameLog.getInstance().error("[ManageVote] not allowed to access other page beside result page.");
-				setRedirect(Vote.class);
-				return;
-			}
-			if (survey == null || !survey.isActive()) {
-				GameLog.getInstance().error("[ManageVote] no survey active!");
-				setRedirect(Vote.class);
-				return;
-			}
+		if (userInfo.isVoteAdmin()) {
+			addModel("admin", 1);
 		} else {
 			GameLog.getInstance().error("[ManageVote] access deny!");
 			setRedirect(Vote.class);
@@ -132,11 +128,12 @@ public class ManageVote extends PageBase {
 		switch (mode) {
 		case MODE_SURVEY_NEW:
 		case MODE_SURVEY_EDIT:
-			SurveyInfo surveyInfo = null;
+		{
+			TblSurveyInfo surveyInfo = null;
 			if (mode == MODE_SURVEY_EDIT) {
 				surveyInfo = survey;
 			} else {
-				surveyInfo = new SurveyInfo();
+				surveyInfo = new TblSurveyInfo();
 			}
 			if (surveyInfo == null) {
 				GameLog.getInstance().error("[ManageVote] Survey is null!");
@@ -151,73 +148,195 @@ public class ManageVote extends PageBase {
 					error = true;
 					return;
 				}
+				VoteFuncs.reInitAllRewardId();
 			} else {
 				String strName = getContext().getRequestParameter("name");
 				if (strName != null && strName.length() > 0 && !surveyInfo.getName().equals(strName)) {
-					if (strName.indexOf("<script") >= 0) {
-						strName = StringEscapeUtils.escapeHtml(strName);
-					}
+//					strName = StringEscapeUtils.escapeHtml(strName);
 					surveyInfo.setName(strName);
 					update = true;
 				}
 				String strStatus = getContext().getRequestParameter("status");
-				if (CommonMethod.isValidNumeric(strStatus, 0, 1)) {
-					byte status = Byte.parseByte(strStatus);
-					if (surveyInfo.getStatus() != status) {
-						surveyInfo.setStatus(status);
+				if (CommonMethod.isValidNumeric(strStatus, 0, Byte.MAX_VALUE)) {
+					SurveyStatus status = SurveyStatus.valueOf(Byte.parseByte(strStatus));
+					byte stt = (byte) status.ordinal();
+					if (surveyInfo.getStatus() != stt) {
+						surveyInfo.setStatus(stt);
 						update = true;
 					}
 				}
-				String strMaxChoice = getContext().getRequestParameter("max_choice");
-				if (CommonMethod.isValidNumeric(strMaxChoice, 1, Byte.MAX_VALUE)) {
-					byte max_choice = Byte.parseByte(strMaxChoice);
-					if (surveyInfo.getMaxChoice() != max_choice) {
-						surveyInfo.setMaxChoice(max_choice);
-						update = true;
-					}
-				}
-				String strMinChoice = getContext().getRequestParameter("min_choice");
-				if (CommonMethod.isValidNumeric(strMinChoice, 1, Byte.MAX_VALUE)) {
-					byte min_choice = Byte.parseByte(strMinChoice);
-					if (surveyInfo.getMinChoice() != min_choice) {
-						surveyInfo.setMinChoice(min_choice);
-						update = true;
-					}
-				}
-				String strMaxRetry = getContext().getRequestParameter("max_retry");
-				if (CommonMethod.isValidNumeric(strMaxRetry, 1, Byte.MAX_VALUE)) {
-					byte max_retry = Byte.parseByte(strMaxRetry);
-					if (surveyInfo.getMaxRetry() != max_retry) {
-						surveyInfo.setMaxRetry(max_retry);
+				String strDescription = getContext().getRequestParameter("desc");
+				if (strDescription != null && strDescription.length() > 0) {
+//					strDescription = StringEscapeUtils.escapeHtml(strDescription);
+					if (!surveyInfo.getDescription().equals(strDescription)) {
+						surveyInfo.setDescription(strDescription);
 						update = true;
 					}
 				}
 				String strExpiration = getContext().getRequestParameter("expired");
 				if (strExpiration != null && strExpiration.matches(CommonDefine.DATE_REGEX_PATTERN)) {
-					Date expired = CommonMethod.getDate(strExpiration, CommonDefine.DATE_FORMAT_PATTERN);
+					Date expired = CommonMethod.getDate(strExpiration.replace("/", "-"));
 					if (expired != null && expired.getTime() != surveyInfo.getExpired().getTime()) {
 						surveyInfo.setExpired(expired);
 						update = true;
 					}
 				}
+				FileItem file = getContext().getFileItem("access_list");
+				List<DaoValue> listUserAccess = null;
+				if (file != null && StringUtils.isNotBlank(file.getName())) {
+					listUserAccess = getSurveyUserAccessList(file);
+					int nFlag = 0;
+					if (listUserAccess != null && !listUserAccess.isEmpty()) {
+						nFlag = 1;
+					}
+					if (nFlag != surveyInfo.getFlag()) {
+						surveyInfo.setFlag(nFlag);
+						update = true;
+					}
+				}
+				Long surveyID = new Long(surveyInfo.getId());
 				if (mode == MODE_SURVEY_NEW) {
-					if (CommonDaoService.insert(surveyInfo.getInfo()) == null) {
+					surveyInfo.setPathname(UUID.randomUUID().toString().replace("-", ""));
+					surveyID = (Long) CommonDaoService.insert(surveyInfo);
+					if (surveyID == null || surveyID <= 0) {
 						GameLog.getInstance().error("[ManageVote] insert survey fail!");
 						error = true;
 						return;
 					}
-				} else if (update){
-					if (!CommonDaoService.update(surveyInfo.getInfo())) {
+				} else if (update) {
+					if (!CommonDaoService.update(surveyInfo)) {
 						GameLog.getInstance().error("[ManageVote] update survey fail!");
 						error = true;
 						return;
 					}
 				}
+				updateSurveyAccessList(surveyID.longValue(), listUserAccess);
 			}
+		}
+			break;
+		case MODE_QUESTION_NEW:
+		case MODE_QUESTION_EDIT:
+		{
+			if (survey == null) {
+				GameLog.getInstance().error("[ManageVote] no survey selected!");
+				error = true;
+				return;
+			}
+			TblSurveyQuestionInfo questionInfo = null;
+			if (mode == MODE_QUESTION_EDIT) {
+				String strQuestionId = getContext().getRequestParameter("question_id");
+				if (!CommonMethod.isValidNumeric(strQuestionId, 1, Long.MAX_VALUE)) {
+					GameLog.getInstance().error("[ManageVote] invalid question id!");
+					error = true;
+					return;
+				}
+				questionInfo = SurveyService.getSurveyQuestionById(Long.parseLong(strQuestionId));
+			} else {
+				questionInfo = new TblSurveyQuestionInfo();
+				questionInfo.setSurvey_id(survey.getId());
+			}
+			if (questionInfo == null || questionInfo.getSurvey_id() != survey.getId()) {
+				GameLog.getInstance().error("[ManageVote] Question is null!");
+				error = true;
+				return;
+			}
+			if (mode == MODE_QUESTION_EDIT && getContext().getRequestParameter("delete") != null) {
+				if (!CommonDaoService.delete(questionInfo)) {
+					GameLog.getInstance().error("[ManageVote] delete question fail!");
+					error = true;
+					return;
+				}
+				VoteFuncs.removeExistingRewardID(survey.getId(), questionInfo.getIdx());
+			} else {
+				String strType = getContext().getRequestParameter("type");
+				if (CommonMethod.isValidNumeric(strType, 0, Byte.MAX_VALUE)) {
+					SurveyQuestionType qType = SurveyQuestionType.valueOf(Byte.parseByte(strType));
+					if (qType.ordinal() != questionInfo.getType()) {
+						questionInfo.setType((byte)qType.ordinal());
+						update = true;
+					}
+				}
+				String strTitle = getContext().getRequestParameter("title");
+				if (strTitle != null && strTitle.length() > 0 && !questionInfo.getTitle().equals(strTitle)) {
+//					strTitle = StringEscapeUtils.escapeHtml(strTitle);
+					questionInfo.setTitle(strTitle);
+					update = true;
+				}
+				String strContent = getContext().getRequestParameter("content");
+				if (strContent != null && !questionInfo.getContent().equals(strContent)) {
+//					strContent = StringEscapeUtils.escapeHtml(strContent);
+					questionInfo.setContent(strContent);
+					update = true;
+				}
+//				String strDesc = getContext().getRequestParameter("desc");
+//				if (strDesc != null && !questionInfo.getDescription().equals(strDesc)) {
+//					strDesc = StringEscapeUtils.escapeHtml(strDesc);
+//					questionInfo.setDescription(strDesc);
+//					update = true;
+//				}
+				String strMin = getContext().getRequestParameter("min");
+				if (CommonMethod.isValidNumeric(strMin, 0, Integer.MAX_VALUE)) {
+					int min = Integer.parseInt(strMin);
+					if (questionInfo.getMin_choice() != min) {
+						questionInfo.setMin_choice(min);
+						update = true;
+					}
+				}
+				String strMax = getContext().getRequestParameter("max");
+				if (CommonMethod.isValidNumeric(strMax, 0, Integer.MAX_VALUE)) {
+					int max = Integer.parseInt(strMax);
+					if (questionInfo.getMax_choice() != max) {
+						questionInfo.setMax_choice(max);
+						update = true;
+					}
+				}
+				questionInfo.setOptional((byte) 0);
+				String strOptional = getContext().getRequestParameter("optional");
+				if (strOptional != null && strOptional.equals("on")) {
+					questionInfo.setOptional((byte) 1);
+					update = true;
+				}
+				if (mode == MODE_QUESTION_NEW) {
+					long nCount = SurveyService.getCountSurveyQuestion(survey.getId());
+					byte nIndex = (byte) (nCount + 1);
+					questionInfo.setIdx(nIndex);
+					if (CommonDaoService.insert(questionInfo) == null) {
+						GameLog.getInstance().error("[ManageVote] insert question fail!");
+						error = true;
+						return;
+					}
+				} else if (update){
+					if (!CommonDaoService.update(questionInfo)) {
+						GameLog.getInstance().error("[ManageVote] update question fail!");
+						error = true;
+						return;
+					}
+				}
+			
+			}
+		}
 			break;
 		case MODE_OPTION_NEW:
 		case MODE_OPTION_EDIT:
-			SurveyOptionInfo surveyOption = null;
+		{
+			if (survey == null) {
+				GameLog.getInstance().error("[ManageVote] no survey selected!");
+				error = true;
+				return;
+			}
+			String strQuestionId = getContext().getRequestParameter("question_id");
+			if (!CommonMethod.isValidNumeric(strQuestionId, 1, Long.MAX_VALUE)) {
+				GameLog.getInstance().error("[ManageVote] invalid question id!");
+				error = true;
+				return;
+			}
+			TblSurveyQuestionInfo questionInfo = SurveyService.getSurveyQuestionById(Long.parseLong(strQuestionId));
+			if (questionInfo == null) {
+				GameLog.getInstance().error("[ManageVote] no question selected!");
+				error = true;
+				return;
+			}
+			TblSurveyOptionInfo surveyOption = null;
 			if (mode == MODE_OPTION_EDIT) {
 				String strOptionId = getContext().getRequestParameter("option_id");
 				if (!CommonMethod.isValidNumeric(strOptionId, 1, Long.MAX_VALUE)) {
@@ -227,89 +346,136 @@ public class ManageVote extends PageBase {
 				}
 				surveyOption = SurveyService.getSurveyOptionById(Long.parseLong(strOptionId));
 			} else {
-				surveyOption = new SurveyOptionInfo();
+				surveyOption = new TblSurveyOptionInfo();
+				surveyOption.setQuestion_id(questionInfo.getId());
 			}
-			if (surveyOption == null) {
+			if (surveyOption == null || surveyOption.getQuestion_id() != questionInfo.getId()) {
 				GameLog.getInstance().error("[ManageVote] Option is null!");
 				error = true;
 				return;
 			}
-			if (survey == null) {
-				GameLog.getInstance().error("[ManageVote] no survey selected!");
-				error = true;
-				return;
-			}
-			if (surveyOption.getSurveyId() != survey.getId()) {
-				surveyOption.setSurveyId(survey.getId());
-				update = true;
-			}
 			if (mode == MODE_OPTION_EDIT && getContext().getRequestParameter("delete") != null) {
-				if (!CommonDaoService.delete(surveyOption.getInfo())) {
+				if (!CommonDaoService.delete(surveyOption)) {
 					GameLog.getInstance().error("[ManageVote] delete option fail!");
 					error = true;
 					return;
 				}
 			} else {
-				String strOptName = getContext().getRequestParameter("name");
-				if (strOptName != null && strOptName.length() > 0 && !surveyOption.getName().equals(strOptName)) {
-					if (strOptName.indexOf("<script") >= 0) {
-						strOptName = StringEscapeUtils.escapeHtml(strOptName);
+				SurveyOptionType oldType = SurveyOptionType.valueOf(surveyOption.getType());
+				String strType = getContext().getRequestParameter("type");
+				if (CommonMethod.isValidNumeric(strType, 0, Byte.MAX_VALUE)) {
+					SurveyOptionType oType = SurveyOptionType.valueOf(Byte.parseByte(strType));
+					if (oType.ordinal() != surveyOption.getType()) {
+						surveyOption.setType((byte)oType.ordinal());
+						update = true;
 					}
-					surveyOption.setName(strOptName);
+				}
+				String strOptName = getContext().getRequestParameter("title");
+				if (strOptName != null && strOptName.length() > 0 && !surveyOption.getTitle().equals(strOptName)) {
+//					strOptName = StringEscapeUtils.escapeHtml(strOptName);
+					surveyOption.setTitle(strOptName);
 					update = true;
 				}
-				String strContent = getContext().getRequestParameter("content");
-				if (strContent != null && !surveyOption.getContent().equals(strContent)) {
-					if (strContent.indexOf("<script") >= 0) {
-						strContent = StringEscapeUtils.escapeHtml(strContent);
-					}
-					surveyOption.setContent(strContent);
+				String strDesc = getContext().getRequestParameter("desc");
+				if (strDesc != null && !surveyOption.getDescription().equals(strDesc)) {
+//					strDesc = StringEscapeUtils.escapeHtml(strDesc);
+					surveyOption.setDescription(strDesc);
 					update = true;
 				}
-				String oldFileName = surveyOption.getImage();
-				FileItem image = getContext().getFileItem("image");
-				if (image != null) {
-					String imgName = image.getName();
-					if (StringUtils.isNotBlank(imgName)) {
-						GameLog.getInstance().info("[ManageVote] getImage: " + image.getName());
-						String imgExt = imgName.substring(imgName.lastIndexOf(".") + 1);
-						String newImgName = "";
-						do {
-							newImgName = RandomStringUtils.randomAlphanumeric(8) + "." + imgExt;
-						} while (SurveyService.isExistOptionImgFileName(newImgName));
-						surveyOption.setImage(newImgName);
-						File newFile = new File(getFileUploadDir(), newImgName);
-						try {
-							image.write(newFile);
-							GameLog.getInstance().info("[ManageVote] created new image file: " + newImgName);
-							update = true;
-						} catch (Exception e) {
-							e.printStackTrace();
+				String oldContent = surveyOption.getContent();
+				if (surveyOption.getType() == SurveyOptionType.IMAGE.ordinal()) {
+					FileItem image = getContext().getFileItem("content");
+					if (image != null) {
+						String imgName = image.getName();
+						if (StringUtils.isNotBlank(imgName)) {
+							GameLog.getInstance().info("[ManageVote] getImage: " + image.getName());
+							String imgExt = imgName.substring(imgName.lastIndexOf(".") + 1);
+							String newImgName = "";
+//							do {
+								newImgName = RandomStringUtils.randomAlphanumeric(12) + "." + imgExt;
+//							} while (SurveyService.isExistOptionImgFileName(newImgName));
+							surveyOption.setContent(newImgName);
+							File newFile = new File(getFileUploadDir(), newImgName);
+							try {
+								image.write(newFile);
+								GameLog.getInstance().info("[ManageVote] created new image file: " + newImgName);
+								update = true;
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
 						}
+					}
+				} else if (surveyOption.getType() == SurveyOptionType.TEXT.ordinal()){
+					String strContent = getContext().getRequestParameter("content");
+					if (strContent != null && !surveyOption.getContent().equals(strContent)) {
+//						strContent = StringEscapeUtils.escapeHtml(strContent);
+						surveyOption.setContent(strContent);
+						update = true;
 					}
 				}
 				if (mode == MODE_OPTION_NEW) {
-					if (CommonDaoService.insert(surveyOption.getInfo()) == null) {
+					if (CommonDaoService.insert(surveyOption) == null) {
 						GameLog.getInstance().error("[ManageVote] insert option fail!");
 						error = true;
 						return;
 					}
 				} else if (update){
-					if (!CommonDaoService.update(surveyOption.getInfo())) {
+					if (!CommonDaoService.update(surveyOption)) {
 						GameLog.getInstance().error("[ManageVote] update option fail!");
 						error = true;
 						return;
 					}
-					if (!surveyOption.getImage().equals(oldFileName)) {
-						File oldFile = new File(getFileUploadDir(), oldFileName);
-						if (oldFile.exists()) {
-							if (!oldFile.delete()) {
-								GameLog.getInstance().error("[ManageVote] cannot delete old image file: " + oldFileName);
+					if (oldType == SurveyOptionType.IMAGE) {
+						if (oldContent != null || !surveyOption.getContent().equals(oldContent)) {
+							File oldFile = new File(getFileUploadDir(), oldContent);
+							if (oldFile.exists()) {
+								if (!oldFile.delete()) {
+									GameLog.getInstance().error("[ManageVote] cannot delete old image file: " + oldContent);
+								}
 							}
 						}
 					}
 				}
 			}
+		}
+			break;
+		case MODE_SHOW_RESULT:
+		{
+			if (survey != null && getContext().getRequestParameter("delete") != null) {
+				String strID = getContext().getRequestParameter("id");
+				if (CommonMethod.isValidNumeric(strID, 1, Long.MAX_VALUE)) {
+					TblSurveyResultInfo info = new TblSurveyResultInfo();
+					info.Set("id", Long.parseLong(strID));
+					info.Set("survey_id", survey.getId());
+					List<DaoValue> listRet = CommonDaoService.select(info);
+					if (listRet == null || listRet.size() != 1) {
+						GameLog.getInstance().error("[ManageVote] More than one result record to delete!");
+						error = true;
+						return;
+					} else {
+						if (!CommonDaoService.delete(listRet.get(0))) {
+							GameLog.getInstance().error("[ManageVote] Failed to delete result record!");
+							error = true;
+							return;
+						}
+						VoteFuncs.reInitAllRewardId();
+						Map<String, String> params = new HashMap<>();
+						params.put("mode", String.valueOf(mode));
+						params.put("survey_id", String.valueOf(survey.getId()));
+						setRedirect(this.getClass(), params);
+						return;
+					}
+				}
+			}
+		}
+			break;
+		case MODE_EXPORT_RESULT: 
+		{
+			if (exportExcelFile()) {
+				setPath(null);
+				return;
+			}
+		}
 			break;
 		default:
 			break;
@@ -335,7 +501,8 @@ public class ManageVote extends PageBase {
 		switch (mode) {
 		case MODE_SURVEY_NEW:
 		case MODE_SURVEY_EDIT:
-			SurveyInfo surveyInfo = null;
+		{
+			TblSurveyInfo surveyInfo = null;
 			String strSurveyId = getContext().getRequestParameter("survey_id");
 			if (mode == MODE_SURVEY_EDIT) {
 				if (!CommonMethod.isValidNumeric(strSurveyId, 1, Long.MAX_VALUE)) {
@@ -343,28 +510,95 @@ public class ManageVote extends PageBase {
 					error = true;
 					return;
 				}
-				surveyInfo = SurveyService.getSurveyById(Long.parseLong(strSurveyId));
-				addModel("title", "Edit Vote");
+				surveyInfo = SurveyService.getSurveyInfoById(Long.parseLong(strSurveyId));
+				addModel("title", "Edit Survey");
 			} else {
-				surveyInfo = new SurveyInfo();
-				addModel("title", "New Vote");
+				surveyInfo = new TblSurveyInfo();
+				addModel("title", "New Survey");
 			}
 			if (surveyInfo == null) {
 				GameLog.getInstance().error("[ManageVote] Survey is null!");
 				error = true;
 				return;
 			}
+			StringBuilder optionSelects = new StringBuilder();
+			optionSelects.append("<select class=\"form-control\" id=\"status\" name=\"status\">");
+			for (SurveyStatus stt : SurveyStatus.values()) {
+				optionSelects.append("<option value=\"").append(stt.ordinal()).append("\" ").append((stt.ordinal() == surveyInfo.getStatus()? "selected" : "")).append(">");
+				optionSelects.append(stt.name()).append("</option>");
+			}
+			optionSelects.append("</select>");
+			addModel("status_list", optionSelects.toString());
+			addModel("expired", CommonMethod.getFormatDateString(surveyInfo.getExpired()));
 			addModel("survey_form", surveyInfo);
+		}
 			break;
-		case MODE_OPTION_NEW:
-		case MODE_OPTION_EDIT:
-			List<SurveyInfo> listSurvey = SurveyService.getSurveyList();
-			if (listSurvey != null && listSurvey.isEmpty()) {
-				GameLog.getInstance().error("[ManageVote] no survey info!");
+		case MODE_QUESTION_NEW:
+		case MODE_QUESTION_EDIT:
+		{
+			if (survey == null) {
+				GameLog.getInstance().error("[ManageVote] no survey selected!");
 				error = true;
 				return;
 			}
-			SurveyOptionInfo surveyOption = null;
+//			List<TblSurveyInfo> listSurvey = SurveyService.getSurveyInfoList();
+//			if (listSurvey != null && listSurvey.isEmpty()) {
+//				GameLog.getInstance().error("[ManageVote] no survey info!");
+//				error = true;
+//				return;
+//			}
+			TblSurveyQuestionInfo questionInfo = null;
+			if (mode == MODE_QUESTION_EDIT) {
+				String strQuestionId = getContext().getRequestParameter("question_id");
+				if (!CommonMethod.isValidNumeric(strQuestionId, 1, Long.MAX_VALUE)) {
+					GameLog.getInstance().error("[ManageVote] invalid question id!");
+					error = true;
+					return;
+				}
+				questionInfo = SurveyService.getSurveyQuestionById(Long.parseLong(strQuestionId));
+				addModel("title", "Edit Survey Question");
+			} else {
+				questionInfo = new TblSurveyQuestionInfo();
+				questionInfo.setSurvey_id(survey.getId());
+				addModel("title", "New Survey Question");
+			}
+			if (questionInfo == null) {
+				GameLog.getInstance().error("[ManageVote] Question is null!");
+				error = true;
+				return;
+			}
+			StringBuilder optionSelects = new StringBuilder();
+			optionSelects.append("<select class=\"form-control\" id=\"type\" name=\"type\">");
+			for (SurveyQuestionType questionType : SurveyQuestionType.values()) {
+				optionSelects.append("<option value=\"").append(questionType.ordinal()).append("\" ").append((questionType.ordinal() == questionInfo.getType()? "selected" : "")).append(">");
+				optionSelects.append(questionType.name()).append("</option>");
+			}
+			optionSelects.append("</select>");
+			addModel("type_list", optionSelects.toString());
+			addModel("question_form", questionInfo);
+		}
+			break;
+		case MODE_OPTION_NEW:
+		case MODE_OPTION_EDIT:
+		{
+			if (survey == null) {
+				GameLog.getInstance().error("[ManageVote] no survey selected!");
+				error = true;
+				return;
+			}
+			String strQuestionId = getContext().getRequestParameter("question_id");
+			if (!CommonMethod.isValidNumeric(strQuestionId, 1, Long.MAX_VALUE)) {
+				GameLog.getInstance().error("[ManageVote] invalid question id!");
+				error = true;
+				return;
+			}
+			TblSurveyQuestionInfo questionInfo = SurveyService.getSurveyQuestionById(Long.parseLong(strQuestionId));
+			if (questionInfo == null) {
+				GameLog.getInstance().error("[ManageVote] no question selected!");
+				error = true;
+				return;
+			}
+			TblSurveyOptionInfo surveyOption = null;
 			if (mode == MODE_OPTION_EDIT) {
 				String strOptionId = getContext().getRequestParameter("option_id");
 				if (!CommonMethod.isValidNumeric(strOptionId, 1, Long.MAX_VALUE)) {
@@ -373,15 +607,11 @@ public class ManageVote extends PageBase {
 					return;
 				}
 				surveyOption = SurveyService.getSurveyOptionById(Long.parseLong(strOptionId));
-				addModel("title", "Edit Option");
+				addModel("title", "Edit Survey Option");
 			} else {
-				surveyOption = new SurveyOptionInfo();
-				if (survey != null) {
-					surveyOption.setSurveyId(survey.getId());
-				} else {
-					surveyOption.setSurveyId(listSurvey.get(0).getId());
-				}
-				addModel("title", "New Option");
+				surveyOption = new TblSurveyOptionInfo();
+				surveyOption.setQuestion_id(questionInfo.getId());
+				addModel("title", "New Survey Option");
 			}
 			if (surveyOption == null) {
 				GameLog.getInstance().error("[ManageVote] Option is null!");
@@ -389,163 +619,253 @@ public class ManageVote extends PageBase {
 				return;
 			}
 			StringBuilder optionSelects = new StringBuilder();
-			optionSelects.append("<select class=\"form-control\" id=\"survey_id\" name=\"survey_id\">");
-			for (SurveyInfo svInfo : listSurvey) {
-				optionSelects.append("<option value=\"").append(svInfo.getId()).append("\" ").append((svInfo.getId() == surveyOption.getSurveyId() ? "selected" : "")).append(">");
-				optionSelects.append(svInfo.getName()).append("</option>");
+			optionSelects.append("<select class=\"form-control\" id=\"type\" name=\"type\">");
+			for (SurveyOptionType optionType : SurveyOptionType.values()) {
+				if (SurveyOptionType.TEXT == optionType && questionInfo.getType() != SurveyQuestionType.OPTION_LIST.ordinal() && questionInfo.getType() != SurveyQuestionType.OPTION_SELECT.ordinal()) {
+					continue;
+				}
+				optionSelects.append(String.format("<option class=\"%s\" value=\"", (optionType == SurveyOptionType.IMAGE ? "image-included" : ""))).append(optionType.ordinal()).append("\" ").append((optionType.ordinal() == surveyOption.getType()? "selected" : "")).append(">");
+				optionSelects.append(optionType.name()).append("</option>");
 			}
 			optionSelects.append("</select>");
-			addModel("survey_list", optionSelects.toString());
+			addModel("type_list", optionSelects.toString());
 			addModel("option_form", surveyOption);
+			addModel("question_id", questionInfo.getId());
+		}
 			break;
 		case MODE_SHOW_RESULT:
-			showResult();
+		{
+			showQuestionTableResult();
+		}
 			break;
 		default:
-			showDetail();
+			showQuestionListDetail();
 			break;
 		}
 	}
 	
-	private void showResult() {
+	private boolean exportExcelFile() {
 		if (survey == null) {
-			GameLog.getInstance().error("[ManageVote] no survey active at the moment!");
-			return;
+			return false;
 		}
-		List<SurveyOptionInfo> listResultOption = SurveyService.calculateSurveyResult(survey.getId());
-		if (listResultOption == null || listResultOption.isEmpty()) {
-			return;
+		List<TblSurveyQuestionInfo> questionList = SurveyService.getSurveyQuestionList(survey.getId());
+		if (questionList == null || questionList.isEmpty()) {
+			return false;
 		}
-		Collections.sort(listResultOption, new Comparator<SurveyOptionInfo>() {
-
-			@Override
-			public int compare(SurveyOptionInfo o1, SurveyOptionInfo o2) {
-				return o2.getSelectedCount() - o1.getSelectedCount();
+		TblSurveyQuestionInfo targetQuestion = null;
+		String strQuestionId = getContext().getRequestParameter("question_id");
+		if (CommonMethod.isValidNumeric(strQuestionId, 1, Long.MAX_VALUE)) {
+			long questionId = Long.parseLong(strQuestionId);
+			for (TblSurveyQuestionInfo questionInfo : questionList) {
+				if (questionInfo.getId() == questionId) {
+					targetQuestion = questionInfo;
+					break;
+				}
 			}
-		});
-		long resultCount = SurveyService.getCountSurveyResult(survey.getId());
-//		if (resultCount <= 0) {
-//			GameLog.getInstance().error("[ManageVote] no result record found!");
-//			return;
-//		}
-		addModel("resultCount", resultCount);
-		int total = 0;
-		for (SurveyOptionInfo option : listResultOption) {
-			total += option.getSelectedCount();
 		}
-		StringBuilder sb = new StringBuilder();
-		sb.append("<div id=\"\" class=\"\">");
-		sb.append("<table class=\"table table-striped\">");
-		sb.append("<thead>");
-			sb.append("<tr class=\"text-info\">");
-				sb.append("<th>");
-					sb.append("Rank");
-				sb.append("</th>");
-				sb.append("<th>");
-					sb.append("Performances");
-				sb.append("</th>");
-				sb.append("<th>");
-					sb.append("Rating");
-				sb.append("</th>");
-				sb.append("<th>");
-					sb.append("Vote");
-				sb.append("</th>");
-				sb.append("<th>");
-					sb.append("Point");
-				sb.append("</th>");
-			sb.append("</tr>");
-		sb.append("</thead>");
-		sb.append("<tbody>");
-		int rank = 1;
-		for (SurveyOptionInfo option : listResultOption) {
-			sb.append("<tr id=\"option-rank-" + rank + "\">");
-				sb.append("<td class=\"rank\">");
-					sb.append(rank++);
-				sb.append("</td>");
-				sb.append("<td class=\"name\">");
-					sb.append(option.getName());
-				sb.append("</td>");
-				sb.append("<td class=\"rate\">");
-					sb.append(option.getFormatVoteRating(total));
-				sb.append("</td>");
-				sb.append("<td class=\"count\">");
-					sb.append(option.getSelectedCount());
-				sb.append("</td>");
-				sb.append("<td class=\"point\">");
-					sb.append(option.getTotalPoint());
-					sb.append("</td>");
-			sb.append("</tr>");
+		String filename = "SurveyResults";
+		if (targetQuestion == null) {
+			filename += "_Overrral";
+		} else {
+			filename += String.format("_Question_%d", targetQuestion.getIdx());
 		}
-		sb.append("</tbody>");
-		sb.append("</table>");
-		sb.append("</div>");
-		
-		addModel("result", sb.toString());
+		HSSFWorkbook workbook = getExcelFile(questionList, targetQuestion);
+		HttpServletResponse response = getContext().getResponse();
+		response.setContentType("application/vnd.ms-excel");
+		response.setHeader("Content-Disposition", "attachment; filename=" + filename + ".xls");
+		boolean ret = true;
+		try {
+			workbook.write(response.getOutputStream());
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+			ret = false;
+		} finally {
+			try {
+				workbook.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				ret = false;
+			}
+		}
+		return ret;
 	}
 	
-	private void showDetail() {
+	private HSSFWorkbook getExcelFile(List<TblSurveyQuestionInfo> questionList, TblSurveyQuestionInfo targetQuestion) {
+		
+		HSSFWorkbook workbook = new HSSFWorkbook();
+		HSSFSheet sheet = workbook.createSheet("Survey Results");
+		CellStyle headerStyle = workbook.createCellStyle();
+		HSSFFont headerFont = workbook.createFont();
+		headerFont.setBold(true);
+		headerFont.setFontName(HSSFFont.FONT_ARIAL);
+		headerFont.setFontHeightInPoints((short) 11);
+		headerStyle.setFont(headerFont);
+		CellStyle cellStyle = workbook.createCellStyle();
+		HSSFFont cellFont = workbook.createFont();
+		cellFont.setFontName(HSSFFont.FONT_ARIAL);
+		cellFont.setFontHeightInPoints((short) 11);
+		cellStyle.setFont(cellFont);
+		int row = 0, column = 0;
+		HSSFRow excelRow;
+		HSSFCell cell;
+		
+		excelRow = sheet.createRow(row++);
+		if (targetQuestion == null) {
+			//
+			cell = excelRow.createCell(column++);
+			cell.setCellStyle(headerStyle);
+			cell.setCellValue("ID");
+			//
+			cell = excelRow.createCell(column++);
+			cell.setCellStyle(headerStyle);
+			cell.setCellValue("Name");
+			//
+			cell = excelRow.createCell(column++);
+			cell.setCellStyle(headerStyle);
+			cell.setCellValue("Dep");
+			//
+			for (TblSurveyQuestionInfo question : questionList) {
+				//
+				cell = excelRow.createCell(column++);
+				cell.setCellStyle(headerStyle);
+				cell.setCellValue(String.format("Question %d", question.getIdx()));
+			}
+			
+			List<Map<String, Object>> listOverralResult = SurveyService.calcSurveyOverralResult(questionList, survey);
+			if (listOverralResult != null && !listOverralResult.isEmpty()) {
+				for (Map<String, Object> data : listOverralResult) {
+					excelRow = sheet.createRow(row++);
+					column = 0;
+					//
+					cell = excelRow.createCell(column++);
+					cell.setCellStyle(cellStyle);
+					cell.setCellValue(data.get("user_id").toString());
+					//
+					cell = excelRow.createCell(column++);
+					cell.setCellStyle(cellStyle);
+					cell.setCellValue(data.get("username").toString());
+					//
+					cell = excelRow.createCell(column++);
+					cell.setCellStyle(cellStyle);
+					cell.setCellValue(data.get("dep").toString());
+					//
+					for (TblSurveyQuestionInfo question : questionList) {
+						String key = String.format("question_%d", question.getIdx());
+						cell = excelRow.createCell(column++);
+						cell.setCellStyle(cellStyle);
+						if (data.containsKey(key)) {
+							cell.setCellValue(data.get(key).toString());
+						}
+					}
+				}
+			}
+		} else {
+			//
+			cell = excelRow.createCell(column++);
+			cell.setCellStyle(headerStyle);
+			cell.setCellValue("ID");
+			//
+			cell = excelRow.createCell(column++);
+			cell.setCellStyle(headerStyle);
+			cell.setCellValue("Name");
+			//
+			cell = excelRow.createCell(column++);
+			cell.setCellStyle(headerStyle);
+			cell.setCellValue("Dep");
+			//
+			cell = excelRow.createCell(column++);
+			cell.setCellStyle(headerStyle);
+			cell.setCellValue("Answer");
+			
+			byte questionIndex = targetQuestion.getIdx();
+			Map<Byte, List<SurveyResultObject>> mapResultObject = SurveyService.calcSurveyQuestResult(questionList, survey);
+			if (mapResultObject != null && mapResultObject.size() > 0) {
+				for (SurveyResultObject surveyResultObject : mapResultObject.get(questionIndex)) {
+					excelRow = sheet.createRow(row++);
+					column = 0;
+					//
+					cell = excelRow.createCell(column++);
+					cell.setCellStyle(cellStyle);
+					cell.setCellValue(surveyResultObject.getUser_id());
+					//
+					cell = excelRow.createCell(column++);
+					cell.setCellStyle(cellStyle);
+					cell.setCellValue(surveyResultObject.getUsername());
+					//
+					cell = excelRow.createCell(column++);
+					cell.setCellStyle(cellStyle);
+					cell.setCellValue(surveyResultObject.getDeparment());
+					//
+					cell = excelRow.createCell(column++);
+					cell.setCellStyle(cellStyle);
+					cell.setCellValue(surveyResultObject.getResult());
+				}
+			}
+		}
+		
+		for (int i = 0; i < column; i++) {
+			if (i <= 1) {
+				sheet.autoSizeColumn(i);
+			} else {
+				sheet.setColumnWidth(i, 8120);
+			}
+		}
+		
+		return workbook;
+	}
+	
+	private void showQuestionTableResult() {
+		if (survey == null) {
+			return;
+		}
+		long targetQuestionId = 0;
+		String strQuestionId = getContext().getRequestParameter("question_id");
+		if (CommonMethod.isValidNumeric(strQuestionId, 1, Long.MAX_VALUE)) {
+			targetQuestionId = Long.parseLong(strQuestionId);
+		}
 		StringBuilder sb = new StringBuilder();
-		List<SurveyOptionInfo> listOption = null;
-		sb.append(showSurveyListTable());
-		if (survey != null) {
-			listOption = SurveyService.getSurveyOptionList(survey.getId());
-		}
+		List<TblSurveyQuestionInfo> questionList = SurveyService.getSurveyQuestionList(survey.getId());
 		sb.append("<div style=\"text-align:center;font-size:1.5rem;margin-top:2rem;\">");
-		sb.append("<label class=\"font-weight-bold text-info\">Option List</label>");
+		sb.append("<label class=\"font-weight-bold text-info\">Question List</label>");
 		sb.append("</div>");
-		sb.append("<a href=\"").append(getPagePath(this.getClass()) + "?mode=" + MODE_OPTION_NEW + (survey != null ? "&survey_id=" + survey.getId() : "") + "\">");
-		sb.append("<button class=\"btn btn-info\">New Option</button>");
+		sb.append("<a href=\"").append(getPagePath(this.getClass()) + (survey != null ? "?survey_id=" + survey.getId() : "") + "\">");
+		sb.append("<button class=\"btn btn-secondary\">Back</button>");
 		sb.append("</a>");
-		if (survey != null) {
-			sb.append("<a style=\"margin-left:1rem;\" href=\"").append(getPagePath(this.getClass()) + "?mode=" + MODE_SHOW_RESULT + "&survey_id=" + survey.getId() + "\">");
-			sb.append("<button class=\"btn btn-warning text-white\">Show Result</button>");
-			sb.append("</a>");
-		}
 		sb.append("<div id=\"\" class=\"\">");
-		sb.append("<table id=\"option_table\" class=\"table\">");
+		sb.append("<table id=\"question_table\" class=\"table\" style=\"width:100%;\">");
 		sb.append("<thead>");
 			sb.append("<tr class=\"text-info\">");
-				sb.append("<th>");
-					sb.append("Name");
+				sb.append("<th style=\"width:20%;\">");
+					sb.append("Index");
 				sb.append("</th>");
-				sb.append("<th>");
-					sb.append("For");
+				sb.append("<th style=\"width:40%;\">");
+					sb.append("Title");
 				sb.append("</th>");
-				sb.append("<th>");
+				sb.append("<th style=\"width:40%;\">");
 					sb.append("Content");
-				sb.append("</th>");
-				sb.append("<th>");
-					sb.append("Image");
-				sb.append("</th>");
-				sb.append("<th>");
-					sb.append("Edit");
 				sb.append("</th>");
 			sb.append("</tr>");
 		sb.append("</thead>");
 		sb.append("<tbody>");
-		if (listOption == null || listOption.isEmpty()) {
+		if (questionList == null || questionList.isEmpty()) {
 			sb.append("<tr>");
-				sb.append("<td id=\"no-option-record\" colspan=\"5\">");
+				sb.append("<td id=\"no-question-record\" colspan=\"3\">");
 				sb.append("No record found!");
 				sb.append("</td>");
 			sb.append("</tr>");
 		} else {
-			for (SurveyOptionInfo option : listOption) {
-				sb.append("<tr>");
-					sb.append("<td class=\"name\">");
-						sb.append(option.getName());
+			for (TblSurveyQuestionInfo question : questionList) {
+				sb.append(String.format("<tr style=\"%s\">", (targetQuestionId == question.getId() ? "background-color:#903b76;" : "")));
+					sb.append("<td class=\"index\">");
+						sb.append(String.format("<a href=\"%s?mode=%d&survey_id=%d&question_id=%d\" >%d</a>", getPagePath(this.getClass()), MODE_SHOW_RESULT, survey.getId(), question.getId(), question.getIdx()));
 					sb.append("</td>");
-					sb.append("<td class=\"for\">");
-						sb.append(survey.getName());
-					sb.append("</td>");
-					sb.append("<td class=\"content\">");
-						sb.append(option.getContent());
-					sb.append("</td>");
-					sb.append("<td class=\"image\">");
-						sb.append("<img src=\"" + CommonMethod.getStaticFile(option.getImage()) + "\" alt=\"" + option.getName() + "\" class=\"survey-opt-image\">");
+					sb.append("<td class=\"title\">");
+						sb.append(StringEscapeUtils.escapeHtml(question.getTitle()));
 					sb.append("</td>");
 					sb.append("<td class=\"content\">");
-						sb.append(String.format("<a href=\"%s\">Edit</a>", getPagePath(this.getClass()) + "?mode=" + MODE_OPTION_EDIT + "&survey_id=" + option.getSurveyId() + "&option_id=" + option.getId()));
+						sb.append(CommonMethod.getFormatContentHtmlForDisplaying(question.getContent()));
 					sb.append("</td>");
 				sb.append("</tr>");
 			}
@@ -553,76 +873,454 @@ public class ManageVote extends PageBase {
 		sb.append("</tbody>");
 		sb.append("</table>");
 		sb.append("</div>");
+		///
+		if (questionList != null && questionList.size() > 0) {
+			TblSurveyQuestionInfo targetQuestion = null;
+			if (targetQuestionId > 0) {
+				for (TblSurveyQuestionInfo questionInfo : questionList) {
+					if (questionInfo.getId() == targetQuestionId) {
+						targetQuestion = questionInfo;
+						break;
+					}
+				}
+			}
+			sb.append("<div style=\"text-align:center;font-size:1.5rem;margin-top:2rem;\">");
+			sb.append("<label class=\"font-weight-bold text-info\">Results</label>");
+			sb.append("</div>");
+			if (targetQuestion == null) {
+				sb.append(getOverralResult(questionList));
+			} else {
+				sb.append(getQuestionResult(questionList, targetQuestion));
+			}
+		}
+		addModel("result", sb.toString());
+	}
+	
+	private String getQuestionResult(List<TblSurveyQuestionInfo> questionList, TblSurveyQuestionInfo targetQuestion) {
+		if (survey == null || questionList == null || questionList.isEmpty() || targetQuestion == null) {
+			return "";
+		}
+		byte questionIndex = targetQuestion.getIdx();
+		Map<Long, SurveyOptionStatistics> statistics = new HashMap<>();
+		Map<Byte, List<SurveyResultObject>> mapResultObject = SurveyService.calcSurveyQuestResult(questionList, survey, statistics);
+		int totalCount = 0;
+		if (statistics.size() > 0) {
+			for (long optionId : statistics.keySet()) {
+				SurveyOptionStatistics sos = statistics.get(optionId);
+				if (sos.getQuestId() != targetQuestion.getId()) {
+					continue;
+				}
+				totalCount += sos.getCount();
+			}
+		}
+		StringBuilder sb = new StringBuilder();
+		if (totalCount > 0) {
+			sb.append("<div class=\"\">");
+			sb.append("<table id=\"rate_table\" class=\"table\" style=\"width:100%;\">");
+			sb.append("<thead>");
+			sb.append("<tr class=\"text-info\">");
+			sb.append("<th style=\"width:20%;\">");
+			sb.append("Index");
+			sb.append("</th>");
+			sb.append("<th style=\"width:40%;\">");
+			sb.append("Title");
+			sb.append("</th>");
+			sb.append("<th style=\"width:20%;\">");
+			sb.append("Count");
+			sb.append("</th>");
+			sb.append("<th style=\"width:20%;\">");
+			sb.append("Rate");
+			sb.append("</th>");
+			sb.append("</tr>");
+			sb.append("</thead>");
+			sb.append("<tbody>");
+			if (statistics == null || statistics.isEmpty()) {
+				sb.append("<tr>");
+				sb.append("<td id=\"no-rate-record\" colspan=\"4\">");
+				sb.append("No record found!");
+				sb.append("</td>");
+				sb.append("</tr>");
+			} else {
+				int index = 1;
+				for (long optionId : statistics.keySet()) {
+					SurveyOptionStatistics sos = statistics.get(optionId);
+					if (sos.getQuestId() != targetQuestion.getId()) {
+						continue;
+					}
+					sb.append("<tr>");
+					sb.append("<td class=\"index\">");
+					sb.append(index++);
+					sb.append("</td>");
+					sb.append("<td class=\"title\">");
+					sb.append(StringEscapeUtils.escapeHtml(sos.getTitle()));
+					sb.append("</td>");
+					sb.append("<td class=\"count\">");
+					sb.append(sos.getCount());
+					sb.append("</td>");
+					sb.append("<td class=\"count\">");
+					sb.append(sos.getRate() + "%");
+					sb.append("</td>");
+					sb.append("</tr>");
+				}
+			}
+			sb.append("</tbody>");
+			sb.append("</table>");
+			sb.append("</div>");
+			sb.append("<div style=\"text-align:center;font-size:1.5rem;margin-top:2rem;\">");
+			sb.append("<label class=\"font-weight-bold text-info\">Detail</label>");
+			sb.append("</div>");
+		}
+		//
+		if (mapResultObject != null && mapResultObject.size() > 0) {
+			sb.append(getExcelExportForm(targetQuestion));
+		}
+		sb.append("<div class=\"\">");
+		sb.append("<table id=\"result_table\" class=\"table\" style=\"width:100%;\">");
+		sb.append("<thead>");
+			sb.append("<tr class=\"text-info\">");
+				sb.append("<th style=\"width:20%;\">");
+					sb.append("ID");
+				sb.append("</th>");
+				sb.append("<th style=\"width:30%;\">");
+					sb.append("Username");
+				sb.append("</th>");
+				sb.append("<th style=\"width:50%;\">");
+					sb.append("Answer");
+				sb.append("</th>");
+			sb.append("</tr>");
+		sb.append("</thead>");
+		sb.append("<tbody>");
+		if (mapResultObject == null || mapResultObject.isEmpty() || !mapResultObject.containsKey(questionIndex)) {
+			sb.append("<tr>");
+				sb.append("<td id=\"no-result-record\" colspan=\"3\">");
+				sb.append("No record found!");
+				sb.append("</td>");
+			sb.append("</tr>");
+		} else {
+			for (SurveyResultObject surveyResultObject : mapResultObject.get(questionIndex)) {
+				sb.append("<tr>");
+					sb.append("<td class=\"user-id\">");
+						sb.append(surveyResultObject.getUser_id());
+					sb.append("</td>");
+					sb.append("<td class=\"username\">");
+						sb.append(StringEscapeUtils.escapeHtml(surveyResultObject.getUsername()));
+					sb.append("</td>");
+					sb.append("<td class=\"username\">");
+						sb.append(CommonMethod.getFormatContentHtmlForDisplaying(surveyResultObject.getResult()));
+					sb.append("</td>");
+				sb.append("</tr>");
+			}
+		}
+		sb.append("</tbody>");
+		sb.append("</table>");
+		sb.append("</div>");
+		
+		return sb.toString();
+	}
+	
+	private String getOverralResult(List<TblSurveyQuestionInfo> questionList) {
+		if (survey == null || questionList == null || questionList.isEmpty()) {
+			return "";
+		}
+		List<Map<String, Object>> listOverralResult = SurveyService.calcSurveyOverralResult(questionList, survey);
+		StringBuilder sb = new StringBuilder();
+		if (listOverralResult != null && listOverralResult.size() > 0) {
+			sb.append(getExcelExportForm(null));
+		}
+		sb.append("<div class=\"\">");
+		sb.append("<table id=\"result_table\" class=\"table\" style=\"width:100%;\">");
+		sb.append("<thead>");
+			sb.append("<tr class=\"text-info\">");
+				sb.append("<th style=\"width:7%;\">");
+					sb.append("ID");
+				sb.append("</th>");
+				sb.append("<th style=\"width:13%;\">");
+					sb.append("Username");
+				sb.append("</th>");
+				for (TblSurveyQuestionInfo questionInfo : questionList) {
+					sb.append(String.format("<th style=\"width:%d%%;\">", (int)(75 / questionList.size())));
+						sb.append(String.format("Question %d", questionInfo.getIdx()));
+					sb.append("</th>");
+				}
+				sb.append("<th style=\"width:5%;\">");
+					sb.append("Edit");
+				sb.append("</th>");
+			sb.append("</tr>");
+		sb.append("</thead>");
+		sb.append("<tbody>");
+		if (listOverralResult == null || listOverralResult.isEmpty()) {
+			sb.append("<tr>");
+				sb.append(String.format("<td id=\"no-result-record\" colspan=\"%d\">", (questionList.size() + 2)));
+				sb.append("No record found!");
+				sb.append("</td>");
+			sb.append("</tr>");
+		} else {
+			for (Map<String, Object> data : listOverralResult) {
+				sb.append("<tr>");
+					sb.append("<td class=\"user-id\">");
+						sb.append(data.get("user_id"));
+					sb.append("</td>");
+					sb.append("<td class=\"username\">");
+						sb.append(StringEscapeUtils.escapeHtml(data.get("username").toString()));
+					sb.append("</td>");
+					for (TblSurveyQuestionInfo questionInfo : questionList) {
+						String key = String.format("question_%d", questionInfo.getIdx());
+						sb.append("<td class=\"question\">");
+						if (data.containsKey(key)) {
+							sb.append(CommonMethod.getFormatContentHtmlForDisplaying(data.get(key).toString()));
+						}
+						sb.append("</td>");
+					}
+					sb.append("<td class=\"edit\">");
+						sb.append(String.format("<form method=\"post\" action=\"%s?mode=%d&survey_id=%d\">", getPagePath(this.getClass()), MODE_SHOW_RESULT, survey.getId()));
+						sb.append(String.format("<input type=\"hidden\" name=\"id\" value=\"%s\" />", data.get("id").toString()));
+						sb.append("<button type=\"button\" class=\"btn btn-danger delete-record\" style=\"width:100%;\" title=\"Delete this record\">Del</button>");
+						sb.append("</form>");
+					sb.append("</td>");
+				sb.append("</tr>");
+			}
+		}
+		sb.append("</tbody>");
+		sb.append("</table>");
+		sb.append("</div>");
+		return sb.toString();
+	}
+	
+	private String getExcelExportForm(TblSurveyQuestionInfo targetQuestion) {
+		if (survey == null) {
+			return "";
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append(String.format("<form action=\"%s\" method=\"post\">", getPagePath(this.getClass())));
+		sb.append(String.format("<input type=\"hidden\" name=\"mode\" value=\"%d\" />", MODE_EXPORT_RESULT));
+		sb.append(String.format("<input type=\"hidden\" name=\"survey_id\" value=\"%d\" />", survey.getId()));
+		sb.append(String.format("<input type=\"hidden\" name=\"question_id\" value=\"%d\" />", (targetQuestion == null ? 0 : targetQuestion.getId())));
+		sb.append("<button type=\"submit\" class=\"btn btn-danger\">Export Results</button>");
+		sb.append("</form>");
+		return sb.toString();
+	}
+	
+	private void showQuestionListDetail() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(getSurveyListTable());
+		if (survey != null) {
+			List<TblSurveyQuestionInfo> questionList = SurveyService.getSurveyQuestionList(survey.getId());
+			sb.append("<div style=\"text-align:center;font-size:1.5rem;margin-top:2rem;\">");
+			sb.append("<label class=\"font-weight-bold text-info\">Question List</label>");
+			sb.append("</div>");
+			sb.append("<a href=\"").append(getPagePath(this.getClass()) + "?mode=" + MODE_QUESTION_NEW + (survey != null ? "&survey_id=" + survey.getId() : "") + "\">");
+			sb.append("<button class=\"btn btn-info\">New Question</button>");
+			sb.append("</a>");
+			if (survey != null) {
+				sb.append("<a style=\"margin-left:1rem;\" href=\"").append(getPagePath(this.getClass()) + "?mode=" + MODE_SHOW_RESULT + "&survey_id=" + survey.getId() +  "\">");
+				sb.append("<button class=\"btn btn-warning text-white\">Show Result</button>");
+				sb.append("</a>");
+			}
+			sb.append("<div id=\"\" class=\"\">");
+			sb.append("<table id=\"question_table\" class=\"table\" style=\"width:100%;\">");
+			sb.append("<thead>");
+				sb.append("<tr class=\"text-info\">");
+					sb.append("<th style=\"width:10%;\">");
+						sb.append("Index");
+					sb.append("</th>");
+					sb.append("<th style=\"width:25%;\">");
+						sb.append("Title");
+					sb.append("</th>");
+					sb.append("<th style=\"width:25%;\">");
+						sb.append("Content");
+					sb.append("</th>");
+					sb.append("<th title='Max option, max length, next question if Yes' style=\"width:10%;\">");
+						sb.append("Param 1");
+					sb.append("</th>");
+					sb.append("<th title='Min option, min length, next question if No' style=\"width:10%;\">");
+						sb.append("Param 2");
+					sb.append("</th>");
+					sb.append("<th style=\"width:10%;\">");
+						sb.append("Optionality");
+					sb.append("</th>");
+					sb.append("<th style=\"width:10%;\">");
+						sb.append("Edit");
+					sb.append("</th>");
+				sb.append("</tr>");
+			sb.append("</thead>");
+			sb.append("<tbody>");
+			if (questionList == null || questionList.isEmpty()) {
+				sb.append("<tr>");
+					sb.append("<td id=\"no-question-record\" colspan=\"7\">");
+					sb.append("No record found!");
+					sb.append("</td>");
+				sb.append("</tr>");
+			} else {
+				for (TblSurveyQuestionInfo question : questionList) {
+					sb.append("<tr>");
+						sb.append("<td class=\"index\">");
+						if (question.getType() != SurveyQuestionType.OPTION_SELECT.ordinal() && question.getType() != SurveyQuestionType.OPTION_LIST.ordinal()) {
+							sb.append(question.getIdx());
+						} else {
+							sb.append(String.format("<a href=\"javascript:void(0);\" class=\"list-question-option\" data-id=\"%d\">%d</a>", question.getId(), question.getIdx()));
+						}
+						sb.append("</td>");
+						sb.append("<td class=\"title\">");
+							sb.append(StringEscapeUtils.escapeHtml(question.getTitle()));
+						sb.append("</td>");
+						sb.append("<td class=\"content\">");
+							sb.append(CommonMethod.getFormatContentHtmlForDisplaying(question.getContent()));
+						sb.append("</td>");
+						sb.append("<td class=\"max-choice\">");
+							sb.append(question.getMax_choice());
+						sb.append("</td>");
+						sb.append("<td class=\"min-choice\">");
+							sb.append(question.getMin_choice());
+						sb.append("</td>");
+						sb.append("<td class=\"optional\">");
+							sb.append((question.isRequired() ? "Mandatory" : "Optional"));
+						sb.append("</td>");
+						sb.append("<td class=\"edit\">");
+							sb.append(String.format("<a href=\"%s\">Edit</a>", getPagePath(this.getClass()) + "?mode=" + MODE_QUESTION_EDIT + "&survey_id=" + question.getSurvey_id() + "&question_id=" + question.getId()));
+						sb.append("</td>");
+					sb.append("</tr>");
+				}
+			}
+			sb.append("</tbody>");
+			sb.append("</table>");
+			sb.append("</div>");
+			if (questionList != null && !questionList.isEmpty()) {
+				for (TblSurveyQuestionInfo question : questionList) {
+					String strOptionTable = getQuestionListTable(question);
+					if (strOptionTable != null) {
+						sb.append(strOptionTable);
+					}
+				}
+			}
+		}
 		addModel("detail", sb.toString());
 	}
 	
-	private String showSurveyListTable() {
-		List<SurveyInfo> listSurvey = SurveyService.getSurveyList();
+	private String getQuestionListTable(TblSurveyQuestionInfo questionInfo) {
+		if (questionInfo == null || (questionInfo.getType() != SurveyQuestionType.OPTION_SELECT.ordinal() && questionInfo.getType() != SurveyQuestionType.OPTION_LIST.ordinal())) {
+			return null;
+		}
+		List<TblSurveyOptionInfo> optionList = SurveyService.getSurveyOptionList(questionInfo.getId());
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append("<div class=\"question-option-list collapse\" data-id=\"" + questionInfo.getId() + "\">");
+		sb.append("<div style=\"text-align:center;font-size:1.5rem;margin-top:2rem;\">");
+		sb.append("<label class=\"font-weight-bold text-info\">Option List</label>");
+		sb.append("</div>");
+		sb.append("<a href=\"").append(getPagePath(this.getClass()) + "?mode=" + MODE_OPTION_NEW + (survey != null ? "&survey_id=" + survey.getId() : "") + "&question_id=" + questionInfo.getId() + "\">");
+		sb.append("<button class=\"btn btn-info\">New Option</button>");
+		sb.append("</a>");
+		sb.append("<div id=\"\" class=\"\">");
+		sb.append("<table class=\"table option-table\" style=\"width:100%;\">");
+		sb.append("<thead>");
+			sb.append("<tr class=\"text-info\">");
+				sb.append("<th style=\"width:30%;\">");
+					sb.append("Title");
+				sb.append("</th>");
+				sb.append("<th style=\"width:30%;\">");
+					sb.append("Content");
+				sb.append("</th>");
+				sb.append("<th style=\"width:30%;\">");
+					sb.append("Description");
+				sb.append("</th>");
+				sb.append("<th style=\"width:10%;\">");
+					sb.append("Edit");
+				sb.append("</th>");
+			sb.append("</tr>");
+		sb.append("</thead>");
+		sb.append("<tbody>");
+		if (optionList != null && optionList.size() > 0) {
+			for (TblSurveyOptionInfo option : optionList) {
+				sb.append("<tr>");
+				sb.append("<td class=\"title\">");
+				sb.append(StringEscapeUtils.escapeHtml(option.getTitle()));
+				sb.append("</td>");
+				sb.append("<td class=\"content\">");
+				if (option.getType() == SurveyOptionType.IMAGE.ordinal()) {
+					sb.append(String.format("<img src=\"%s\" class=\"survey-option-image\" alt=\"%s\"/>", CommonMethod.getStaticFile(option.getContent()), CommonMethod.getFormatContentHtmlForTooltip(option.getDescription())));
+				} else if (option.getType() == SurveyOptionType.TEXT.ordinal()){
+					sb.append(CommonMethod.getFormatContentHtmlForDisplaying(option.getContent()));
+				}
+				sb.append("</td>");
+				sb.append("<td class=\"description\">");
+				sb.append(CommonMethod.getFormatContentHtmlForDisplaying(option.getDescription()));
+				sb.append("</td>");
+				sb.append("<td class=\"edit\">");
+				sb.append(String.format("<a href=\"%s\">Edit</a>", getPagePath(this.getClass()) + "?mode=" + MODE_OPTION_EDIT + (survey != null ? "&survey_id=" + survey.getId() : "") + "&question_id=" + questionInfo.getId() + "&option_id=" + option.getId()));
+				sb.append("</td>");
+				sb.append("</tr>");
+			}
+		}
+		sb.append("</tbody>");
+		sb.append("</table>");
+		sb.append("</div>");
+		sb.append("</div>");
+		return sb.toString();
+	}
+	
+	private String getSurveyListTable() {
+		String strShowCompleted = getContext().getRequestParameter("completed");
+		boolean isCompleted = false;
+		if (StringUtils.isNotBlank(strShowCompleted)) {
+			isCompleted = true;
+		}
+		List<TblSurveyInfo> listSurvey = SurveyService.getSurveyInfoListForDisplay(isCompleted);
 		StringBuilder sb = new StringBuilder();
 		sb.append("<div style=\"text-align:center;font-size:1.5rem;margin-top:2rem;\">");
-		sb.append("<label class=\"font-weight-bold text-info\">Subject List</label>");
+		sb.append("<label class=\"font-weight-bold text-info\">Survey List</label>");
 		sb.append("</div>");
+		sb.append("<div class=\"d-flex\" style=\"align-items:center;\">");
 		sb.append("<a href=\"").append(getPagePath(this.getClass()) + "?mode=" + MODE_SURVEY_NEW +"\">");
-		sb.append("<button class=\"btn btn-info\">New Vote</button>");
+		sb.append("<button class=\"btn btn-info\">New Survey</button>");
 		sb.append("</a>");
 		sb.append("<a href=\"").append(getPagePath(Vote.class) + "\" style=\"margin-left:1rem;\">");
 		sb.append("<button class=\"btn btn-secondary\">&nbsp;Back&nbsp;</button>");
 		sb.append("</a>");
+		sb.append(String.format("<div class=\"custom-control custom-checkbox ml-auto\"><input type=\"checkbox\" class=\"custom-control-input\" id=\"show-completed-survey\" %s><label class=\"custom-control-label\" for=\"show-completed-survey\">Show Completed</label></div>", (isCompleted ? "checked" : "")));
+		sb.append("</div>");
 		sb.append("<div id=\"\" class=\"\">");
-		sb.append("<table id=\"survey_table\" class=\"table\">");
+		sb.append("<table id=\"survey_table\" class=\"table\" style=\"width:100%;\">");
 		sb.append("<thead>");
 			sb.append("<tr class=\"text-info\">");
-				sb.append("<th>");
+				sb.append("<th style=\"width:20%;\">");
 					sb.append("Name");
 				sb.append("</th>");
-				sb.append("<th>");
+				sb.append("<th style=\"width:10%;\">");
 					sb.append("Status");
 				sb.append("</th>");
-//					sb.append("<th>");
-//						sb.append("Description");
-//					sb.append("</th>");
-				sb.append("<th>");
-					sb.append("Max Choices");
+				sb.append("<th style=\"width:45%;\">");
+					sb.append("Description");
 				sb.append("</th>");
-				sb.append("<th>");
-					sb.append("Max Retry");
+				sb.append("<th style=\"width:10%;\">");
+					sb.append("Created Date");
 				sb.append("</th>");
-//					sb.append("<th>");
-//						sb.append("Created");
-//					sb.append("</th>");
-				sb.append("<th>");
+				sb.append("<th style=\"width:10%;\">");
 					sb.append("Expire Date");
 				sb.append("</th>");
-				sb.append("<th>");
+				sb.append("<th style=\"width:5%;\">");
 					sb.append("Edit");
 				sb.append("</th>");
 			sb.append("</tr>");
 		sb.append("</thead>");
 		sb.append("<tbody>");
 		if (listSurvey != null && !listSurvey.isEmpty()) {
-			for (SurveyInfo survey : listSurvey) {
+			for (TblSurveyInfo survey : listSurvey) {
 				String highlight = ((this.survey != null && this.survey.getId() == survey.getId()) ? "style=\"background-color:#903b76;\"" : "");
 				sb.append(String.format("<tr %s>", highlight));
 					sb.append("<td>");
 						sb.append(String.format("<a href=\"%s\">%s</a>", getPagePath(this.getClass()) + "?survey_id=" + survey.getId(), survey.getName()));
 					sb.append("</td>");
 					sb.append("<td>");
-						sb.append((survey.isActive() ? "ON" : "OFF"));
-					sb.append("</td>");
-	//					sb.append("<td>");
-	//						sb.append(survey.getDescription());
-	//					sb.append("</td>");
-					sb.append("<td>");
-						sb.append(survey.getMaxChoice());
+						sb.append(SurveyStatus.valueOf(survey.getStatus()).name());
 					sb.append("</td>");
 					sb.append("<td>");
-						sb.append(survey.getMaxRetry());
+						sb.append(CommonMethod.getFormatContentHtmlForDisplaying(survey.getDescription()));
 					sb.append("</td>");
-	//					sb.append("<td>");
-	//						sb.append(survey.getCreated());
-	//					sb.append("</td>");
 					sb.append("<td>");
-						sb.append(survey.getExpired());
+						sb.append(CommonMethod.getFormatDateString(survey.getCreated()));
+					sb.append("</td>");
+					sb.append("<td>");
+						sb.append(CommonMethod.getFormatDateString(survey.getExpired()));
 					sb.append("</td>");
 					sb.append("<td>");
 						sb.append(String.format("<a href=\"%s\">Edit</a>", getPagePath(this.getClass()) + "?mode=" + MODE_SURVEY_EDIT + "&survey_id=" + survey.getId()));
@@ -641,4 +1339,61 @@ public class ManageVote extends PageBase {
 		sb.append("</div>");
 		return sb.toString();
 	}
+	
+	private List<DaoValue> getSurveyUserAccessList(FileItem file) {
+		if (file == null) {
+			return null;
+		}
+		List<DaoValue> listUpdate = null;
+		BufferedReader br = null;
+		try {
+			br = new BufferedReader(new InputStreamReader(file.getInputStream()));
+			String line;
+			listUpdate = new ArrayList<>();
+			while((line = br.readLine()) != null) {
+				line = line.trim();
+				if (line.startsWith("#")) {
+					continue;
+				}
+				if (!line.matches("^[0-9]+,\\s*[0-9]+$")) {
+					continue;
+				}
+				String[] arr = line.split(",");
+				if (arr.length != 2) {
+					continue;
+				}
+				TblSurveyUserAccessInfo sas = new TblSurveyUserAccessInfo();
+				sas.setUser_code(arr[0].trim());
+				sas.setFlag(Integer.parseInt(arr[1].trim()));
+				listUpdate.add(sas);
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			if (br != null) {
+				try {
+					br.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		return listUpdate;
+	}
+
+	private void updateSurveyAccessList(long surveyID, List<DaoValue> listUpdate) {
+		if (surveyID <= 0 || listUpdate == null || listUpdate.isEmpty()) {
+			return;
+		}
+		TblSurveyUserAccessInfo deleteInfo = new TblSurveyUserAccessInfo();
+		deleteInfo.Set("survey_id", surveyID);
+		CommonDaoService.delete(deleteInfo);
+		for (DaoValue dao : listUpdate) {
+			dao.Set("survey_id", surveyID);
+		}
+		CommonDaoService.update(listUpdate);
+	}
+	
 }

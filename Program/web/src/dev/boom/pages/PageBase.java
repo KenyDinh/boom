@@ -20,6 +20,7 @@ import dev.boom.core.GameLog;
 import dev.boom.pages.account.ChangePassword;
 import dev.boom.pages.account.Login;
 import dev.boom.pages.account.Register;
+import dev.boom.pages.manage.ManageUser;
 import dev.boom.services.UserInfo;
 import dev.boom.services.WorldInfo;
 import dev.boom.services.WorldService;
@@ -59,6 +60,28 @@ public class PageBase extends Page {
 		return fileUploadDir;
 	}
 	
+	protected CssImport importCss(String href) {
+		if (href == null) {
+			throw new IllegalArgumentException("URL(css) can not be null!");
+		}
+		if (!href.endsWith(".css")) {
+			throw new IllegalArgumentException("URL must be a css file path!");
+		}
+		href += "?" + BoomProperties.FRIDAY_VERSION;
+		return new CssImport(href);
+	}
+	
+	protected JsImport importJs(String href) {
+		if (href == null) {
+			throw new IllegalArgumentException("URL(js) can not be null!");
+		}
+		if (!href.endsWith(".js")) {
+			throw new IllegalArgumentException("URL must be a js file path!");
+		}
+		href += "?" + BoomProperties.FRIDAY_VERSION;
+		return new JsImport(href);
+	}
+	
 	protected WorldInfo getWorldInfo() {
 		if (worldInfo == null) {
 			worldInfo = WorldService.getWorldInfo();
@@ -79,6 +102,10 @@ public class PageBase extends Page {
 			port = BoomProperties.WEBSOCKET_PORT_SCALE;
 		}
 		return "ws://" + BoomProperties.SERVICE_HOSTNAME + (port.equals("80") ? "" : ":" + port) + getContextPath() + websocketPath + params;
+	}
+	
+	protected boolean isLocal() {
+		return (getContext().getRequest().getRemoteAddr().equals("0:0:0:0:0:0:0:1"));
 	}
 	
 	public PageBase() {
@@ -106,7 +133,7 @@ public class PageBase extends Page {
 			Map<String, String[]> parameterMap = request.getParameterMap();
 			for (Iterator<String> it = parameterMap.keySet().iterator(); it.hasNext();) {
 				String _key = it.next();
-				if ((this.getClass() == Login.class || this.getClass() == Register.class || this.getClass() == ChangePassword.class) && _key.indexOf("password") >= 0 ) {
+				if ((this.getClass() == Login.class || this.getClass() == Register.class || this.getClass() == ChangePassword.class || this.getClass() == ManageUser.class) && _key.indexOf("password") >= 0 ) {
 					continue;
 				}
 				String[] _value = parameterMap.get(_key);
@@ -203,11 +230,19 @@ public class PageBase extends Page {
 		if (headElements == null) {
 			headElements = super.getHeadElements();
 		}
+		headElements.add(new CssImport("/css/lib/font-awesome.css"));
+		headElements.add(new CssImport("/css/lib/font-awesome-solid.css"));
 		headElements.add(new CssImport("/css/lib/font/bootstrap-darkly-font.css"));
-		headElements.add(new CssImport("/css/lib/bootstrap-darkly.min.css"));
+		headElements.add(new CssImport("/css/lib/bootstrap.css"));
+		//headElements.add(new CssImport("/css/lib/bootstrap-datetimepicker.min.css"));
+		headElements.add(new CssImport("/css/lib/jquery-ui-1.13.1.css"));
 		headElements.add(new JsImport("/js/lib/jquery-3.3.1.min.js"));
+		headElements.add(new JsImport("/js/lib/moment.min.js"));
 		headElements.add(new JsImport("/js/lib/popper-1.14.0.min.js"));
 		headElements.add(new JsImport("/js/lib/bootstrap.min.js"));
+		headElements.add(new JsImport("/js/lib/random-color.min.js"));
+		//headElements.add(new JsImport("/js/lib/bootstrap-datetimepicker.min.js"));
+		headElements.add(new JsImport("/js/lib/jquery-ui-1.13.1.js"));
 		if (isDataTableFormat) {
 			initHeadElementsForTableData();
 		}

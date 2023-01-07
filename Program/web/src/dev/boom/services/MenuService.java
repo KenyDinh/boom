@@ -54,10 +54,34 @@ public class MenuService {
 	}
 	
 	public static List<MenuInfo> getMenuListByStatusList(byte[] status) {
-		return getMenuListByStatusList(status, null);
+		return getMenuListByStatusList(status, null, -1, -1);
 	}
 	
-	public static List<MenuInfo> getMenuListByStatusList(byte[] status, String options) {
+	public static long getCountMenu(byte[] status, String options) {
+		TblMenuInfo menuInfo = new TblMenuInfo();
+		String option = "";
+		for (byte stt : status) {
+			if (!option.isEmpty()) {
+				option += ",";
+			}
+			option += stt;
+		}
+		if (!option.isEmpty()) {
+			option = "status IN (" + option + ")";
+		}
+		if (options != null && options.length() > 0) {
+			if (!option.isEmpty()) {
+				option += " AND ";
+			}
+			option += options;
+		}
+		if (!option.isEmpty()) {
+			menuInfo.setSelectOption("WHERE " + option);
+		}
+		return CommonDaoService.count(menuInfo);
+	}
+	
+	public static List<MenuInfo> getMenuListByStatusList(byte[] status, String options, int limit, int offset) {
 		TblMenuInfo menuInfo = new TblMenuInfo();
 		String option = "";
 		for (byte stt : status) {
@@ -77,6 +101,12 @@ public class MenuService {
 		}
 		if (!option.isEmpty()) {
 			menuInfo.setSelectOption("WHERE " + option + " ORDER BY status ASC, updated DESC");
+		}
+		if (limit > 0) {
+			menuInfo.setLimit(limit);
+			if (offset >= 0) {
+				menuInfo.setOffset(offset);
+			}
 		}
 		List<DaoValue> list = CommonDaoService.select(menuInfo);
 		if (list == null || list.isEmpty()) {

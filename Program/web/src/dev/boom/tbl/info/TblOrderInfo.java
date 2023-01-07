@@ -22,6 +22,7 @@ public class TblOrderInfo extends DaoValueInfo {
 	private long final_price;
 	private int dish_code;
 	private byte voting_star;
+	private String comment;
 	private long quantity;
 	private String size;
 	private String ice;
@@ -44,6 +45,7 @@ public class TblOrderInfo extends DaoValueInfo {
 		this.final_price = 0;
 		this.dish_code = 0;
 		this.voting_star = 0;
+		this.comment = "";
 		this.quantity = 0;
 		this.size = "";
 		this.ice = "";
@@ -149,6 +151,14 @@ public class TblOrderInfo extends DaoValueInfo {
 
 	public void setVoting_star(byte voting_star) {
 		this.voting_star = voting_star;
+	}
+
+	public String getComment() {
+		return comment;
+	}
+
+	public void setComment(String comment) {
+		this.comment = comment;
 	}
 
 	public long getQuantity() {

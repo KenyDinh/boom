@@ -2,6 +2,9 @@ package dev.boom.pages;
 
 import java.util.List;
 
+import org.apache.click.element.JsImport;
+
+import dev.boom.common.enums.FridayThemes;
 import dev.boom.common.enums.MainNavBarEnum;
 import dev.boom.common.game.GameTypeEnum;
 
@@ -10,6 +13,29 @@ public class Game extends BoomMainPage {
 	private static final long serialVersionUID = 1L;
 
 	public Game() {
+		initTheme(FridayThemes.PARTICLES);
+	}
+	
+	@SuppressWarnings({"rawtypes", "unchecked"})
+	@Override
+	public List getHeadElements() {
+		if (headElements == null) {
+			headElements = super.getHeadElements();
+		}
+		headElements.add(new JsImport("/js/game/game.js"));
+		return headElements;
+	}
+	
+	@Override
+	public boolean onSecurityCheck() {
+		if (!super.onSecurityCheck()) {
+			return false;
+		}
+		if (getGameIndex() != 0 && !getWorldInfo().isActiveGameFlag(getGameIndex())) {
+			setRedirect(Game.class);
+			return false;
+		}
+		return true;
 	}
 	
 	@Override
@@ -20,9 +46,12 @@ public class Game extends BoomMainPage {
 	@Override
 	public void onRender() {
 		super.onRender();
+		if (getGameIndex() != GameTypeEnum.NONE.getIndex()) {
+			return;
+		}
 		StringBuilder sb = new StringBuilder();
 		String contextPath = getHostURL() + getContextPath();
-		List<GameTypeEnum> validGames = GameTypeEnum.listValidGame();
+		List<GameTypeEnum> validGames = GameTypeEnum.listValidGame(getWorldInfo());
 		int size = validGames.size();
 		int maxGameperRow = 5;
 		int rowNum = (size - 1) / maxGameperRow + 1;
@@ -48,11 +77,11 @@ public class Game extends BoomMainPage {
 				sb.append("<div style=\"background-color:white;\" class=\"border\">");
 					if (getUserInfo() == null) {
 						sb.append("<a href=\"javascript:void(0);\" data-toggle=\"modal\" data-target=\"#login-form-modal\" >");
-						sb.append(String.format("<img src=\"%s\" style=\"width:100%%;\" class=\"\"/>", contextPath + "/" + type.getImage()));
+						sb.append(String.format("<img src=\"%s\" style=\"width:100%%;object-fit:cover;\" class=\"game-menu-image\"/>", contextPath + "/" + type.getImage()));
 						sb.append("</a>");
 					} else {
 						sb.append(String.format("<a href=\"%s\">", contextPath + "/" + type.getPage()));
-						sb.append(String.format("<img src=\"%s\" style=\"width:100%%;\" class=\"\"/>", contextPath + "/" + type.getImage()));
+						sb.append(String.format("<img src=\"%s\" style=\"width:100%%;object-fit:cover;\" class=\"game-menu-image\"/>", contextPath + "/" + type.getImage()));
 						sb.append("</a>");
 					}
 					sb.append("<div class=\"font-weight-bold bg-success text-center\" data-toggle=\"tooltip\" data-placement=\"bottom\" style=\"text-overflow:ellipsis;overflow:hidden;white-space:nowrap;\" title=\"").append(getMessage(type.getLabel())).append("\">").append(getMessage(type.getLabel())).append("</div>");
@@ -77,4 +106,7 @@ public class Game extends BoomMainPage {
 		return MainNavBarEnum.GAME.getIndex();
 	}
 	
+	protected int getGameIndex() {
+		return GameTypeEnum.NONE.getIndex();
+	}
 }

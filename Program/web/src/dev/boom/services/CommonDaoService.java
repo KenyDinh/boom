@@ -394,7 +394,7 @@ public class CommonDaoService {
 			tx = session.beginTransaction();
 			GameLog.getInstance().info(String.format("SELECT COUNT(%s) FROM %s", sf, (dao.getTableName() + whereClause)));
 			String sql = "SELECT COUNT(" + sf + ") FROM " + dao.getClass().getSimpleName() + dao.getUpdateWhereClause();
-			List<Long> list = session.createQuery(sql).list();
+			List<Long> list = session.createQuery(correctBitwiseOperation(sql)).list();
 			tx.commit();
 			if (list != null && list.size() > 0) {
 				count = Long.valueOf(String.valueOf(list.get(0)));
@@ -515,7 +515,7 @@ public class CommonDaoService {
 					GameLog.getInstance().info(String.format("UPDATE %s %s", dao.getTableName(), upd));
 					ret = session.createQuery(query).executeUpdate();
 				}
-				if (ret <= 0) {
+				if (ret < 0) {
 					GameLog.getInstance().info("Transaction fail!");
 					tx.rollback();
 					return false;
@@ -905,6 +905,22 @@ public class CommonDaoService {
 		}
 
 		return list;
+	}
+	
+	public static boolean executeQueryUpdate(Session session, String sqlQuery) {
+		try {
+			GameLog.getInstance().info(sqlQuery);
+			if (session.createQuery(toHQLQuery(sqlQuery)).executeUpdate() <= 0) {
+				GameLog.getInstance().error("[executeQueryUpdate] update failed!");
+				return false;
+			}
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+
+		}
+
+		return false;
 	}
 
 	// ---------------------------------------------------------------------------- //

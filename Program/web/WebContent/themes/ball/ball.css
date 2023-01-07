@@ -1,0 +1,9 @@
+.ball {
+  position: absolute;
+  border-radius: 100%;
+  opacity: 0.8;
+}
+body {
+	overflow-x: hidden;
+	min-height: 100vh;
+}

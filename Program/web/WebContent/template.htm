@@ -3,23 +3,34 @@
 <head>
 <title>KTV Friday</title>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="shortcut icon" href="${context}/img/page/friday.png">
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/solid.css" integrity="sha384-Rw5qeepMFvJVEZdSo1nDQD5B6wX0m7c5Z/pLNvjkB14W6Yki1hKbSEQaX9ffUbWe" crossorigin="anonymous">
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/fontawesome.css" integrity="sha384-GVa9GOgVQgOk+TNYXu7S/InPTfSDTtBalSgkgqQ7sCik56N9ztlkoTr2f/T44oKV" crossorigin="anonymous">
 $!{headElements}
 </head>
 <body>
 	$!{menu_bar}
-	
-	<div id="content" class="container" style="max-width:113.75rem;margin-top:80px;">
+	$!{theme_render}
+	#set ($div_style = "")
+	#if (${menu_bar})
+		#set ($div_style = "max-width:113.75rem;margin-top:80px;")
+	#end
+	<div id="content" class="container" style="${div_style}">
 		#parse(${path})
 		<div>
 			$!{login_modal}
 			$!{register_modal}
 			$!{change_pwd_modal}
 			$!{logoutForm}
+			$!{account_info_modal}
 		</div>
+	</div>
+	<div id="alert-wrapper">
+	</div>
+	<div id="popup-alert" class="alert alert-dismissible fade show d-none" role="alert">
+		<div class="alert-content"></div>
+		<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+	    	<span aria-hidden="true">&times;</span>
+	  	</button>
 	</div>
 	<script type="text/javascript">
 	//<![CDATA[

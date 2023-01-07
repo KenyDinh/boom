@@ -1,98 +1,58 @@
 package dev.boom.pages.vote;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import org.apache.click.element.CssImport;
-import org.apache.click.element.JsImport;
+import org.apache.commons.lang.StringUtils;
 
 import dev.boom.common.CommonDefine;
+import dev.boom.common.CommonHtmlFunc;
 import dev.boom.common.CommonMethod;
+import dev.boom.common.VoteFuncs;
+import dev.boom.common.enums.MainNavBarEnum;
+import dev.boom.common.enums.SurveyOptionType;
+import dev.boom.common.enums.SurveyQuestionType;
 import dev.boom.core.GameLog;
-import dev.boom.core.SurveySession;
-import dev.boom.pages.PageBase;
 import dev.boom.services.CommonDaoService;
-import dev.boom.services.SurveyInfo;
-import dev.boom.services.SurveyOptionInfo;
-import dev.boom.services.SurveyResultInfo;
 import dev.boom.services.SurveyService;
-import dev.boom.services.SurveyValidCodeData;
+import dev.boom.services.UserInfo;
+import dev.boom.services.json.SurveyAnswer;
+import dev.boom.services.json.SurveyAnswerWrapper;
+import dev.boom.tbl.info.TblSurveyInfo;
+import dev.boom.tbl.info.TblSurveyOptionInfo;
+import dev.boom.tbl.info.TblSurveyQuestionInfo;
+import dev.boom.tbl.info.TblSurveyResultInfo;
 
-public class Vote extends PageBase {
+public class Vote extends VotePageBase {
 
 	private static final long serialVersionUID = 1L;
-	private static final String SURVEY_SESSION = "servey_session";
-	private static final int CODE_LENGTH = 10;
-	private static final long SURVEY_SESSION_TIMEOUT = CommonDefine.MILLION_SECOND_MINUTE * 5;
+	private static final int CODE_LENGTH = 6;
 	
-	private SurveyInfo activeSurvey = null;
-	private SurveySession surveySession = null;
-	private SurveyValidCodeData userData = null;
-	private Date now = new Date();
+	private TblSurveyInfo activeSurvey = null;
 	
 	public Vote() {
+		hideMenubar = true;
 	}
 	
-	@Override
-	public boolean onSecurityCheck() {
-		surveySession = (SurveySession) getContext().getSessionAttribute(SURVEY_SESSION);
-		if (surveySession != null) {
-			userData = SurveyService.getSurveyValidData(surveySession.getCode());
-			if (userData == null) {
-				GameLog.getInstance().error("[onSecurityCheck] user's data is null!");
-				getContext().removeSessionAttribute(SURVEY_SESSION);
-				setRedirect(this.getClass());
-				return false;
-			}
-			if (!userData.isEditable() && !userData.isReadonly()) {
-				if (surveySession.isExpired(now.getTime())) {
-					GameLog.getInstance().info("survey session expired!");
-					getContext().removeSessionAttribute(SURVEY_SESSION);
-					surveySession = null;
-				}
-			}
-		}
-		return true;
-	}
-
 	@Override
 	public void onInit() {
 		super.onInit();
-		activeSurvey = SurveyService.getActiveSurveyInfo();
-		if (getContext().getRequestParameter("out") != null) {
-			getContext().removeSessionAttribute(SURVEY_SESSION);
-			setRedirect(this.getClass());
-			return;
-		} 
-		if (getContext().getRequestParameter("clear") != null) {
-			if (activeSurvey == null) {
+		String strSurveyName = getContext().getRequestParameter("p");
+		if (StringUtils.isNotBlank(strSurveyName)) {
+			activeSurvey = SurveyService.getSurveyInfoByPathName(strSurveyName);
+			if (VoteFuncs.isSurveyExpired(activeSurvey)) {
+				activeSurvey = null;
 				return;
 			}
-			if (surveySession == null) {
-				setRedirect(this.getClass());
+			if (!VoteFuncs.hasSurveyAccess(userInfo, activeSurvey)) {
+				activeSurvey = null;
 				return;
 			}
-			if (userData == null || !userData.isEditable()) {
-				setRedirect(this.getClass());
-				return;
-			}
-			String strCode = getContext().getRequestParameter("clear");
-			if (strCode == null || strCode.length() < CODE_LENGTH || !strCode.matches("^[0-9]+$") || !SurveyService.isValidUserCode(strCode)) {
-				setRedirect(this.getClass());
-				return;
-			}
-			SurveyResultInfo resultInfo = SurveyService.getSurveyResult(strCode, activeSurvey.getId());
-			if (resultInfo == null) {
-				setRedirect(this.getClass());
-				return;
-			}
-			resultInfo.getInfo().setDelete();
-			if (!CommonDaoService.delete(resultInfo.getInfo())) {
-				GameLog.getInstance().error("[onInit] clear result failed!");
-			}
-			setRedirect(this.getClass());
-			return;
 		}
 	}
 
@@ -102,84 +62,204 @@ public class Vote extends PageBase {
 		if (getRedirect() != null) {
 			return;
 		}
-		if (surveySession == null || surveySession.isExpired(now.getTime())) {
-			if (userData == null || (!userData.isEditable() && !userData.isReadonly())) {
-				String strCode = getContext().getRequestParameter("user_code");
-				if (strCode != null && strCode.length() >= CODE_LENGTH && strCode.matches("^[0-9]+$")) {
-					if (!SurveyService.isValidUserCode(strCode)) {
-						GameLog.getInstance().error("[Survey] user code is invalid!, code:" + strCode);
+		if (userInfo != null && activeSurvey != null) {
+			if (getContext().getRequestParameter("vote") != null) {
+				byte questionIndex = 1;
+				SurveyAnswerWrapper resultObject = null;
+				TblSurveyResultInfo resultInfo = SurveyService.getSurveyResult(activeSurvey.getId(), userInfo.getEmpid());
+				if (resultInfo != null) {
+					questionIndex = resultInfo.getProgress();
+					resultObject = SurveyAnswerWrapper.parse(resultInfo.getResult()); // TODO check null
+				} else {
+					resultInfo = new TblSurveyResultInfo();
+					resultInfo.Set("survey_id", activeSurvey.getId());
+					resultInfo.Set("user_id", userInfo.getEmpid());
+					resultInfo.Set("username", userInfo.getName());
+					resultInfo.Set("department", userInfo.getDepartment());
+				}
+				if (resultObject == null) {
+					resultObject = new SurveyAnswerWrapper();
+				}
+				TblSurveyQuestionInfo questionInfo = SurveyService.getSurveyQuestion(activeSurvey.getId(), questionIndex);
+				if (questionInfo == null) {
+					GameLog.getInstance().error("Survey question not found! index : " + questionIndex);
+					setRedirect(this.getClass());
+					return;
+				}
+				String qAnswer = null;
+				byte newProgress = (byte) (questionIndex + 1);
+				if (questionInfo.getType() == SurveyQuestionType.OPTION_SELECT.ordinal()) {
+					String strOptionList = getContext().getRequestParameter("options");
+					if (strOptionList == null) {
+						GameLog.getInstance().error("No option selected!");
+						setRedirect(this.getClass());
 						return;
 					}
-					long timeout = new Date().getTime() + SURVEY_SESSION_TIMEOUT;
-					surveySession = new SurveySession(strCode, timeout);
-					getContext().setSessionAttribute(SURVEY_SESSION, surveySession);
-					GameLog.getInstance().info("regist session!");
+					if (strOptionList.isEmpty() || !strOptionList.matches("[0-9]+(,[0-9]+)*")) {
+						if (questionInfo.isRequired()) {
+							GameLog.getInstance().error("Option is in invalid format!");
+							setRedirect(this.getClass());
+							return;
+						}
+					} else {
+						String[] arr = strOptionList.split(",");
+						List<Long> ids = new ArrayList<>();
+						for (String strId : arr) {
+							if (CommonMethod.isValidNumeric(strId, 1, Long.MAX_VALUE)) {
+								ids.add(Long.parseLong(strId));
+							}
+						}
+						if (arr.length > questionInfo.getMax_choice()) {
+							GameLog.getInstance().error("Option list in invalid!, max_choice:" + questionInfo.getMax_choice());
+							setRedirect(this.getClass());
+							return;
+						}
+						if (arr.length < questionInfo.getMin_choice()) {
+							GameLog.getInstance().error("Option list in invalid!, min_choice:" + questionInfo.getMin_choice());
+							setRedirect(this.getClass());
+							return;
+						}
+						if (SurveyService.getCountValidSurveyOption(ids) != arr.length) {
+							GameLog.getInstance().error("Option list in invalid!");
+							setRedirect(this.getClass());
+							return;
+						}
+						qAnswer = strOptionList.trim();
+					}
+				} else if (questionInfo.getType() == SurveyQuestionType.GIVING_ANSWER.ordinal()) {
+					String strAnswer = getContext().getRequestParameter("options");
+					if (strAnswer == null) {
+						GameLog.getInstance().error("No answer!");
+						setRedirect(this.getClass());
+						return;
+					}
+					strAnswer = strAnswer.trim();
+					int length = strAnswer.length();
+					if (length == 0 && questionInfo.isRequired()) {
+						GameLog.getInstance().error("Answer is required!");
+						setRedirect(this.getClass());
+						return;
+					}
+					length = strAnswer.replaceAll("\r\n", ".").replaceAll("[\r\n]", ".").length();
+					if (length < questionInfo.getMin_choice() || length > questionInfo.getMax_choice()) {
+						GameLog.getInstance().error("Answer is too long : " + length);
+						setRedirect(this.getClass());
+						return;
+					}
+					qAnswer = strAnswer.trim();
+				} else if (questionInfo.getType() == SurveyQuestionType.YES_NO.ordinal()) {
+					String strAnswer = getContext().getRequestParameter("options");
+					boolean ans = false;
+					if (strAnswer != null && strAnswer.equals("on")) {
+						ans = true;
+					}
+					if (!ans) {
+						if (questionInfo.getMin_choice() > 0) {
+							newProgress = (byte) questionInfo.getMin_choice();
+						}
+						qAnswer = SurveyService.YES_NO_OPTION_NO_TEMPL;
+					} else {
+						if (questionInfo.getMax_choice() > 0) {
+							newProgress = (byte) questionInfo.getMax_choice();
+						}
+						qAnswer = SurveyService.YES_NO_OPTION_YES_TEMPL;
+					}
+				} else if (questionInfo.getType() == SurveyQuestionType.NUMERAL_LIST.ordinal()) {
+					String strAnswer = getContext().getRequestParameter("options");
+					if (strAnswer == null) {
+						GameLog.getInstance().error("No answer!");
+						setRedirect(this.getClass());
+						return;
+					}
+					strAnswer = strAnswer.trim();
+					int length = strAnswer.length();
+					if (length == 0 && questionInfo.isRequired()) {
+						GameLog.getInstance().error("Answer is required!");
+						setRedirect(this.getClass());
+						return;
+					}
+					if (questionInfo.getMin_choice() != 0 && questionInfo.getMax_choice() != 0) {
+						if (!CommonMethod.isValidNumeric(strAnswer, questionInfo.getMin_choice(), questionInfo.getMax_choice())) {
+							GameLog.getInstance().error("Answer is invalid!");
+							setRedirect(this.getClass());
+							return;
+						}
+					}
+					qAnswer = strAnswer.trim();
+				} else if (questionInfo.getType() == SurveyQuestionType.DATE_PICKER.ordinal()) {
+					String strAnswer = getContext().getRequestParameter("options");
+					if (strAnswer == null) {
+						GameLog.getInstance().error("No answer!");
+						setRedirect(this.getClass());
+						return;
+					}
+					strAnswer = strAnswer.trim();
+					int length = strAnswer.length();
+					if (length == 0 && questionInfo.isRequired()) {
+						GameLog.getInstance().error("Answer is required!");
+						setRedirect(this.getClass());
+						return;
+					}
+					if (!strAnswer.matches("[0-9]{4}/[0-9]{2}/[0-9]{2}")) {
+						GameLog.getInstance().error("Answer is in an invalid format!");
+						setRedirect(this.getClass());
+						return;
+					}
+					Date date = CommonMethod.getDate(strAnswer, CommonDefine.DATE_FORMAT_PATTERN_WITHOUT_TIME);
+					if (date == null) {
+						GameLog.getInstance().error("Answer is in an invalid format of date!");
+						setRedirect(this.getClass());
+						return;
+					}
+					qAnswer = strAnswer.trim();
+				} else if (questionInfo.getType() == SurveyQuestionType.OPTION_LIST.ordinal()) {
+					String strAnswer = getContext().getRequestParameter("options");
+					if (strAnswer == null) {
+						GameLog.getInstance().error("No answer!");
+						setRedirect(this.getClass());
+						return;
+					}
+					strAnswer = strAnswer.trim();
+					int length = strAnswer.length();
+					if (length == 0 && questionInfo.isRequired()) {
+						GameLog.getInstance().error("Answer is required!");
+						setRedirect(this.getClass());
+						return;
+					}
+					qAnswer = strAnswer.trim();
+				} else {
+					GameLog.getInstance().error("Question type is invalid!");
+					setRedirect(this.getClass());
+					return;
 				}
-				setRedirect(this.getClass());
-				return;
+				if (qAnswer == null) {
+					qAnswer = "";
+				}
+				resultObject.addAnswer(questionIndex, qAnswer);
+				resultInfo.Set("progress", newProgress);
+				resultInfo.Set("result", resultObject.toString());
+				if (resultInfo.isInsert()) {
+					if (CommonDaoService.insert(resultInfo) == null) {
+						GameLog.getInstance().info("Cant insert option result!");
+						setRedirect(this.getClass());
+						return;
+					}
+					GameLog.getInstance().info("Inserted option result successfully!");
+				} else {
+					if (!CommonDaoService.update(resultInfo)) {
+						GameLog.getInstance().info("Cant update option result!");
+						setRedirect(this.getClass());
+						return;
+					}
+					GameLog.getInstance().info("Updated option result successfully!");
+				}
 			}
 		}
-		if (surveySession != null && activeSurvey != null) {
-			String strOptionList = getContext().getRequestParameter("options");
-			if (strOptionList == null || strOptionList.isEmpty()) {
-				GameLog.getInstance().error("No option selected!");
-				return;
-			}
-			if (!strOptionList.matches("[0-9]+(,[0-9]+)*")) {
-				GameLog.getInstance().error("Option is invalid format!");
-				return;
-			}
-			String[] arr = strOptionList.split(",");
-			List<Long> ids = new ArrayList<>();
-			for (String strId : arr) {
-				if (CommonMethod.isValidNumeric(strId, 1, Long.MAX_VALUE)) {
-					ids.add(Long.parseLong(strId));
-				}
-			}
-			if (SurveyService.getCountValidSurveyOption(ids) != arr.length) {
-				GameLog.getInstance().error("Option list in invalid!");
-				return;
-			}
-			if (arr.length > activeSurvey.getMaxChoice()) {
-				GameLog.getInstance().error("Option list in invalid!, max_choice:" + activeSurvey.getMaxChoice());
-				return;
-			}
-			if (arr.length < activeSurvey.getMinChoice()) {
-				GameLog.getInstance().error("Option list in invalid!, min_choice:" + activeSurvey.getMinChoice());
-				return;
-			}
-			SurveyResultInfo surveyResultInfo = SurveyService.getSurveyResult(surveySession.getCode(), activeSurvey.getId());
-			boolean isInsert = false;
-			if (surveyResultInfo != null) {
-				if (surveyResultInfo.getRetryRemain() <= 0) {
-					GameLog.getInstance().error("No more retry");
-					return;
-				}
-				surveyResultInfo.setRetryRemain((byte)(surveyResultInfo.getRetryRemain() - 1));
-			} else {
-				surveyResultInfo = new SurveyResultInfo();
-				surveyResultInfo.setUser(surveySession.getCode());
-				surveyResultInfo.setUserInfo(userData.getName());
-				surveyResultInfo.setSurveyId(activeSurvey.getId());
-				surveyResultInfo.setRetryRemain(activeSurvey.getMaxRetry());
-				isInsert = true;
-			}
-			surveyResultInfo.setResult(strOptionList);
-			if (isInsert) {
-				if (CommonDaoService.insert(surveyResultInfo.getInfo()) == null) {
-					GameLog.getInstance().info("Cant insert option result!");
-					return;
-				}
-				GameLog.getInstance().info("Inserted option result successfully!");
-			} else {
-				if (!CommonDaoService.update(surveyResultInfo.getInfo())) {
-					GameLog.getInstance().info("Cant update option result!");
-					return;
-				}
-				GameLog.getInstance().info("Updated option result successfully!");
-			}
+		Map<String, String> params = new HashMap<>();
+		if (activeSurvey != null) {
+			params.put("p", activeSurvey.getPathname());
 		}
-		setRedirect(this.getClass());
+		setRedirect(this.getClass(), params);
 		return;
 	}
 
@@ -189,187 +269,472 @@ public class Vote extends PageBase {
 		if (getRedirect() != null) {
 			return;
 		}
-		if (surveySession == null) {
-			addModel("valid_form", 1);
+		if (userInfo == null) {
+			addModel("login_modal", CommonHtmlFunc.getLoginFormModal(getHostURL() + getContextPath(), getMessages()));
 			return;
+		} else {
+			addModel("logoutForm", getLogoutForm());
 		}
-		if (userData == null) {
-			return;
-		}
-		addModel("userData", getUserInfo(userData));
+		renderUserInfo();
 		if (activeSurvey == null) {
+			renderListActiveSurvey(userInfo);
 			return;
 		}
-		addModel("survey", activeSurvey);
-		Long surveyId = activeSurvey.getId();
-		SurveyResultInfo resultInfo = SurveyService.getSurveyResult(surveySession.getCode(), activeSurvey.getId());
-		if (resultInfo == null) {
-			renderOptions(resultInfo);
-		} else {
-			if (resultInfo.getRetryRemain() > 0) {
-				if (getContext().getRequestParameter("retry") != null) {
-					renderResult(resultInfo, surveyId, true);
-					renderOptions(resultInfo);
-					addModel("retry", "1");
-					return;
-				}
+		addModel("survey_path", activeSurvey.getPathname());
+		addModel("survey_name", activeSurvey.getName());
+		addModel("survey_desc", CommonMethod.getFormatContentHtmlForDisplaying(activeSurvey.getDescription()));
+		byte questionIndex = 1;
+		SurveyAnswerWrapper resultObject = null;
+		TblSurveyResultInfo resultInfo = SurveyService.getSurveyResult(activeSurvey.getId(), userInfo.getEmpid());
+		if (resultInfo != null) {
+			questionIndex = resultInfo.getProgress();
+			resultObject = SurveyAnswerWrapper.parse(resultInfo.getResult()); // TODO check null
+		}
+		if (resultObject != null) {
+			// previous question.
+			renderPreviousAnswer(resultObject);
+		}
+		TblSurveyQuestionInfo questionInfo = SurveyService.getSurveyQuestion(activeSurvey.getId(), questionIndex);
+		if (questionInfo == null) {
+			//GameLog.getInstance().error("Survey question not found! index : " + questionIndex);
+			return;
+		}
+		// current question.
+		renderQuestionInfo(questionInfo);
+	}
+	
+	private void renderListActiveSurvey(UserInfo userinfo) {
+		List<TblSurveyInfo> listActive = SurveyService.getActiveSurveyList(userinfo.getFlag());
+		if (listActive == null || listActive.isEmpty()) {
+			return;
+		}
+		List<TblSurveyInfo> validList = null;;
+		for (TblSurveyInfo surveyInfo : listActive) {
+			if (!VoteFuncs.hasSurveyAccess(userInfo, surveyInfo)) {
+				continue;
 			}
-			renderResult(resultInfo, surveyId, false);
+			if (validList == null) {
+				validList = new ArrayList<>();
+			}
+			validList.add(surveyInfo);
+		}
+		if (validList != null) {
+			addModel("active_list", validList);
 		}
 	}
 	
-	private void renderOptions(SurveyResultInfo resultInfo) {
-		List<SurveyOptionInfo> surveyOptionList = SurveyService.getSurveyOptionList(activeSurvey.getId());
-		if (surveyOptionList == null || surveyOptionList.isEmpty()) {
+	private void renderPreviousAnswer(SurveyAnswerWrapper resultObject) {
+		if (resultObject == null) {
 			return;
 		}
+		List<SurveyAnswer> answerList = resultObject.getSurvey_answer();
+		if (answerList == null || answerList.isEmpty()) {
+			return;
+		}
+		List<Byte> questionIndexs = new ArrayList<>();
+		for (SurveyAnswer answer : answerList) {
+			if (!questionIndexs.contains(answer.getQuestion_index())) {
+				questionIndexs.add(answer.getQuestion_index());
+			}
+		}
+		Map<Byte, TblSurveyQuestionInfo> mapQuestion = SurveyService.getSurveyQuestionMapByIndexs(activeSurvey.getId(), questionIndexs);
+		if (mapQuestion == null || mapQuestion.size() != answerList.size()) {
+			return;
+		}
+		Collections.sort(answerList, new Comparator<SurveyAnswer>() {
+
+			@Override
+			public int compare(SurveyAnswer o1, SurveyAnswer o2) {
+				return o1.getQuestion_index() - o2.getQuestion_index();
+			}
+		});
 		StringBuilder sb = new StringBuilder();
-		List<Long> ids = (resultInfo == null ? null : resultInfo.getResultList());
 		sb.append("<div class=\"\">");
-			sb.append("<div class=\"row\">");
-			for (SurveyOptionInfo info : surveyOptionList) {
-				sb.append("<div class=\"col-6 col-lg-3\">");
-				boolean checked = (Boolean)(ids != null && ids.contains(info.getId()));
-				sb.append(getOptionPreview(info, true, checked));
+		for (SurveyAnswer answer : answerList) {
+			sb.append("<div class=\"\" style=\"margin-bottom:1rem;\">");
+			TblSurveyQuestionInfo questionInfo = mapQuestion.get(answer.getQuestion_index());
+			sb.append(getQuestionTitleContentDesc(questionInfo));
+			SurveyQuestionType type = SurveyQuestionType.valueOf(questionInfo.getType());
+			switch (type) {
+			case OPTION_SELECT:
+				sb.append(getAnsweredOption(answer, questionInfo));
+				break;
+			case GIVING_ANSWER:
+			case YES_NO:
+			case NUMERAL_LIST:
+			case DATE_PICKER:
+			case OPTION_LIST:
+				sb.append("<div class=\"bg-secondary answer-content\" >");
+				sb.append("<p>");
+				sb.append(CommonMethod.getFormatContentHtmlForDisplaying(answer.getAnswer()));
+				sb.append("</p>");
 				sb.append("</div>");
+				break;
+			case MYSTERY_GIFT_BOX:
+				sb.append(getLuckyNumberMysteryReward(answer));
+				break;
+			default:
+				break;
 			}
 			sb.append("</div>");
-		sb.append("</div>");
-		if (resultInfo == null) {
-			sb.append("<div class=\"text-center\" style=\"margin-top:1rem;\">");
-			sb.append("<div class=\"row\">");
-			sb.append("<div class=\"col-sm-12 col-lg-4\" style=\"margin:0 auto;\">");
-			sb.append("<button type=\"submit\" onclick=\"sendVote(); this.blur; return false;\" class=\"btn btn-success\" style=\"width:100%;\">Submit</button>");
-			sb.append("</div>");
-			sb.append("</div>");
-			sb.append("</div>");
-		} else {
-			sb.append("<div class=\"text-center\" style=\"margin-top:1rem;\">");
-			sb.append("<div class=\"row\">");
-				sb.append("<div class=\"col-6 col-lg-4\" style=\"margin:0 auto;\">");
-				sb.append("<button type=\"submit\" onclick=\"sendVote(); this.blur; return false;\" class=\"btn btn-success\" style=\"width:100%;\">Submit</button>");
-				sb.append("</div>");
-				sb.append("<div class=\"col-6 col-lg-4\" style=\"margin:0 auto;\">");
-				sb.append("<a href=\"" + getContextPath() + getContext().getPagePath(getClass()) + "\">");
-				sb.append("<button type=\"submit\" class=\"btn btn-danger\" style=\"width:100%;\">Cancel</button>");
-				sb.append("</a>");
-				sb.append("</div>");
-			sb.append("</div>");
-			sb.append("</div>");
 		}
-		addModel("options", sb.toString());
+		sb.append("</div>");
+		
+		addModel("previous_answer", sb.toString());
 	}
 	
-	private void renderResult(SurveyResultInfo resultInfo, Long surveyId, boolean retryMode) {
-		if (resultInfo == null) {
+	private void renderQuestionInfo(TblSurveyQuestionInfo questionInfo) {
+		if (questionInfo == null) {
+			GameLog.getInstance().error("Survey question not found!");
 			return;
 		}
-		List<Long> ids = resultInfo.getResultList();
-		if (ids == null || ids.isEmpty()) {
+		SurveyQuestionType type = SurveyQuestionType.valueOf(questionInfo.getType());
+		switch (type) {
+		case OPTION_SELECT:
+			renderQuestionOption(questionInfo);
+			break;
+		case GIVING_ANSWER:
+			renderQuestionAnswer(questionInfo);
+			break;
+		case YES_NO:
+			renderQuestionYesNo(questionInfo);
+			break;
+		case NUMERAL_LIST:
+			renderQuestionSelectList(questionInfo);
+			break;
+		case DATE_PICKER:
+			renderQuestionSelectDate(questionInfo);
+			break;
+		case OPTION_LIST:
+			renderQuestionListOption(questionInfo);
+			break;
+		case MYSTERY_GIFT_BOX:
+			renderQuestionLuckyBoxList(questionInfo);
+			break;
+		default:
+			break;
+		}
+	}
+	
+	private void renderQuestionOption(TblSurveyQuestionInfo questionInfo) {
+		if (questionInfo == null) {
+			GameLog.getInstance().error("Survey question not found!");
 			return;
 		}
-		List<SurveyOptionInfo> optionInfos = SurveyService.getSurveyOptionList(ids);
-		if (optionInfos == null || optionInfos.isEmpty()) {
-			GameLog.getInstance().error("[Survey] Result's option list is null!");
-			return;
-		}
-		if (optionInfos.size() > activeSurvey.getMaxChoice()) {
-			GameLog.getInstance().error("[Survey] Result's option list is invalid!");
+		List<TblSurveyOptionInfo> optionList = SurveyService.getSurveyOptionList(questionInfo.getId());
+		if (optionList == null || optionList.isEmpty()) {
+			GameLog.getInstance().error("[Survey] Survey's option list is null!");
 			return;
 		}
 		StringBuilder sb = new StringBuilder();
-		sb.append("<div id=\"result-frame\">");
-		sb.append("<div class=\"row\">");
-		int size = (retryMode ? activeSurvey.getMaxChoice() :optionInfos.size());
-		int n = size - size % 3; // 12/4
-		int l = (n == size ? 0 : n + 3 - size);
-		int i = 0;
-		for (; i < n; i++) {
-			sb.append("<div class=\"col-4 col-lg-4\" style=\"padding:0.5rem;\">");
-			if (i < optionInfos.size()) {
-				sb.append(getOptionPreview(optionInfos.get(i), false, false));
-			} else {
-				sb.append(getOptionPreview(null, false, false));
-			}
-			sb.append("</div>");
-		}
-		if (l > 0) {
-			sb.append(String.format("<div class=\"col-%d col-lg-%d\">", 2 * l, 2 * l));
-			sb.append("</div>");
-		}
-		for (; i < size; i++) {
-			sb.append("<div class=\"col-4 col-lg-4\" style=\"padding:0.5rem;\">");
-			if (i < optionInfos.size()) {
-				sb.append(getOptionPreview(optionInfos.get(i), false, false));
-			} else {
-				sb.append(getOptionPreview(null, false, false));
-			}
-			sb.append("</div>");
-		}
-		if (l > 0) {
-			sb.append(String.format("<div class=\"col-%d col-lg-%d\">", 2 * l, 2 * l));
+		sb.append("<div class=\"\">");
+		sb.append(getQuestionTitleContentDesc(questionInfo));
+		sb.append("<div class=\"row justify-content-center\">");
+		for (TblSurveyOptionInfo optionInfo : optionList) {
+			sb.append("<div class=\"col-sm-6 col-md-4 col-lg-3\">");
+			sb.append(getOptionPreview(optionInfo, true, false));
 			sb.append("</div>");
 		}
 		sb.append("</div>");
 		sb.append("</div>");
-		if (!retryMode && resultInfo.getRetryRemain() > 0 ) {
-			sb.append("<div class=\"row\">");
-			sb.append("<div class=\"col-lg-12 text-center\">");
-			sb.append("<label class=\"text-info\" style=\"\">");
-			sb.append("You have " + resultInfo.getRetryRemain() + " times to change your choices, would you wanna do?");
-			sb.append("</label>");
-			sb.append("</div>");
-			sb.append("</div>");
-			sb.append("<div class=\"text-center\">");
-			sb.append("<a href=\"" + getContextPath() + getContext().getPagePath(getClass()) + "?retry=1\">");
-			sb.append("<button type=\"submit\" class=\"btn btn-info\">Change</button>");
-			sb.append("</a>");
-			sb.append("</div>");
-		}
-		addModel("results", sb.toString());
+		sb.append("<div class=\"d-none\">");
+		sb.append("<span class=\"d-none\" id=\"max_choice\">").append(questionInfo.getMax_choice()).append("</span>");
+		sb.append("<span class=\"d-none\" id=\"min_choice\">").append(questionInfo.getMin_choice()).append("</span>");
+		sb.append("</div>");
+		//
+		sb.append(getQuestionSubmitButton(questionInfo));
+		addModel("question_info", sb.toString());
 	}
 	
-	private String getOptionPreview(SurveyOptionInfo info, boolean selectable, boolean checked) {
+	private void renderQuestionYesNo(TblSurveyQuestionInfo questionInfo) {
+		if (questionInfo == null) {
+			GameLog.getInstance().error("Survey question not found!");
+			return;
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append("<div class=\"\">");
+		sb.append(getQuestionTitleContentDesc(questionInfo));
+		sb.append("<div class=\"form-group\">");
+		sb.append("<div class=\"custom-control custom-radio\">");
+		sb.append(String.format("<input type=\"radio\" id=\"yes_no-yes\" name=\"yes_no\" class=\"custom-control-input\" value=\"on\">", ""));
+		sb.append("<label class=\"custom-control-label none-select\" for=\"yes_no-yes\" >" + SurveyService.YES_NO_OPTION_YES_TEMPL + "</label>");
+		sb.append("</div>");
+		sb.append("<div class=\"custom-control custom-radio\" style=\"margin-top:0.5rem;\">");
+		sb.append(String.format("<input type=\"radio\" id=\"yes_no-no\" name=\"yes_no\" class=\"custom-control-input\" value=\"off\" >", ""));
+		sb.append("<label class=\"custom-control-label none-select\" for=\"yes_no-no\" >" + SurveyService.YES_NO_OPTION_NO_TEMPL + "</label>");
+		sb.append("</div>");
+		sb.append("</div>");
+		sb.append("</div>");
+		//
+		sb.append(getQuestionSubmitButton(questionInfo));
+		addModel("question_info", sb.toString());
+	}
+	
+	private void renderQuestionAnswer(TblSurveyQuestionInfo questionInfo) {
+		if (questionInfo == null) {
+			GameLog.getInstance().error("Survey question not found!");
+			return;
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append("<div class=\"\">");
+		sb.append(getQuestionTitleContentDesc(questionInfo));
+		sb.append("<div class=\"form-group\">");
+			sb.append("<label class=\"form-control-label font-weight-bold\">Your answer:&nbsp;").append("<span class=\"char-count\"></span>").append("</label>");
+			sb.append("<textarea class=\"form-control text-answer\" rows=\"5\">").append("</textarea>");
+		sb.append("</div>");
+		sb.append("</div>");
+		//
+		sb.append(getQuestionSubmitButton(questionInfo));
+		addModel("question_info", sb.toString());
+	}
+	
+	private void renderQuestionSelectList(TblSurveyQuestionInfo questionInfo) {
+		if (questionInfo == null) {
+			GameLog.getInstance().error("Survey question not found!");
+			return;
+		}
+		if (questionInfo.getMin_choice() + questionInfo.getMax_choice() == 0 || questionInfo.getMin_choice() > questionInfo.getMax_choice()) {
+			GameLog.getInstance().error("Survey question param is invalid for list select! " + questionInfo.getId());
+			return;
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append("<div class=\"\">");
+		sb.append(getQuestionTitleContentDesc(questionInfo));
+		sb.append("<div class=\"form-group\">");
+			sb.append("<label class=\"form-control-label font-weight-bold\" for=\"select-label-" + questionInfo.getId() + "\">Your answer:&nbsp;").append("</label>");
+			sb.append("<select id=\"select-label-" + questionInfo.getId() + "\" class=\"form-control select-answer\">");
+			for (int i = questionInfo.getMin_choice(); i <= questionInfo.getMax_choice(); i++) {
+				sb.append(String.format("<option value=\"%d\">%d</option>", i, i));
+			}
+			sb.append("</select>");
+		sb.append("</div>");
+		sb.append("</div>");
+		//
+		sb.append(getQuestionSubmitButton(questionInfo));
+		addModel("question_info", sb.toString());
+	}
+	
+	private void renderQuestionSelectDate(TblSurveyQuestionInfo questionInfo) {
+		if (questionInfo == null) {
+			GameLog.getInstance().error("Survey question not found!");
+			return;
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append("<div class=\"\">");
+		sb.append(getQuestionTitleContentDesc(questionInfo));
+		sb.append("<div class=\"form-group\">");
+		sb.append("<label class=\"form-control-label font-weight-bold\" for=\"select-label-" + questionInfo.getId() + "\">Your answer:&nbsp;").append("</label>");
+			sb.append("<input id=\"select-label-" + questionInfo.getId() + "\" class=\"form-control date-picker\" type=\"text\"/>");
+		sb.append("</div>");
+		sb.append("</div>");
+		//
+		sb.append(getQuestionSubmitButton(questionInfo));
+		addModel("question_info", sb.toString());
+	}
+	
+	private void renderQuestionListOption(TblSurveyQuestionInfo questionInfo) {
+		if (questionInfo == null) {
+			GameLog.getInstance().error("Survey question not found!");
+			return;
+		}
+		List<TblSurveyOptionInfo> optionList = SurveyService.getSurveyOptionList(questionInfo.getId());
+		if (optionList == null || optionList.isEmpty()) {
+			GameLog.getInstance().error("[Survey] Survey's option list is null!");
+			return;
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append("<div class=\"\">");
+		sb.append(getQuestionTitleContentDesc(questionInfo));
+		sb.append("<div class=\"form-group\">");
+			sb.append("<label class=\"form-control-label font-weight-bold\" for=\"select-label-" + questionInfo.getId() + "\">Your answer:&nbsp;").append("</label>");
+			sb.append("<select id=\"select-label-" + questionInfo.getId() + "\" class=\"form-control select-answer\">");
+			for (TblSurveyOptionInfo option : optionList) {
+				sb.append(String.format("<option value=\"%s\">%s</option>", option.getTitle(), option.getTitle()));
+			}
+			sb.append("</select>");
+		sb.append("</div>");
+		sb.append("</div>");
+		//
+		sb.append(getQuestionSubmitButton(questionInfo));
+		addModel("question_info", sb.toString());
+	}
+	
+	private void renderQuestionLuckyBoxList(TblSurveyQuestionInfo questionInfo) {
+		if (questionInfo == null) {
+			GameLog.getInstance().error("Survey question not found!");
+			return;
+		}
+		if (questionInfo.getMin_choice() <= 0 || questionInfo.getMax_choice() < questionInfo.getMin_choice()) {
+			GameLog.getInstance().error("Survey question param is invalid for lucky box select! " + questionInfo.getId());
+			return;
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append("<div class=\"\">");
+		sb.append(getQuestionTitleContentDesc(questionInfo));
+		sb.append("<div class=\"d-flex\" style=\"flex-flow:row wrap;justify-content:center;gap:1rem;\">");
+		for (int i = 1; i <= questionInfo.getMin_choice(); i++) {
+			sb.append(String.format("<div class=\"mystery-box\" data-id=\"%d\">", i));
+			sb.append(String.format("<img src=\"%s\" alt=\"gift\" />", getContextPath() + "/img/vote/gift.png"));
+			sb.append("</div>");
+		}
+		sb.append("</div>");
+		sb.append("</div>");
+		//
+		sb.append(getQuestionSubmitButton(questionInfo));
+		addModel("question_info", sb.toString());
+	}
+	
+	private String getAnsweredOption(SurveyAnswer answer, TblSurveyQuestionInfo questionInfo) {
+		if (answer == null || questionInfo == null) {
+			return "";
+		}
+		String strAnseredIds = answer.getAnswer();
+		if (StringUtils.isEmpty(strAnseredIds) || !strAnseredIds.matches("[0-9]+(,[0-9]+)*")) {
+			return "";
+		}
+		String[] arrIds = strAnseredIds.split(",");
+		List<Long> optionIds = new ArrayList<>();
+		for (String strId : arrIds) {
+			if (CommonMethod.isValidNumeric(strId, 1, Long.MAX_VALUE)) {
+				optionIds.add(Long.parseLong(strId));
+			}
+		}
+		List<TblSurveyOptionInfo> optionList = SurveyService.getSurveyOptionList(optionIds);
+		if (optionList == null || optionList.isEmpty()) {
+			return "";
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append("<div class=\"\">");
+		sb.append("<div class=\"row justify-content-center\">");
+		for (TblSurveyOptionInfo option : optionList) {
+			sb.append("<div class=\"col-sm-6 col-md-4 col-lg-3\">");
+			sb.append(getOptionPreview(option, false, false));
+			sb.append("</div>");
+		}
+		sb.append("</div>");
+		sb.append("</div>");
+		
+		return sb.toString();
+	}
+	
+	private String getLuckyNumberMysteryReward(SurveyAnswer answer) {
+		if (answer == null) {
+			return "";
+		}
+		String strAnsered = answer.getAnswer();
+		if (!strAnsered.matches("^[0-9]+$")) {
+			return "";
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append("<div class=\"\">");
+		sb.append("<div class=\"row justify-content-center\">");
+			sb.append("<div class=\"col-sm-6 col-md-4 col-lg-3\">");
+			sb.append("<div class=\"survey-option-wrapper\">");
+				sb.append(String.format("<div style=\"position:relative;\" class=\"survey-option\" title=\"%s\">", CommonMethod.getFormatContentHtmlForTooltip(strAnsered)));
+				sb.append("<div class=\"survey-opt-image none-select lucky-number\">").append(CommonMethod.getFormatContentHtmlForDisplaying(strAnsered)).append("</div>");
+				sb.append("<label class=\"font-weight-bold\" style=\"text-overflow:ellipsis;overflow:hidden;white-space:nowrap;width:100%;\" >");
+				sb.append("Your lucky number");
+				sb.append("</label>");
+				sb.append("</div>");
+			sb.append("</div>");
+			sb.append("</div>");
+		sb.append("</div>");
+		sb.append("</div>");
+		
+		return sb.toString();
+	}
+	
+	private String getOptionPreview(TblSurveyOptionInfo info, boolean selectable, boolean checked) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("<div class=\"survey-option-wrapper" + ((info == null && !selectable) ? " result-empty" : "") + "\">");
 		if (info != null) {
-			sb.append("<div style=\"position:relative;\" data=\"option-" + info.getId() + "\" class=\"survey-option option-" + (selectable ? "select-" + info.getId() : "result-" + info.getId()) + "\">");
-				sb.append("<img src=\"" + CommonMethod.getStaticFile(info.getImage()) + "\" alt=\"" + info.getName() + "\" class=\"survey-opt-image" + (checked ? " check" : "") + "\">");
-				sb.append("<label class=\"font-weight-bold\" data-toggle=\"tooltip\" data-placement=\"bottom\" style=\"text-overflow:ellipsis;overflow:hidden;white-space:nowrap;width:100%;\" title=\"" + info.getName() + "\">");
-					sb.append(info.getName());
+			if (info.getType() == SurveyOptionType.IMAGE.ordinal()) {
+				sb.append(String.format("<div style=\"position:relative;\" data=\"option-%d\" class=\"survey-option option-%s\" title=\"%s\">", info.getId(), (selectable ? "select-" + info.getId() : "result-" + info.getId()), CommonMethod.getFormatContentHtmlForTooltip(info.getDescription())));
+				sb.append("<img src=\"" + CommonMethod.getStaticFile(info.getContent()) + "\" alt=\"" + info.getTitle() + "\" class=\"survey-opt-image" + (checked ? " check" : "") + "\">");
+				sb.append("<label class=\"font-weight-bold\" style=\"text-overflow:ellipsis;overflow:hidden;white-space:nowrap;width:100%;\" >");
+				sb.append(info.getTitle());
 				sb.append("</label>");
 				if (selectable) {
 					sb.append("<div class=\"option-checked\" style=\"display:" + (checked ? "block" : "none") + ";\">");
 					sb.append("<img src=\"" + getHostURL() + getContextPath() + "/img/vote/check_icon_c.png" + "\" style=\"width:90%;\" />");
 					sb.append("</div>");
 				}
-			sb.append("</div>");
+				sb.append("</div>");
+			} else if (info.getType() == SurveyOptionType.TEXT.ordinal()) {
+				sb.append(String.format("<div style=\"position:relative;\" data=\"option-%d\" class=\"survey-option option-%s\" title=\"%s\">", info.getId(), (selectable ? "select-" + info.getId() : "result-" + info.getId()), CommonMethod.getFormatContentHtmlForTooltip(info.getDescription())));
+				sb.append("<div class=\"survey-opt-image none-select" + (checked ? " check" : "") + "\">").append(CommonMethod.getFormatContentHtmlForDisplaying(info.getContent())).append("</div>");
+				sb.append("<label class=\"font-weight-bold\" style=\"text-overflow:ellipsis;overflow:hidden;white-space:nowrap;width:100%;\" >");
+				sb.append(info.getTitle());
+				sb.append("</label>");
+				if (selectable) {
+					sb.append("<div class=\"option-checked\" style=\"display:" + (checked ? "block" : "none") + ";\">");
+					sb.append("<img src=\"" + getHostURL() + getContextPath() + "/img/vote/check_icon_c.png" + "\" style=\"width:90%;\" />");
+					sb.append("</div>");
+				}
+				sb.append("</div>");
+			}
 		}
 		sb.append("</div>");
 		return sb.toString();
 	}
 	
-	private String getUserInfo(SurveyValidCodeData userData) {
-		if (userData == null) {
+	private String getQuestionTitleContentDesc(TblSurveyQuestionInfo questionInfo) {
+		if (questionInfo == null) {
 			return "";
 		}
-		String userName = userData.getName();
+		StringBuilder sb = new StringBuilder();
+		sb.append("<div class=\"\">");
+		sb.append("<div class=\"form-group\">");
+		sb.append(String.format("<h4 class=\"%s\">", (questionInfo.isRequired() ? "required-field" : ""))).append(questionInfo.getIdx()).append(". ").append(questionInfo.getTitle()).append("</h4>");
+		if (StringUtils.isNotEmpty(questionInfo.getContent())) {
+			sb.append("<p style=\"padding: 0 1rem 0 1rem;font-size: 1rem; font-style: italic;\">");
+				sb.append(CommonMethod.getFormatContentHtmlForDisplaying(questionInfo.getContent()));
+			sb.append("</p>");
+		}
+		sb.append("</div>");
+		sb.append("</div>");
+		
+		return sb.toString();
+	}
+	
+	private String getQuestionSubmitButton(TblSurveyQuestionInfo questionInfo) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("<div class=\"text-center\" style=\"margin-top:3rem;\">");
+		sb.append("<div class=\"row\">");
+		sb.append("<div class=\"col-sm-12 col-lg-4\" style=\"margin:0 auto;\">");
+		if (questionInfo.getType() == SurveyQuestionType.MYSTERY_GIFT_BOX.ordinal()) {
+			sb.append("<button type=\"button\" class=\"btn btn-success\" onclick=\"window.location.reload();\" style=\"width:100%;\">Confirm</button>");
+		} else {
+			sb.append(String.format("<button type=\"submit\" data-required=\"%s\" data-max=\"%d\" data-min=\"%d\" id=\"btn-submit-vote\" class=\"btn btn-success\" style=\"width:100%%;\">Submit</button>", (questionInfo.isRequired() ? "1" : "0"), questionInfo.getMax_choice(), questionInfo.getMin_choice()));
+		}
+		sb.append("</div>");
+		sb.append("</div>");
+		sb.append("</div>");
+		return sb.toString();
+	}
+	
+	private void renderUserInfo() {
+		if (userInfo == null) {
+			return;
+		}
+		String userName = userInfo.getName();
 		StringBuilder sb = new StringBuilder();
 		sb.append("<div class=\"row\">");
 			sb.append("<div class=\"col-lg-12 text-center\">");
-				sb.append("<label class=\"font-weight-bold text-info\" style=\"margin-top:0.8rem;font-size:" + (userName.length() > 24 ? "1" : "1.125") + "rem;\" >");
+				sb.append("<label class=\"font-weight-bold text-success\" style=\"margin-top:0.8rem;font-size:" + (userName.length() > 24 ? "1" : "1.125") + "rem;\" >");
 					sb.append("Welcome, " + userName);
-					sb.append("<a href=\"" + getContextPath() + getContext().getPagePath(getClass()) + "?out=1\">");
+					sb.append("<a href=\"#\" id=\"logout\" title=\"Logout\">");
 					sb.append("<img src=\"" + getContextPath() + "/img/vote/logout-3.png" + "\" style=\"transform:scale(0.5,0.5);\"/>");
 					sb.append("</a>");
 				sb.append("</label>");
 			sb.append("</div>");
 			String pageLink = null;
-			if (userData.isEditable()) {
-				pageLink = String.format("<a href=\"%s\">Administration Page</a>", getPagePath(ManageVote.class));
-			} else if (userData.isReadonly()) {
-				pageLink = String.format("<a href=\"%s\">Result Page</a>", getPagePath(ManageVote.class) + "?mode=5" + "&survey_id=" + activeSurvey.getId());
-			}
+			if (userInfo.isVoteAdmin()) {
+				pageLink = String.format("<button type=\"button\" class=\"btn btn-secondary\"><a href=\"%s\">Administration Page</a></button>", getPagePath(ManageVote.class));
+			} 
+//			else if (surveyData.isReadonly() && activeSurvey != null) {
+//				pageLink = String.format("<button type=\"button\" class=\"btn btn-secondary\"><a href=\"%s\">Result Page</a></button>", getPagePath(ManageVote.class) + "?mode=5" + "&survey_id=" + activeSurvey.getId());
+//			}
 			if (pageLink != null) {
 				sb.append("<div class=\"col-lg-12 text-center\">");
 				sb.append("<label class=\"\" style=\"margin-bottom:1rem;\" >");
@@ -378,7 +743,11 @@ public class Vote extends PageBase {
 				sb.append("</div>");
 			}
 		sb.append("</div>");
-		return sb.toString();
+		addModel("user_info", sb.toString());
+	}
+	
+	protected int getMenuBarIndex() {
+		return MainNavBarEnum.VOTE.getIndex();
 	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -387,9 +756,8 @@ public class Vote extends PageBase {
 		if (headElements == null) {
 			headElements = super.getHeadElements();
 		}
-		headElements.add(new CssImport("/css/vote/vote.css?@vote.css@"));
-		headElements.add(new JsImport("/js/vote/vote.js?@vote.js@"));
-		headElements.add(new JsImport("/js/lib/random-color.min.js?@random-color.min.js@"));
+		headElements.add(importCss("/css/vote/vote.css"));
+		headElements.add(importJs("/js/vote/vote.js"));
 
 		return headElements;
 	}

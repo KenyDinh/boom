@@ -28,6 +28,7 @@ public class QuizPlayerInfo {
 	public void setUserId(long user_id) {
 		this.tblQuizPlayerInfo.setUser_id(user_id);
 	}
+
 	public String getUsername() {
 		return this.tblQuizPlayerInfo.getUsername();
 	}
@@ -35,6 +36,7 @@ public class QuizPlayerInfo {
 	public void setUsername(String username) {
 		this.tblQuizPlayerInfo.setUsername(username);
 	}
+
 	public long getQuizId() {
 		return this.tblQuizPlayerInfo.getQuiz_id();
 	}
@@ -49,6 +51,17 @@ public class QuizPlayerInfo {
 
 	public void setStatus(byte status) {
 		this.tblQuizPlayerInfo.setStatus(status);
+	}
+
+	public byte getRetry() {
+		return this.tblQuizPlayerInfo.getRetry();
+	}
+
+	public void setRetry(byte retry) {
+		if (retry < 0) {
+			retry = 0;
+		}
+		this.tblQuizPlayerInfo.setRetry(retry);
 	}
 
 	public String getAnswer() {
@@ -67,12 +80,25 @@ public class QuizPlayerInfo {
 		this.tblQuizPlayerInfo.setCorrect_count(correct_count);
 	}
 
+	public void incCorrectCount() {
+		byte correctCount = getCorrectCount();
+		correctCount++;
+		setCorrectCount((byte) correctCount);
+
+	}
+
 	public int getCorrectPoint() {
 		return this.tblQuizPlayerInfo.getCorrect_point();
 	}
 
 	public void setCorrectPoint(int correct_point) {
 		this.tblQuizPlayerInfo.setCorrect_point(correct_point);
+	}
+
+	public void incCorrectPoint() {
+		int correctPoint = getCorrectPoint();
+		correctPoint++;
+		setCorrectPoint(correctPoint);
 	}
 
 	public Date getUpdated() {
@@ -90,7 +116,8 @@ public class QuizPlayerInfo {
 		setQuizId(quizInfo.getId());
 		setStatus(QuizPlayerStatus.INITIALIZED.getStatus());
 		setAnswer("");
-		setCorrectCount((byte)0);
+		setCorrectCount((byte) 0);
 		setCorrectPoint(0);
+//		setRetry(quizInfo.getRetry());
 	}
 }

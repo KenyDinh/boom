@@ -52,3 +52,17 @@
     75% { color:#E74C3C; }
     100% { color:#F39C12; }
 }
+#alert-wrapper {
+	position:fixed;
+	top:0;
+	left:0;
+	width:100vw;
+	z-index:9999;
+}
+img.survey-option-image{
+	width:200px;
+	height:125px;
+	object-fit:cover;
+	border-radius: 0.25rem;
+    border: 1px solid #1e78d2;
+}

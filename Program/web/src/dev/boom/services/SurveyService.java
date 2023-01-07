@@ -1,23 +1,39 @@
 package dev.boom.services;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
+
+import dev.boom.common.CommonMethod;
+import dev.boom.common.enums.SurveyQuestionType;
+import dev.boom.common.enums.SurveyStatus;
 import dev.boom.core.GameLog;
 import dev.boom.dao.core.DaoValue;
-import dev.boom.tbl.data.TblSurveyValidCodeData;
+import dev.boom.services.json.SurveyAnswer;
+import dev.boom.services.json.SurveyAnswerWrapper;
+import dev.boom.services.json.SurveyOptionStatistics;
+import dev.boom.services.json.SurveyResultObject;
 import dev.boom.tbl.info.TblSurveyInfo;
 import dev.boom.tbl.info.TblSurveyOptionInfo;
+import dev.boom.tbl.info.TblSurveyQuestionInfo;
 import dev.boom.tbl.info.TblSurveyResultInfo;
+import dev.boom.tbl.info.TblSurveyUserAccessInfo;
 
 public class SurveyService {
-
-	public static SurveyInfo getActiveSurveyInfo() {
+	
+	public static final String YES_NO_OPTION_YES_TEMPL = "Có";
+	public static final String YES_NO_OPTION_NO_TEMPL = "Không";
+	
+	private SurveyService() {
+	}
+	
+	public static TblSurveyInfo getSurveyInfoByPathName(String name) {
 		TblSurveyInfo info = new TblSurveyInfo();
-		info.setStatus((byte)1);
-		
+		info.Set("pathname", name);
 		List<DaoValue> list = CommonDaoService.select(info);
 		if (list == null || list.isEmpty()) {
 			return null;
@@ -26,264 +42,511 @@ public class SurveyService {
 			GameLog.getInstance().error("[getActiveSurveyInfo] there are mone than one survey actived!");
 		}
 		
-		return new SurveyInfo((TblSurveyInfo) list.get(0));
+		return (TblSurveyInfo) list.get(0);
 	}
 	
-	public static List<SurveyInfo> getSurveyList() {
+	public static List<TblSurveyInfo> getSurveyInfoList() {
 		TblSurveyInfo info = new TblSurveyInfo();
-		
 		List<DaoValue> list = CommonDaoService.select(info);
 		if (list == null || list.isEmpty()) {
-			return null;
+			return Collections.emptyList();
 		}
-		List<SurveyInfo> ret = new ArrayList<>();
+		List<TblSurveyInfo> ret = new ArrayList<>();
 		for (DaoValue dao : list) {
-			ret.add(new SurveyInfo((TblSurveyInfo) dao));
+			ret.add((TblSurveyInfo) dao);
 		}
 		
 		return ret;
 	}
 	
-	public static SurveyInfo getSurveyById(long id) {
+	public static List<TblSurveyInfo> getSurveyInfoListForDisplay(boolean isCompleted) {
 		TblSurveyInfo info = new TblSurveyInfo();
-		info.setId(id);
-		
+		if (!isCompleted) {
+			info.setSelectOption("WHERE status <> " + SurveyStatus.FINISHED.ordinal());
+		}
 		List<DaoValue> list = CommonDaoService.select(info);
 		if (list == null || list.isEmpty()) {
-			return null;
+			return Collections.emptyList();
 		}
-		
-		return new SurveyInfo((TblSurveyInfo) list.get(0));
-	}
-	
-	public static List<SurveyOptionInfo> getSurveyOptionList(long survey_id) {
-		TblSurveyOptionInfo info = new TblSurveyOptionInfo();
-		info.setSurvey_id(survey_id);
-		
-		List<DaoValue> list = CommonDaoService.select(info);
-		if (list == null || list.isEmpty()) {
-			return null;
-		}
-		
-		List<SurveyOptionInfo> ret = new ArrayList<>();
+		List<TblSurveyInfo> ret = new ArrayList<>();
 		for (DaoValue dao : list) {
-			ret.add(new SurveyOptionInfo((TblSurveyOptionInfo) dao));
+			ret.add((TblSurveyInfo) dao);
 		}
 		
 		return ret;
 	}
 	
-	public static SurveyOptionInfo getSurveyOptionById(long id) {
-		TblSurveyOptionInfo info = new TblSurveyOptionInfo();
-		info.setId(id);
-		
+	public static TblSurveyInfo getSurveyInfoById(long id) {
+		TblSurveyInfo info = new TblSurveyInfo();
+		info.Set("id", id);
 		List<DaoValue> list = CommonDaoService.select(info);
 		if (list == null || list.isEmpty()) {
 			return null;
 		}
 		
-		return new SurveyOptionInfo((TblSurveyOptionInfo) list.get(0));
+		return (TblSurveyInfo) list.get(0);
 	}
 	
-	public static boolean isExistOptionImgFileName(String imgName) {
-		TblSurveyOptionInfo info = new TblSurveyOptionInfo();
-		info.setImage(imgName);
-		return (CommonDaoService.count(info) > 0);
-	}
-	
-	public static List<SurveyOptionInfo> getSurveyOptionList(List<Long> ids) {
-		if (ids == null || ids.isEmpty()) {
-			return null;
+	public static List<TblSurveyInfo> getActiveSurveyList(int flag) {
+		TblSurveyInfo info = new TblSurveyInfo();
+		info.setStatus((byte)SurveyStatus.IN_SESSION.ordinal());
+		if (flag <= 0) {
+		} else {
+			info.setSelectOption("AND (flag = 0 OR (flag & " + flag + ") <> 0)");
 		}
-		String option = "";
-		for (Long id : ids) {
-			if (!option.isEmpty()) {
-				option += ",";
-			}
-			option += id;
-		}
-		TblSurveyOptionInfo info = new TblSurveyOptionInfo();
-		info.setSelectOption("WHERE id IN(" + option + ")");
-		
+		info.setSelectOption("AND expired > NOW()");
+		info.setSelectOption("ORDER BY id DESC");
 		List<DaoValue> list = CommonDaoService.select(info);
 		if (list == null || list.isEmpty()) {
-			return null;
+			return Collections.emptyList();
 		}
-		
-		List<SurveyOptionInfo> ret = new ArrayList<>();
+		List<TblSurveyInfo> ret = new ArrayList<>();
 		for (DaoValue dao : list) {
-			ret.add(new SurveyOptionInfo((TblSurveyOptionInfo) dao));
+			ret.add((TblSurveyInfo) dao);
 		}
 		
 		return ret;
 	}
 	
-	public static List<SurveyResultInfo> getSurveyResultBySurveyId(long survey_id) {
-		TblSurveyResultInfo info = new TblSurveyResultInfo();
-		info.setSurvey_id(survey_id);
-		
-		List<DaoValue> list = CommonDaoService.select(info);
-		if (list == null || list.isEmpty()) {
-			return null;
-		}
-		
-		List<SurveyResultInfo> ret = new ArrayList<>();
-		for (DaoValue dao : list) {
-			ret.add(new SurveyResultInfo((TblSurveyResultInfo) dao));
-		}
-		
-		return ret;
-	}
-	
-	public static SurveyResultInfo getSurveyResult(String user, long survey_id) {
-		TblSurveyResultInfo info = new TblSurveyResultInfo();
-		info.setUser(user);
-		info.setSurvey_id(survey_id);
-		
+	public static TblSurveyInfo getActiveSurveyInfo() {
+		TblSurveyInfo info = new TblSurveyInfo();
+		info.setStatus((byte)SurveyStatus.IN_SESSION.ordinal());
+		info.setSelectOption("AND expired > NOW()");
+		info.setSelectOption("ORDER BY id DESC");
 		List<DaoValue> list = CommonDaoService.select(info);
 		if (list == null || list.isEmpty()) {
 			return null;
 		}
 		if (list.size() > 1) {
-			GameLog.getInstance().error("There are more than one result record!");
+			GameLog.getInstance().error("[getActiveSurveyInfo] there are mone than one survey actived!");
 		}
 		
-		return new SurveyResultInfo((TblSurveyResultInfo) list.get(0));
-		
+		return (TblSurveyInfo) list.get(0);
 	}
 	
-	public static long getCountSurveyResult(long survey_id) {
+	public static TblSurveyResultInfo getSurveyResult(long surveyId, String userId) {
 		TblSurveyResultInfo info = new TblSurveyResultInfo();
-		info.setSurvey_id(survey_id);
-		
-		return CommonDaoService.count(info);
-	}
-	
-//	public static List<SurveyOptionInfo> calculateSurveyResult(long survey_id) {
-//		List<SurveyOptionInfo> listOptions = getSurveyOptionList(survey_id);
-//		if (listOptions == null || listOptions.isEmpty()) {
-//			return null;
-//		}
-//		String sql = "SELECT GROUP_CONCAT(result SEPARATOR ';') AS results from survey_result_info where survey_id = " + survey_id;
-//		List<String> commands = new ArrayList<>();
-//		commands.add(new String("SET SESSION group_concat_max_len = 2048"));
-//		List<Object> results = CommonDaoService.executeNativeSQLQuery(sql);
-//		if (results != null && !results.isEmpty()) {
-//			String strResults = (String) results.get(0);
-//			if (strResults != null) {
-//				String[] ids = strResults.split(",");
-//				for (String optId : ids) {
-//					if (!optId.matches("^[0-9]+$")) {
-//						continue;
-//					}
-//					int serialNum = listOptions.size();
-//					for (SurveyOptionInfo surveyOption : listOptions) {	
-//						if (surveyOption.getId() == Long.parseLong(optId)) {
-//							surveyOption.setSelectedCount(surveyOption.getSelectedCount() + 1);
-//							surveyOption.setTotalPoint(surveyOption.getTotalPoint() + serialNum);
-//							serialNum--;
-//							break;
-//						}
-//					}
-//					
-//				}
-//			}
-//		}
-//		
-//		return listOptions;
-//	}
-	
-	public static List<SurveyOptionInfo> calculateSurveyResult(long survey_id) {
-		List<SurveyOptionInfo> listOptions = getSurveyOptionList(survey_id);
-		if (listOptions == null || listOptions.isEmpty()) {
-			return null;
-		}
-		
-		Map<Long, SurveyOptionInfo> mapSurveyOption = new HashMap<>();
-		for(SurveyOptionInfo surveyOption : listOptions) {
-			mapSurveyOption.put(surveyOption.getId(), surveyOption);
-		}
-		
-		List<SurveyResultInfo> listResultSurvey = getSurveyResultBySurveyId(survey_id);
-		
-		if (listResultSurvey == null || listResultSurvey.isEmpty()) {
-			return null;
-		}
-		
-		for(SurveyResultInfo surveyResult : listResultSurvey) {
-			String[] ids = surveyResult.getResult().split(",");
-			int serialNum = ids.length;
-			for (String optId : ids) {
-				if (!optId.matches("^[0-9]+$")) {
-					continue;
-				}
-				SurveyOptionInfo surveyOption = mapSurveyOption.get(Long.parseLong(optId));
-				surveyOption.setSelectedCount(surveyOption.getSelectedCount() + 1);
-				surveyOption.setTotalPoint(surveyOption.getTotalPoint() + serialNum);
-				serialNum--;
-			}
-		}
-		
-		return listOptions;
-	}
-	public static long getCountValidSurveyOption(List<Long> ids) {
-		if (ids == null || ids.isEmpty()) {
-			return 0;
-		}
-		String options = "";
-		for (long id : ids) {
-			if (!options.isEmpty()) {
-				options += ",";
-			}
-			options += id;
-		}
-		TblSurveyOptionInfo info = new TblSurveyOptionInfo();
-		info.setSelectOption("WHERE id IN(" + options + ")");
-		
-		return CommonDaoService.count(info);
-	}
-	
-	public static boolean isExistSurveyResult(String user) {
-		TblSurveyResultInfo info = new TblSurveyResultInfo();
-		info.setUser(user);
-		
-		long count = CommonDaoService.count(info);
-		
-		return (count > 0);
-	}
-	
-	public static boolean isValidUserCode(String userCode) {
-		TblSurveyValidCodeData infoData = new TblSurveyValidCodeData();
-		infoData.Set("code", userCode);
-		List<DaoValue> list = CommonDaoService.select(infoData);
-		if (list == null || list.isEmpty()) {
-			return false;
-		}
-		return true;
-	}
-	
-	public static List<SurveyValidCodeData> getValidCodeList() {
-		TblSurveyValidCodeData infoData = new TblSurveyValidCodeData();
-		List<DaoValue> list = CommonDaoService.select(infoData);
+		info.Set("survey_id", surveyId);
+		info.Set("user_id", userId);
+		List<DaoValue> list = CommonDaoService.select(info);
 		if (list == null || list.isEmpty()) {
 			return null;
 		}
-		List<SurveyValidCodeData> ret = new ArrayList<>();
+		
+		return (TblSurveyResultInfo) list.get(0);
+	}
+	
+	public static List<TblSurveyResultInfo> getSurveyResultList(long surveyId) {
+		TblSurveyResultInfo info = new TblSurveyResultInfo();
+		info.Set("survey_id", surveyId);
+//		info.setSelectOption("AND progress <> " + PROGRESS_STOP);
+		List<DaoValue> list = CommonDaoService.select(info);
+		if (list == null || list.isEmpty()) {
+			return Collections.emptyList();
+		}
+		List<TblSurveyResultInfo> ret = new ArrayList<>();
 		for (DaoValue dao : list) {
-			ret.add(new SurveyValidCodeData((TblSurveyValidCodeData) dao));
+			ret.add((TblSurveyResultInfo) dao);
 		}
 		
 		return ret;
 	}
 	
-	public static SurveyValidCodeData getSurveyValidData(String code) {
-		TblSurveyValidCodeData infoData = new TblSurveyValidCodeData();
-		infoData.Set("code", code);
-		List<DaoValue> list = CommonDaoService.select(infoData);
-		if (list == null || list.size() != 1) {
+	public static List<TblSurveyQuestionInfo> getSurveyQuestionList(long surveyId, String option) {
+		TblSurveyQuestionInfo info = new TblSurveyQuestionInfo();
+		info.Set("survey_id", surveyId);
+		if (StringUtils.isNotEmpty(option)) {
+			info.setSelectOption(option);
+		}
+		info.setSelectOption("ORDER BY idx ASC");
+		List<DaoValue> list = CommonDaoService.select(info);
+		if (list == null || list.isEmpty()) {
+			return Collections.emptyList();
+		}
+		List<TblSurveyQuestionInfo> ret = new ArrayList<>();
+		for (DaoValue dao : list) {
+			ret.add((TblSurveyQuestionInfo) dao);
+		}
+		return ret;
+	}
+	
+	public static List<TblSurveyQuestionInfo> getSurveyQuestionList(long surveyId) {
+		return getSurveyQuestionList(surveyId, null);
+	}
+	
+	public static Map<Byte, TblSurveyQuestionInfo> getSurveyQuestionMapByIndexs(long surveyId, List<Byte> indexs) {
+		TblSurveyQuestionInfo info = new TblSurveyQuestionInfo();
+		info.Set("survey_id", surveyId);
+		StringBuilder option = new StringBuilder();
+		for (byte index : indexs) {
+			if (option.length() > 0) {
+				option.append(",");
+			}
+			option.append(index);
+		}
+		info.setSelectOption("AND idx IN (" + option.toString() + ")");
+		List<DaoValue> list = CommonDaoService.select(info);
+		if (list == null || list.isEmpty()) {
+			return null;
+		}
+		Map<Byte, TblSurveyQuestionInfo> ret = new HashMap<>();
+		for (DaoValue dao : list) {
+			Byte index = (Byte) dao.Get("idx");
+			ret.put(index, (TblSurveyQuestionInfo) dao);
+		}
+		
+		return ret;
+	}
+	
+	public static TblSurveyQuestionInfo getSurveyQuestion(long surveyId, byte index) {
+		TblSurveyQuestionInfo info = new TblSurveyQuestionInfo();
+		info.Set("survey_id", surveyId);
+		info.Set("idx", index);
+		List<DaoValue> list = CommonDaoService.select(info);
+		if (list == null || list.isEmpty()) {
+			return null;
+		}
+		List<TblSurveyQuestionInfo> ret = new ArrayList<>();
+		for (DaoValue dao : list) {
+			ret.add((TblSurveyQuestionInfo) dao);
+		}
+		return (TblSurveyQuestionInfo) list.get(0);
+	}
+	
+	public static TblSurveyQuestionInfo getSurveyQuestionById(long id) {
+		TblSurveyQuestionInfo info = new TblSurveyQuestionInfo();
+		info.Set("id", id);
+		List<DaoValue> list = CommonDaoService.select(info);
+		if (list == null || list.isEmpty()) {
+			return null;
+		}
+		List<TblSurveyQuestionInfo> ret = new ArrayList<>();
+		for (DaoValue dao : list) {
+			ret.add((TblSurveyQuestionInfo) dao);
+		}
+		return (TblSurveyQuestionInfo) list.get(0);
+	}
+	
+	public static long getCountSurveyQuestion(long surveyId) {
+		TblSurveyQuestionInfo info = new TblSurveyQuestionInfo();
+		info.Set("survey_id", surveyId);
+		return CommonDaoService.count(info);
+	}
+	
+	public static long getCountValidSurveyOption(List<Long> ids) {
+		TblSurveyOptionInfo info = new TblSurveyOptionInfo();
+		info.setSelectOption("WHERE id > 0");
+		StringBuilder sb = new StringBuilder();
+		for (long id : ids) {
+			if (sb.length() > 0) {
+				sb.append(",");
+			}
+			sb.append(id);
+		}
+		if (sb.length() > 0) {
+			info.setSelectOption("AND id IN (" + sb.toString() + ")");
+		}
+		
+		return CommonDaoService.count(info);
+	}
+	
+	public static TblSurveyOptionInfo getSurveyOptionById(long id) {
+		TblSurveyOptionInfo info = new TblSurveyOptionInfo();
+		info.Set("id", id);
+		List<DaoValue> list = CommonDaoService.select(info);
+		if (list == null || list.isEmpty()) {
 			return null;
 		}
 		
-		return new SurveyValidCodeData((TblSurveyValidCodeData) list.get(0));
+		return (TblSurveyOptionInfo) list.get(0);
 	}
+	
+	public static List<TblSurveyOptionInfo> getSurveyOptionList(long questionId) {
+		TblSurveyOptionInfo info = new TblSurveyOptionInfo();
+		info.Set("question_id", questionId);
+		List<DaoValue> list = CommonDaoService.select(info);
+		if (list == null || list.isEmpty()) {
+			return Collections.emptyList();
+		}
+		List<TblSurveyOptionInfo> ret = new ArrayList<>();
+		for (DaoValue dao : list) {
+			ret.add((TblSurveyOptionInfo) dao);
+		}
+		
+		return ret;
+	}
+	
+	public static List<TblSurveyOptionInfo> getSurveyOptionList(List<Long> ids) {
+		TblSurveyOptionInfo info = new TblSurveyOptionInfo();
+		info.setSelectOption("WHERE id > 0");
+		StringBuilder sb = new StringBuilder();
+		for (long id : ids) {
+			if (sb.length() > 0) {
+				sb.append(",");
+			}
+			sb.append(id);
+		}
+		if (sb.length() > 0) {
+			info.setSelectOption("AND id IN (" + sb.toString() + ")");
+		}
+		List<DaoValue> list = CommonDaoService.select(info);
+		if (list == null || list.isEmpty()) {
+			return Collections.emptyList();
+		}
+		List<TblSurveyOptionInfo> ret = new ArrayList<>();
+		for (DaoValue dao : list) {
+			ret.add((TblSurveyOptionInfo) dao);
+		}
+		
+		return ret;
+	}
+	
+	public static Map<Long, TblSurveyOptionInfo> getSurveyOptionMapById(List<Long> ids) {
+		TblSurveyOptionInfo info = new TblSurveyOptionInfo();
+		info.setSelectOption("WHERE id > 0");
+		StringBuilder sb = new StringBuilder();
+		for (long id : ids) {
+			if (sb.length() > 0) {
+				sb.append(",");
+			}
+			sb.append(id);
+		}
+		if (sb.length() > 0) {
+			info.setSelectOption("AND question_id IN (" + sb.toString() + ")");
+		}
+		List<DaoValue> list = CommonDaoService.select(info);
+		if (list == null || list.isEmpty()) {
+			return null;
+		}
+		Map<Long, TblSurveyOptionInfo> ret = new HashMap<>();
+		for (DaoValue dao : list) {
+			long id = (Long) dao.Get("id");
+			ret.put(id, (TblSurveyOptionInfo) dao);
+		}
+		
+		return ret;
+	}
+	
+	public static List<Map<String, Object>> calcSurveyOverralResult(List<TblSurveyQuestionInfo> questionList, TblSurveyInfo surveyInfo) {
+		if (questionList == null || questionList.isEmpty() || surveyInfo == null) {
+			return Collections.emptyList();
+		}
+		List<TblSurveyResultInfo> resultList = getSurveyResultList(surveyInfo.getId());
+		if (resultList == null || resultList.isEmpty()) {
+			return Collections.emptyList();
+		}
+		List<Long> questionIds = new ArrayList<>();
+		Map<Byte, TblSurveyQuestionInfo> mapQuestion = new HashMap<>();
+		for (TblSurveyQuestionInfo questionInfo : questionList) {
+			questionIds.add(questionInfo.getId());
+			mapQuestion.put(questionInfo.getIdx(), questionInfo);
+		}
+		Map<Long, TblSurveyOptionInfo> surveyOptionMap = getSurveyOptionMapById(questionIds);
+		List<Map<String, Object>> ret = new ArrayList<>();
+		for (TblSurveyResultInfo surveyResult : resultList) {
+			String resultData = surveyResult.getResult();
+			if (StringUtils.isEmpty(resultData)) {
+				continue;
+			}
+			SurveyAnswerWrapper surveyAnswerWapper = SurveyAnswerWrapper.parse(resultData);
+			List<SurveyAnswer> answerList = surveyAnswerWapper.getSurvey_answer();
+			if (answerList == null || answerList.isEmpty()) {
+				continue;
+			}
+			Map<String, Object> mapData = new HashMap<>();
+			mapData.put("id", surveyResult.getId());
+			mapData.put("user_id", surveyResult.getUser_id());
+			mapData.put("username", surveyResult.getUsername());
+			mapData.put("dep", surveyResult.getDepartment());
+			StringBuilder sb = new StringBuilder();
+			for (SurveyAnswer answer : answerList) {
+				sb.setLength(0);
+				byte questionIndex = answer.getQuestion_index();
+				String strAnsw = answer.getAnswer();
+				String key = String.format("question_%d", questionIndex);
+				mapData.put(key, "");
+				if (StringUtils.isNotEmpty(strAnsw)) {
+					if (mapQuestion.containsKey(questionIndex)) {
+						TblSurveyQuestionInfo questionInfo = mapQuestion.get(questionIndex);
+						if (questionInfo.getType() == SurveyQuestionType.GIVING_ANSWER.ordinal()) {
+							mapData.put(key, strAnsw);
+						} else if (questionInfo.getType() == SurveyQuestionType.OPTION_SELECT.ordinal()) {
+							String[] strOptionIds = strAnsw.split(",");
+							for (String strOptionId : strOptionIds) {
+								if (CommonMethod.isValidNumeric(strOptionId, 1, Long.MAX_VALUE)) {
+									long optionId = Long.parseLong(strOptionId);
+									if (surveyOptionMap.containsKey(optionId)) {
+										if (sb.length() > 0) {
+											sb.append(",");
+										}
+										sb.append(surveyOptionMap.get(optionId).getTitle());
+									}
+								}
+							}
+							if (sb.length() > 0) {
+								mapData.put(key, sb.toString());
+							}
+						} else if (questionInfo.getType() == SurveyQuestionType.YES_NO.ordinal()) {
+							if (strAnsw.equals(YES_NO_OPTION_NO_TEMPL)) {
+								mapData.put(key, "No");
+							} else if (strAnsw.equals(YES_NO_OPTION_YES_TEMPL)) {
+								mapData.put(key, "Yes");
+							} else {
+								mapData.put(key, strAnsw);
+							}
+						} else if (questionInfo.getType() == SurveyQuestionType.NUMERAL_LIST.ordinal()) {
+							mapData.put(key, strAnsw);
+						} else if (questionInfo.getType() == SurveyQuestionType.DATE_PICKER.ordinal()) {
+							mapData.put(key, strAnsw);
+						} else if (questionInfo.getType() == SurveyQuestionType.OPTION_LIST.ordinal()) {
+							mapData.put(key, strAnsw);
+						} else {
+							mapData.put(key, strAnsw);
+						}
+					}
+				}
+			}
+			ret.add(mapData);
+		}
+		
+		return ret;
+	}
+	
+	public static Map<Byte, List<SurveyResultObject>> calcSurveyQuestResult(List<TblSurveyQuestionInfo> questionList, TblSurveyInfo surveyInfo) {
+		return calcSurveyQuestResult(questionList, surveyInfo, null);
+	}
+	
+	public static Map<Byte, List<SurveyResultObject>> calcSurveyQuestResult(List<TblSurveyQuestionInfo> questionList, TblSurveyInfo surveyInfo, Map<Long, SurveyOptionStatistics> statistics) {
+		if (questionList == null || questionList.isEmpty() || surveyInfo == null) {
+			return null;
+		}
+		List<TblSurveyResultInfo> resultList = getSurveyResultList(surveyInfo.getId());
+		if (resultList == null || resultList.isEmpty()) {
+			return null;
+		}
+		List<Long> questionIds = new ArrayList<>();
+		Map<Byte, TblSurveyQuestionInfo> mapQuestion = new HashMap<>();
+		//List<Long> listYesNoQuestionIds = new ArrayList<>();
+		for (TblSurveyQuestionInfo questionInfo : questionList) {
+			if (questionInfo.getType() == SurveyQuestionType.YES_NO.ordinal()) {
+				//listYesNoQuestionIds.add(questionInfo.getId());
+			} else {
+				questionIds.add(questionInfo.getId());
+			}
+			mapQuestion.put(questionInfo.getIdx(), questionInfo);
+		}
+		Map<Long, TblSurveyOptionInfo> surveyOptionMap = getSurveyOptionMapById(questionIds);
+		//
+		int totalResult = resultList.size();
+		if (statistics != null && surveyOptionMap != null) {
+			for (long id : surveyOptionMap.keySet()) {
+				statistics.put(id, new SurveyOptionStatistics(id, surveyOptionMap.get(id).getQuestion_id(), surveyOptionMap.get(id).getTitle(), 0, totalResult));
+			}
+		}
+		Map<Byte, List<SurveyResultObject>> ret = new HashMap<>();
+		for (TblSurveyResultInfo surveyResult : resultList) {
+			String resultData = surveyResult.getResult();
+			if (StringUtils.isEmpty(resultData)) {
+				continue;
+			}
+			SurveyAnswerWrapper surveyAnswerWapper = SurveyAnswerWrapper.parse(resultData);
+			List<SurveyAnswer> answerList = surveyAnswerWapper.getSurvey_answer();
+			if (answerList == null || answerList.isEmpty()) {
+				continue;
+			}
+			StringBuilder sb = new StringBuilder();
+			for (SurveyAnswer answer : answerList) {
+				sb.setLength(0);
+				SurveyResultObject resultObject = new SurveyResultObject(surveyResult.getUser_id(), surveyResult.getUsername(), surveyResult.getDepartment(), "");
+				byte questionIndex = answer.getQuestion_index();
+				String strAnsw = answer.getAnswer();
+				if (StringUtils.isNotEmpty(strAnsw)) {
+					if (mapQuestion.containsKey(questionIndex)) {
+						TblSurveyQuestionInfo questionInfo = mapQuestion.get(questionIndex);
+						if (questionInfo.getType() == SurveyQuestionType.GIVING_ANSWER.ordinal()) {
+							resultObject.setResult(strAnsw);
+						} else if (questionInfo.getType() == SurveyQuestionType.OPTION_SELECT.ordinal()) {
+							String[] strOptionIds = strAnsw.split(",");
+							for (String strOptionId : strOptionIds) {
+								if (CommonMethod.isValidNumeric(strOptionId, 1, Long.MAX_VALUE)) {
+									long optionId = Long.parseLong(strOptionId);
+									if (surveyOptionMap.containsKey(optionId)) {
+										if (sb.length() > 0) {
+											sb.append(", ");
+										}
+										sb.append(surveyOptionMap.get(optionId).getTitle());
+										//
+										if (statistics != null) {
+											if (!statistics.containsKey(optionId)) {
+												statistics.put(optionId, new SurveyOptionStatistics(optionId, surveyOptionMap.get(optionId).getQuestion_id(), surveyOptionMap.get(optionId).getTitle(), 1, totalResult));
+											} else {
+												statistics.get(optionId).addCount();
+											}
+										}
+									}
+								}
+							}
+							if (sb.length() > 0) {
+								resultObject.setResult(sb.toString());
+							}
+						} else if (questionInfo.getType() == SurveyQuestionType.YES_NO.ordinal()) {
+							if (strAnsw.equals(YES_NO_OPTION_NO_TEMPL)) {
+								resultObject.setResult("No");
+							} else if (strAnsw.equals(YES_NO_OPTION_YES_TEMPL)) {
+								resultObject.setResult("Yes");
+							} else {
+								resultObject.setResult(strAnsw);
+							}
+						} else if (questionInfo.getType() == SurveyQuestionType.NUMERAL_LIST.ordinal()) {
+							resultObject.setResult(strAnsw);
+						} else if (questionInfo.getType() == SurveyQuestionType.DATE_PICKER.ordinal()) {
+							resultObject.setResult(strAnsw);
+						} else if (questionInfo.getType() == SurveyQuestionType.OPTION_LIST.ordinal()) {
+							resultObject.setResult(strAnsw);
+						} else {
+							resultObject.setResult(strAnsw);
+						}
+					}
+				}
+				if (!ret.containsKey(questionIndex)) {
+					ret.put(questionIndex, new ArrayList<>());
+				}
+				ret.get(questionIndex).add(resultObject);
+			}
+		}
+		return ret;
+	}
+	
+	public static TblSurveyUserAccessInfo getSurveyUserAccess(long surveyID, String userCode) {
+		TblSurveyUserAccessInfo info = new TblSurveyUserAccessInfo();
+		info.Set("survey_id", surveyID);
+		info.Set("user_code", userCode);
+		List<DaoValue> list = CommonDaoService.select(info);
+		if (list == null || list.isEmpty()) {
+			return null;
+		}
+		return (TblSurveyUserAccessInfo) list.get(0);
+	}
+	
+	public static List<TblSurveyUserAccessInfo> getSurveyUserAccessList(long surveyID) {
+		return getSurveyUserAccessList(surveyID, null);
+	}
+	
+	public static List<TblSurveyUserAccessInfo> getSurveyUserAccessList(long surveyID, String option) {
+		TblSurveyUserAccessInfo info = new TblSurveyUserAccessInfo();
+		info.Set("survey_id", surveyID);
+		if (option != null && !option.isEmpty()) {
+			info.setSelectOption(option);
+		}
+		List<DaoValue> list = CommonDaoService.select(info);
+		if (list == null || list.isEmpty()) {
+			return null;
+		}
+		List<TblSurveyUserAccessInfo> ret = new ArrayList<>();
+		for (DaoValue dao : list) {
+			ret.add((TblSurveyUserAccessInfo) dao);
+		}
+		return ret;
+	}
+	
 }

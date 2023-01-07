@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<class name="dev.boom.tbl.info.TblDeckInfo" table="deck_info" catalog="boom">
+		<id name="id" type="java.lang.Long">
+			<column name="id" />
+			<generator class="increment" />
+		</id>
+		<property name="player_id" type="java.lang.Long">
+			<column name="player_id" not-null="true" />
+		</property>
+		<property name="leader" type="java.lang.Byte">
+			<column name="leader" not-null="true" />
+		</property>
+		<property name="formation_index" type="java.lang.Byte">
+			<column name="formation_index" not-null="true" />
+		</property>
+		<property name="card_id_1" type="java.lang.Long">
+			<column name="card_id_1" not-null="true" />
+		</property>
+		<property name="card_id_2" type="java.lang.Long">
+			<column name="card_id_2" not-null="true" />
+		</property>
+		<property name="card_id_3" type="java.lang.Long">
+			<column name="card_id_3" not-null="true" />
+		</property>
+		<property name="card_id_4" type="java.lang.Long">
+			<column name="card_id_4" not-null="true" />
+		</property>
+		<property name="card_id_5" type="java.lang.Long">
+			<column name="card_id_5" not-null="true" />
+		</property>
+		<property name="joint_skill_index_1" type="java.lang.Integer">
+			<column name="joint_skill_index_1" not-null="true" />
+		</property>
+		<property name="joint_skill_index_2" type="java.lang.Integer">
+			<column name="joint_skill_index_2" not-null="true" />
+		</property>
+		<property name="joint_skill_index_3" type="java.lang.Integer">
+			<column name="joint_skill_index_3" not-null="true" />
+		</property>
+		<property name="joint_skill_index_4" type="java.lang.Integer">
+			<column name="joint_skill_index_4" not-null="true" />
+		</property>
+		<property name="joint_skill_index_5" type="java.lang.Integer">
+			<column name="joint_skill_index_5" not-null="true" />
+		</property>
+		<property name="joint_skill_count_1" type="java.lang.Byte">
+			<column name="joint_skill_count_1" not-null="true" />
+		</property>
+		<property name="joint_skill_count_2" type="java.lang.Byte">
+			<column name="joint_skill_count_2" not-null="true" />
+		</property>
+		<property name="joint_skill_count_3" type="java.lang.Byte">
+			<column name="joint_skill_count_3" not-null="true" />
+		</property>
+		<property name="joint_skill_count_4" type="java.lang.Byte">
+			<column name="joint_skill_count_4" not-null="true" />
+		</property>
+		<property name="joint_skill_count_5" type="java.lang.Byte">
+			<column name="joint_skill_count_5" not-null="true" />
+		</property>
+		<property name="status" type="java.lang.Byte">
+			<column name="status" not-null="true" />
+		</property>
+		<property name="level" type="java.lang.Byte">
+			<column name="level" not-null="true" />
+		</property>
+	</class>
+</hibernate-mapping>

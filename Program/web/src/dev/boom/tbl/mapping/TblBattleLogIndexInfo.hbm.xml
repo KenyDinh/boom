@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<class name="dev.boom.tbl.info.TblBattleLogIndexInfo" table="battle_log_index_info" catalog="boom">
+		<id name="player_id" type="java.lang.Long">
+			<column name="player_id" />
+			<generator class="increment" />
+		</id>
+		<property name="log_index" type="java.lang.Short">
+			<column name="log_index" not-null="true" />
+		</property>
+		<property name="updated" type="java.util.Date">
+			<column name="updated" not-null="true" />
+		</property>
+	</class>
+</hibernate-mapping>

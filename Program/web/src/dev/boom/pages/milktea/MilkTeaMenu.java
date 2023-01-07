@@ -2,12 +2,11 @@ package dev.boom.pages.milktea;
 
 import java.util.List;
 
-import org.apache.click.element.CssImport;
-import org.apache.click.element.JsImport;
 import org.apache.click.util.ClickUtils;
 
 import dev.boom.common.CommonMethod;
 import dev.boom.common.milktea.MilkTeaCommonFunc;
+import dev.boom.common.milktea.MilkTeaSocketMessage;
 import dev.boom.common.milktea.MilkTeaSocketType;
 import dev.boom.common.milktea.MilkTeaTabEnum;
 import dev.boom.milktea.object.MenuItem;
@@ -23,6 +22,7 @@ public class MilkTeaMenu extends MilkTeaMainPage {
 	private static final long serialVersionUID = 1L;
 	
 	private MenuInfo menuInfo;
+	private int page = 1;
 
 	public MilkTeaMenu() {
 	}
@@ -33,9 +33,10 @@ public class MilkTeaMenu extends MilkTeaMainPage {
 		if (headElements == null) {
 			headElements = super.getHeadElements();
 		}
-		headElements.add(new JsImport("/js/milktea/milktea-menu.js"));
-		headElements.add(new JsImport("/js/milktea/milktea-order.js"));
-		headElements.add(new CssImport("/css/milktea/milktea-menu.css"));
+		headElements.add(importJs("/js/milktea/milktea-menu.js"));
+		headElements.add(importJs("/js/milktea/milktea-order.js"));
+		headElements.add(importJs("/js/milktea/milktea-history.js"));
+		headElements.add(importCss("/css/milktea/milktea-menu.css"));
 		return headElements;
 	}
 
@@ -49,6 +50,10 @@ public class MilkTeaMenu extends MilkTeaMainPage {
 				setRedirect(this.getClass());
 				return;
 			}
+		}
+		String strPage = getContext().getRequestParameter("page");
+		if (CommonMethod.isValidNumeric(strPage, 1, Integer.MAX_VALUE)) {
+			page = Integer.parseInt(strPage);
 		}
 	}
 
@@ -68,10 +73,11 @@ public class MilkTeaMenu extends MilkTeaMainPage {
 				addModel("dish_type", MilkTeaCommonFunc.getHtmlListMenuItemType(listMenuItem, contextPath));
 			}
 			List<OrderInfo> listOrder = OrderService.getOrderInfoListByMenuId(menuInfo.getId());
-			addModel("order_list", MilkTeaCommonFunc.getHtmlListOrder(listOrder, menuInfo, getUserInfo(), contextPath, getMessages()));
+			addModel("order_list", MilkTeaCommonFunc.getHtmlListOrder(listOrder, menuInfo, getUserInfo(), contextPath, getMessages(), getWorldInfo()));
 			addModel("menuInfo", menuInfo);
 		} else {
-			addModel("menuList", MilkTeaCommonFunc.getHtmlListMenu(getUserInfo(), contextPath, getMessages()));
+			addModel("menuList", MilkTeaCommonFunc.getHtmlListMenu(getUserInfo(), contextPath, getMessages(), page));
+			addModel("msg_id", MilkTeaSocketMessage.UPDATE_MENU_LIST.getId());
 		}
 		if (getUserInfo() != null) {
 			String milkteaToken = SocketSessionPool.generateValidToken(MilkTeaEndPoint.ENDPOINT_NAME, getUserInfo());

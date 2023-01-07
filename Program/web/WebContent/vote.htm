@@ -1,90 +1,69 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<title>KTV Event Vote</title>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="shortcut icon" href="${context}/img/vote/vote-icon.png">
-##<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/solid.css" integrity="sha384-Rw5qeepMFvJVEZdSo1nDQD5B6wX0m7c5Z/pLNvjkB14W6Yki1hKbSEQaX9ffUbWe" crossorigin="anonymous">
-##<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/fontawesome.css" integrity="sha384-GVa9GOgVQgOk+TNYXu7S/InPTfSDTtBalSgkgqQ7sCik56N9ztlkoTr2f/T44oKV" crossorigin="anonymous">
-$!{headElements}
-</head>
-<body style="background-color:#333;">
-	<div id="content" class="container" style="padding-bottom:10rem;">
-	<div class="row">
-		<div class="col-sm-12">
-			<img src="${context}/img/vote/dev_banner.jpg" style="max-width:100%;height: auto;display:block; margin:0 auto;"/>
-			
-			<img src="${context}/img/vote/KTVlogo.png" style="max-width:20%;height: auto;display:block;position:absolute;top:2%;right:3%"/>
-		</div>
+<div style="padding-bottom:10rem;">
+<div class="row">
+	<div class="col-sm-12 d-none d-md-block">
+		<img src="${context}/img/vote/ktv_banner_lg.jpg" style="max-width:100%;height: auto;display:block; margin:0 auto;"/>
+		
 	</div>
-	<h2 class="deepshd" style="text-align:center;margin-top:0.5rem;">KTV Voting System</h2>
-		#if (${valid_form})
-		<div style="margin-top:1rem;">
-			<form action="" method="post">
-				<div class="form-group text-center">
-			    <label for="user_code">Your phone number:</label>
-			    <input type="text" maxlength="11" minlength="10" pattern="[0-9]+" class="form-control" id="user_code" name="user_code" required style="text-align:center;max-width:30rem;margin:0 auto;" placeholder="Enter your phone number">
-			  	</div>
-			  	<div class="text-center">
-			  		<button type="submit" class="btn btn-success">Submit</button>
-			  	</div>
-			</form>
-		</div>
-		#else ##if (${valid_form})
-				$!{userData}
-			#if (${survey})
-				#if (${results})
-					<div class="row">
-					<div class="col-lg-12" style="text-align:center;">
-						<label class="font-weight-bold text-info" style="font-size:1.5rem;">Your choices</label>
-					</div>
-					</div>
-					${results}
-				#end ##if (${options})
-				#if (${options})
-					<div class="row">
-					<div class="col-lg-12" style="text-align:center;">
-					#if (${retry})
-						##<label class="font-weight-bold text-info" style="font-size:1.5rem;">Re-vote....</label>
-					#else ##if (${retry})
-						##<label class="font-weight-bold text-info" style="font-size:1.5rem;">Vote up....</label>
-					#end ##if (${retry})
-						##<br/>
-						#if (${survey.getMaxChoice()} == ${survey.getMinChoice()})
-							<label class="font-weight-bold text-info" style="">You can only vote up exactly for ${survey.getMaxChoice()} candidates</label>
-						#else
-							<label class="font-weight-bold text-info" style="">You can only vote up for ${survey.getMinChoice()} to ${survey.getMaxChoice()} candidates</label>
-						#end
-					</div>
-					</div>
-##					<label class="text-danger" id="error"></label>
-					${options}
-					<form id="vote_form" action="vote.htm" method="post">
-						<input type="hidden" name="options" id="options"/>
-						#if (${retry})
-						<input type="hidden" name="retry" value="${retry}"/>
-						#end ##if (${retry})
-					</form>
-					<div style="display:none;">
-					<span id="max_choice">${survey.getMaxChoice()}</span>
-					<span id="min_choice">${survey.getMinChoice()}</span>
-					</div>
-				#end ##if (${options})
-			#end ##if (${survey})
+	<div class="d-md-none" style="position:relative;">
+		<img src="${context}/img/vote/ktv_banner_sm.jpg" style="max-width:100%;height: auto;display:block; margin:0 auto;"/>
+		
+		<img src="${context}/img/vote/KTVlogo_sm.png" style="max-width:20%;height: auto;display:block;position:absolute;top:0;right:0"/>
+	</div>
+</div>
+<a href="${context}/vote.htm" style="text-decoration:none !important;"><h2 class="deepshd none-select" style="text-align:center;margin-top:0.5rem;">KTV Voting System</h2></a>
+	#if (${login_modal})
+		<div style="text-align: center;padding: 3rem 0;"><button class="btn btn-info" style="width: 5rem;" data-toggle="modal" data-target="#login-form-modal">Log in</button></div>
+		${login_modal}
+	#else ##if (${login_modal})
+		$!{user_info}
+		${logoutForm}
+		<hr/>
+		#if (${active_list})
+			<div class="survey-board">
+			#foreach (${sa} in ${active_list})
+				<a class="survey-title" href="${context}/vote.htm?p=${sa.getPathname()}">
+					<h2 class="title">${sa.getName()}</h2>
+					<div class="divider"></div>
+					<p class="description">${sa.getDescription()}</p>
+				</a>
+			#end
+			</div>
 		#end
-	</div>
-	<script type="text/javascript">
-	//<![CDATA[
-	#if(${context})
-		var CONTEXT = '${context}';
+		#if (${survey_name})
+			<div class="row">
+				<div class="col-lg-12 text-center">
+					<label class="text-info font-weight-bold" style="font-size: 1.5rem;">${survey_name}</label>
+					<p style="padding: 0 1rem 0 1rem;font-size: 1.15rem; font-style: italic;">${survey_desc}</p>
+				</div>
+			</div>
+			<br/>
+		#end
+		#if (${previous_answer})
+			${previous_answer}
+		#end
+		#if (${question_info})
+			${question_info}
+			<form id="vote_form" action="${context}/vote.htm" method="post">
+				<input type="hidden" name="p" value="${survey_path}"/>
+				<input type="hidden" name="options" id="options"/>
+				<input type="hidden" name="vote" id="vote"/>
+			</form>
+		#end
+		#if (${survey_name})
+			<div style="margin-top: 3rem; text-align: center;">
+				<a href="${context}/vote.htm"><button class="btn btn-info" style="width: 30%;">Back</button></a>
+			</div>
+		#end
 	#end
-	//]]>
-	</script>
-	$!{jsElements}
-	
-<footer>
-</footer>
-</body>
-</html>
+</div>
+<div class="modal fade" id="imagemodal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">              
+      <div class="modal-body text-center">
+      	<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <img src="" class="imagepreview">
+      </div>
+    </div>
+  </div>
+</div>
 

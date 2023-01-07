@@ -1,17 +1,85 @@
 var $j = jQuery.noConflict();
 var countdown = null;
+const MAX_DOT_ANIM = 3;
+const COOKIE_PATH = CONTEXT;
+var text_dot_animate = null;
+$j.extend({
+	show_alert : function(content, type) {
+		if ($j('#popup-alert').length <= 0) {
+			return;
+		}
+		if ($j('#alert-wrapper > .alert').length >= 3) {
+			return;//
+		}
+		const alertObj = $j('#popup-alert').clone();
+		alertObj.find('.alert-content').html(content);
+		alertObj.addClass(type).addClass('alert-show');
+		alertObj.css('top', $j('#main-nav-bar').outerHeight());
+		alertObj.removeClass('d-none').removeAttr('id');
+		if ($j('#alert-wrapper').length) {
+			alertObj.appendTo('#alert-wrapper');
+		} else {
+			alertObj.appendTo('body');
+		}
+		setTimeout(function() {
+			alertObj.remove();
+		}, 3000);
+	},
+	alert_error : function(content) {
+		$j.show_alert(content,'alert-danger');
+	}, 
+	alert_success : function(content) {
+		$j.show_alert(content,'alert-success');
+	}
+});
 $j(document).ready(function() {
 	$j('a#logout').click(function() {
 		if ($j('form#logout-form').length) {
 			$j('form#logout-form').trigger('submit');
 		}
 	});
-	initToolTip();
 	initCountdown();
+	initTextDotAnimate();
 });
 
-function initToolTip() {
-	$j('[data-toggle="tooltip"]').tooltip();
+function initTextDotAnimate() {
+	if (text_dot_animate != null) {
+		clearTimeout(text_dot_animate);
+		text_dot_animate = null;
+	}
+	if ($j('.text-dot-anim').length) {
+		$j('.text-dot-anim').each(function() {
+			if ($j(this).data('text')) {
+				$j(this).text($j(this).data('text'));
+			} else {
+				$j(this).data('text', $j(this).text());
+			}
+			$j(this).data('dot', 0);
+		});
+		textDotAnimate();
+	}
+}
+
+function textDotAnimate() {
+	if ($j('.text-dot-anim').length <= 0) {
+		return;
+	}
+	$j('.text-dot-anim').each(function() {
+		let dot = $j(this).data('dot');
+		if (typeof dot !== "undefine") {
+			dot++;
+			if (dot < 0 || dot > MAX_DOT_ANIM) {
+				dot = 0;
+			}
+			let text = $j(this).data('text');
+			for (let i = 0; i < dot; i++) {
+				text += '.';
+			}
+			$j(this).text(text);
+			$j(this).data('dot', dot);
+		}
+	});
+	text_dot_animate = setTimeout(textDotAnimate, 500);
 }
 
 function isValidData(data) {
@@ -24,6 +92,7 @@ function onclickLogin() {
 	if ($j('div#login-form-modal').length) {
 		var username = document.getElementById('form-login-username');
 		var password = document.getElementById('form-login-password');
+		var remember = document.getElementById('remember-me');
 		if (!isValidData(username.value) || username.value.length == 0 || !isValidData(password.value) || password.value.length == 0) {
 			$j('div#login-message').html("Please input the valid datas!");
 		}
@@ -32,11 +101,15 @@ function onclickLogin() {
 				type:"POST",
 				url:CONTEXT + "/account/login.htm",
 				dataType:"json",
-				data:"username=" + encodeURIComponent(username.value) + "&password=" + encodeURIComponent(password.value),
+				data:"username=" + encodeURIComponent(username.value) + "&password=" + encodeURIComponent(password.value) + "&remember=" + remember.checked,
 				success:function(result) {
 					if (result) {
 						if (result.success == 1) {
 							$j('div#login-form-modal').modal('hide');
+							if (result.remember_me) {
+								let exp = (result.expired || 30);
+								setCookie("remember_me",result.remember_me,exp);
+							}
 							window.location.reload();
 						} else if (result.error) {
 							$j('div#login-message').html(result.error);
@@ -112,6 +185,10 @@ function onclickChangePassword() {
 					if (result) {
 						if (result.success == 1) {
 							$j('div#change-password-modal').modal('hide');
+							if (result.remember_me) {
+								let exp = (result.expired || 30);
+								setCookie("remember_me",result.remember_me,exp);
+							}
 						} else if (result.error) {
 							$j('div#change-pwd-message').html(result.error);
 						}
@@ -219,4 +296,29 @@ function formatFullTime(time) {
 		s = "0" + s;
 	}
 	return h + ":" + m + ":" + s;
+}
+function setCookie(cname, cvalue, exdays) {
+	let d = new Date();
+	d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+	let expires = "expires=" + d.toUTCString();
+	document.cookie = cname + "=" + cvalue + ";" + expires + ";path=" + COOKIE_PATH;
+}
+
+function delCookie(cname) {
+	document.cookie = cname + "=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=" + COOKIE_PATH;
+}
+
+function getCookie(cname) {
+	let name = cname + "=";
+	let ca = document.cookie.split(';');
+	for (let i = 0; i < ca.length; i++) {
+		let c = ca[i];
+		while (c.charAt(0) == ' ') {
+			c = c.substring(1);
+		}
+		if (c.indexOf(name) == 0) {
+			return c.substring(name.length, c.length);
+		}
+	}
+	return "";
 }

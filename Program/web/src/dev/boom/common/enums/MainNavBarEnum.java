@@ -5,7 +5,10 @@ public enum MainNavBarEnum {
 	HOME(1, "MSG_MAIN_NAV_BAR_HOME", "home.htm"), 
 	MILKTEA(2, "MSG_MAIN_NAV_BAR_MILKTEA", "milktea/milk_tea_menu.htm"), 
 	GAME(3, "MSG_MAIN_NAV_BAR_GAME", "game.htm"), 
-	ABOUT(4, "MSG_MAIN_NAV_BAR_ABOUT", "about.htm"),
+	TOOLS(4, "MSG_MAIN_NAV_BAR_TOOLS", "tools.htm"),
+	GAME_DEMO(5, "MSG_MAIN_NAV_BAR_GAMEDEMO", "game_demo.htm"),
+	VOTE(6, "MSG_MAIN_NAV_BAR_VOTE", "vote.htm"),
+	ABOUT(7, "MSG_MAIN_NAV_BAR_ABOUT", "about.htm"),
 	;
 
 	private int index;

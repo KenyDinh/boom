@@ -5,6 +5,7 @@ public enum MilkTeaSocketMessage {
 	UPDATE_MENU_LIST(1),
 	UPDATE_MENU_DETAIL(2),
 	UPDATE_ORDER_LIST(3),
+	UPDATE_SHOP_LIST(4),
 	;
 	
 	private int id;

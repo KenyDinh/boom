@@ -15,5 +15,5 @@ public class BoomConfigService extends XmlConfigService {
 		}
 		return isTemplate;
 	}
-	
+
 }

@@ -5,6 +5,7 @@ public enum PatpatCommandCategory {
 	INVALID(0),
 	CODE(1),
 	QUIZ(2),
+	DEVICE(3),
 	;
 	
 	private int categoryId;

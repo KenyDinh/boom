@@ -129,6 +129,29 @@ public class OrderInfo {
 	public void setVotingStar(byte voting_star) {
 		this.info.setVoting_star(voting_star);
 	}
+	
+	public String getComment() {
+		String cmt = this.info.getComment();
+		if (cmt == null || cmt.length() == 0) {
+			return "";
+		}
+		cmt = cmt.replace("<", "&lt;").replace(">", "&gt;");
+		return cmt;
+	}
+	
+	public String getFormatComment() {
+		String cmt = this.info.getComment();
+		if (cmt == null || cmt.length() == 0) {
+			return "";
+		}
+		cmt = cmt.replace("<", "&lt;").replace(">", "&gt;");
+		cmt = cmt.replaceAll("\r\n", "<br/>").replaceAll("[\r\n]", "<br/>");
+		return cmt;
+	}
+	
+	public void setComment(String comment) {
+		this.info.setComment(comment);
+	}
 
 	public long getQuantity() {
 		return this.info.getQuantity();
@@ -200,6 +223,14 @@ public class OrderInfo {
 			return true;
 		}
 		return false;
+	}
+	
+	public boolean isCommented() {
+		return MilkTeaOrderFlag.COMMENT.isValidFlag(getFlag());
+	}
+	
+	public boolean isPaid() {
+		return MilkTeaOrderFlag.PAID.isValidFlag(getFlag());
 	}
 	
 	public long getTotalOption(MilkTeaItemOptionType type) {

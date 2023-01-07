@@ -3,10 +3,14 @@ package dev.boom.common.game;
 import java.util.ArrayList;
 import java.util.List;
 
+import dev.boom.services.WorldInfo;
+
 public enum GameTypeEnum {
 	NONE(0, 0, "", "", ""), 
 	NIHONGO(1, 1, "MSG_GAME_TYPE_NIHONGO", "img/game/nihongo/nihongo_game.jpg", "game/nihongo.htm"),
-	CANNONBLOCK(1, 1, "MSG_GAME_TYPE_CANNONBLOCK", "img/game/cannon/cannon_block_game.png", "game/cannon_block/cannon_block_menu.htm"),
+	SUDOKU(2, 1, "MSG_GAME_TYPE_SUDOKU", "img/game/sudoku/sudoku_game.png", "game/sudoku.htm"),
+	BOOM(3, 1, "MSG_GAME_TYPE_BOOM", "img/game/boom/boom_game.jpg", "game/boom.htm"),
+	POKER(4, 1, "MSG_GAME_TYPE_POKER", "img/game/poker/poker_game.png", "game/poker.htm"),
 	;
 
 	private int index;
@@ -52,10 +56,10 @@ public enum GameTypeEnum {
 		return GameTypeEnum.NONE;
 	}
 	
-	public static List<GameTypeEnum> listValidGame() {
+	public static List<GameTypeEnum> listValidGame(WorldInfo worldInfo) {
 		List<GameTypeEnum> ret = new ArrayList<>();
 		for (GameTypeEnum type : GameTypeEnum.values()) {
-			if (type == GameTypeEnum.NONE) {
+			if (type == GameTypeEnum.NONE || !worldInfo.isActiveGameFlag(type)) {
 				continue;
 			}
 			ret.add(type);

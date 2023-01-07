@@ -8,6 +8,23 @@ import dev.boom.tbl.info.TblOrderInfo;
 
 public class OrderService {
 	
+	public static List<OrderInfo> getOrderList(String option) {
+		TblOrderInfo orderInfo = new TblOrderInfo();
+		orderInfo.setSelectOption("WHERE id > 0");
+		if (option != null && option.length() > 0) {
+			orderInfo.setSelectOption(option);
+		}
+		List<DaoValue> list = CommonDaoService.select(orderInfo);
+		if (list == null || list.isEmpty()) {
+			return null;
+		}
+		List<OrderInfo> ret = new ArrayList<>();
+		for (DaoValue dao : list) {
+			ret.add(new OrderInfo((TblOrderInfo) dao));
+		}
+		return ret;
+	}
+	
 	public static OrderInfo getOrderInfoById(long id) {
 		TblOrderInfo orderInfo = new TblOrderInfo();
 		orderInfo.setId(id);
@@ -97,4 +114,19 @@ public class OrderService {
 		return ret;
 	}
 	
+	public static List<OrderInfo> getOrderCommentList(long shopId, int dishCode) {
+		TblOrderInfo orderInfo = new TblOrderInfo();
+		orderInfo.Set("shop_id", shopId);
+		orderInfo.Set("dish_code", dishCode);
+		orderInfo.setSelectOption("AND voting_star > 0 ORDER BY id DESC");
+		List<DaoValue> list = CommonDaoService.select(orderInfo);
+		if (list == null || list.isEmpty()) {
+			return null;
+		}
+		List<OrderInfo> ret = new ArrayList<>();
+		for (DaoValue dao : list) {
+			ret.add(new OrderInfo((TblOrderInfo) dao));
+		}
+		return ret;
+	}
 }

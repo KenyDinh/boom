@@ -32,14 +32,20 @@
         <property name="status" type="java.lang.Byte">
             <column name="status" not-null="true" />
         </property>
+        <property name="retry" type="java.lang.Byte">
+            <column name="retry" not-null="true" />
+        </property>
+        <property name="flag" type="java.lang.Byte">
+            <column name="flag" not-null="true" />
+        </property>
         <property name="player_num" type="java.lang.Byte">
             <column name="player_num" not-null="true" />
         </property>
         <property name="current_question" type="java.lang.Byte">
             <column name="current_question" not-null="true" />
         </property>
-        <property name="current_question_data" type="java.lang.String">
-            <column name="current_question_data" not-null="true" />
+        <property name="current_option_order" type="java.lang.String">
+            <column name="current_option_order" not-null="true" />
         </property>
         <property name="question_data" type="java.lang.String">
             <column name="question_data" not-null="true" />

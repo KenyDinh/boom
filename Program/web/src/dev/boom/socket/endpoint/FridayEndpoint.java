@@ -17,6 +17,8 @@ public class FridayEndpoint extends EndPointBase{
 	public static final String ENDPOINT_NAME = FridayEndpoint.class.getSimpleName();
 	public static final String SOCKET_PATH = "/socket/friday";
 	private static final String VALIDATION_KEY = "friday_token";
+	
+	public static final String FRIDAY_BOT_UUID = "3daa60a268c0";
 
 	@Override
 	protected String getValidationKey() {
@@ -47,5 +49,8 @@ public class FridayEndpoint extends EndPointBase{
 		return SocketSessionPool.generateValidToken(ENDPOINT_NAME, accountInfo);
 	}
 
+	public static void initFridayBotToken() {
+		SocketSessionPool.generateValidToken(ENDPOINT_NAME, FRIDAY_BOT_UUID);
+	}
 
 }

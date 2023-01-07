@@ -1,0 +1,236 @@
+<br/>
+<h2 style='text-align: center;'>Game List</h2>
+
+#if (${admin})
+<div class="row" style="position:relative;">
+<button id="add-item-btn" class="btn btn-info" style="margin: 0 0.5rem;">Add new game</button>
+<button id="import-item-btn" class="btn btn-danger" style="margin: 0 0.5rem;" onclick="$j('#import-file').trigger('click');this.blur();return false;">Import CSV</button>
+<input type="file" class="d-none" id="import-file" name="import-file" accept=".csv" />
+<!-- Import modal -->
+<div class="modal fade" id="import-form-modal">
+	<div class="modal-dialog modal-dialog-centered modal-lg">
+		<div class="modal-content">
+			<form id="form-import-item" action="${context}/tools/sub/device_confirm.json" method="post">
+			<div class="modal-header bg-info">
+				<h4>Confirm import data</h4>
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
+			</div>
+			<div class="modal-body">
+				<div class="row">
+					<div class="form-group col-lg-12">
+						<label for="import-data">Data:</label>
+						<textarea id="import-data" name="import_data" class="form-control" rows="10"></textarea>
+					</div>
+				</div>
+				<input type="hidden" name="mode" id="mode" value="import">
+			</div>
+			<div class="modal-footer">
+				<button type="submit" class="btn btn-danger" style="margin-right:1rem;">Confirm</button>
+				<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+			</div>
+			</form>
+		</div>
+	</div>
+</div>
+</div>
+<br/>
+#end
+<div id="main-content" class="mb-4">
+<nav class="navbar navbar-expand-sm justify-content-center">
+	$!{tabs}
+</nav>
+<br>
+<div id="device-list-table">
+$!{device_table}
+</div>
+</div>
+<!-- Checkout modal -->
+<div class="modal fade" id="check-out-form-modal">
+	<div class="modal-dialog modal-dialog-centered modal-md">
+		<div class="modal-content">
+			<form id="form-checkout-item" action="${context}/tools/sub/device_confirm.json" method="post">
+			<div class="modal-header bg-info">
+				<h4>Confirm borrow game</h4>
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
+			</div>
+			<div class="modal-body">
+					#if (${admin})
+					<div class="form-group">
+						<label>Username:</label>
+						<input type="text" class="form-control" id="username" name="username" value="${user.getUsername()}" data-name="${user.getUsername()}">
+					</div>
+					#end
+					<div class="row">
+						<div class="form-group col-sm-12 col-lg-6">
+							<label>From:</label>
+							<input id="startdate" type="date" class="form-control" name="startdate" required/>
+						</div>
+						<div class="form-group col-sm-12 col-lg-6">
+							<label>To:</label>
+							<input id="enddate" type="date" class="form-control" name="enddate" required/>
+						</div>
+					</div>
+					<div class="form-group">
+						<input type="hidden" id="device-id" name="deviceid">
+					</div>
+					<input type="hidden" name="mode" id="mode" value="checkout">
+			</div>
+			<div class="modal-footer">
+				<button type="submit" class="btn btn-danger" style="margin-right:1rem;">Confirm</button>
+				<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+			</div>
+			</form>
+		</div>
+	</div>
+</div>
+<!-- Update modal -->
+<div class="modal fade" id="update-form-modal">
+	<div class="modal-dialog modal-dialog-centered modal-md">
+		<div class="modal-content">
+			<form id="form-update-item" action="${context}/tools/sub/device_confirm.json" method="post">
+			<div class="modal-header bg-info">
+				<h4>Due date updating</h4>
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
+			</div>
+			<div class="modal-body">
+				<div class="form-group">
+					<h5 class="text-center">Game : <span id="device-name-update"></span></h5>
+				</div>
+				<div class="form-group">
+					<label>Due date change to:</label>
+					<input id="extenddate" type="date" class="form-control" name="extenddate" required/>
+				</div>
+				<div class="form-group">
+					<input type="hidden" name="deviceid">
+				</div>
+				<input type="hidden" name="mode" value="update">
+			</div>
+			<div class="modal-footer">
+				<button type="submit" class="btn btn-danger" style="margin-right:1rem;">Confirm</button>
+				<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+			</div>
+			</form>
+		</div>
+	</div>
+</div>
+<!-- Add item modal -->
+<div class="modal fade" id="add-item-form-modal">
+	<div class="modal-dialog modal-dialog-centered modal-md">
+		<div class="modal-content">
+			<form id="form-add-item" action="${context}/tools/sub/device_confirm.json" method="post" enctype="multipart/form-data" autocomplete="off">
+			<div class="modal-header bg-info">
+				<h4>Add game</h4>
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
+			</div>
+			<div class="modal-body">
+				<div class="form-group col-lg-6 col-sm-12">
+					<div class="file-field">
+						<img src="" id="preview-img" class="device-image" data-src="${context}/img/tools/device/game.png"/>
+						<div class="btn btn-info btn-sm">
+							<span>Choose image</span>
+							<input type="file" id="deviceimg" name="deviceimg" accept=".jpg, .jpeg, .png, .bmp">
+						</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<span>Name:</span>
+					<input type="text" name="devicename" id="devicename" class="form-control" required/>
+				</div>
+				<div class="row">
+					<div class="form-group col-lg-6 col-sm-12">
+						<span>Serial:</span>
+						<input type="text" name="deviceserial" id="deviceserial" class="form-control"/>
+					</div>
+					<div class="form-group col-lg-6 col-sm-12">
+						<span>Buy Date:</span>
+						<input id="buydate" type="date" class="form-control" name="buydate"/>
+					</div>
+				</div>
+				<div class="row">
+					<div class="form-group col-lg-4 col-sm-12">
+						<span>Platform: </span>
+						<select name="devicetype" id="devicetype" class="form-control custom-select">
+							#if (${type_list})
+							#foreach (${type} in ${type_list})
+								<option value="${type.getType()}">${messages.get(${type.getLabel()})}</option>
+							#end
+							#end
+						</select>
+					</div>
+					<div class="form-group col-lg-4 col-sm-12">
+						<span>Belong to: </span>
+						<select name="devicedep" id="devicedep" class="form-control custom-select">
+							#if (${dep_list})
+							#foreach (${dep} in ${dep_list})
+								<option value="${dep.getDep()}">${dep.getLabel()}</option>
+							#end
+							#end
+						</select>
+					</div>
+					<div class="form-group col-lg-4 col-sm-12">
+						<span>Permission: </span>
+						<select name="deviceflag" id="deviceflag" class="form-control custom-select">
+							#if (${permission_list})
+							#foreach (${permission} in ${permission_list})
+								<option value="${permission.getFlag()}">${messages.get(${permission.getLabel()})}</option>
+							#end
+							#end
+						</select>
+					</div>
+				</div>
+				<div class="form-group">
+					<span>Note:</span>
+					<textarea name="devicenote" id="devicenote" class="form-control" rows="2"></textarea>
+				</div>
+				<input type="hidden" name="mode" value="add">
+				<input type="hidden" name="id" value="0">
+			</div>
+			<div class="modal-footer">
+				<button type="button" id="dv-btn-remove" class="btn btn-danger" style="min-width:15%;margin-right:auto;">Remove</button>
+				<button type="submit" class="btn btn-primary" style="min-width:15%;margin-right:1rem;">Add</button>
+				<button type="button" class="btn btn-secondary" data-dismiss="modal" style="min-width:15%;">Cancel</button>
+			</div>
+		</form>
+		</div>
+	</div>
+</div>
+<!-- Response -->
+<div class="modal fade" id="device-form-modal">
+	<div class="modal-dialog modal-dialog-centered modal-md">
+		<div class="modal-content">
+			<div class="modal-header bg-info">
+				<h4>Confirm</h4>
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
+			</div>
+			<div class="modal-body">
+				<div class="form-group">
+					<span class="pop-msg"></span>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button id="confirm-btn" type="button" class="btn btn-danger divice-modal-btn d-none" data-dismiss="modal" data-mode="">Confirm</button>
+				<button id="accept-btn" type="button" class="btn btn-primary divice-modal-btn d-none" data-dismiss="modal" data-mode="accept">Accept</button>
+				<button id="decline-btn" type="button" class="btn btn-danger divice-modal-btn d-none" data-dismiss="modal" data-mode="decline">Decline</button>
+				<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+			</div>
+		</div>
+	</div>
+</div>
+#if (${deviceToken})
+<span class="d-none" id="device-token">${deviceToken}</span>
+#end
+<div style="display:none;">
+	<span id="checkout-confirm-txt">Confirm borrow game <span class="text-info">[{0}]</span> ?</span>
+	<span id="respond-confirm-txt">Allow <span class="text-danger">[{0}]</span> to use <span class="text-info">[{1}]</span> ?</span>
+	<span id="confirm-confirm-txt">Confirm <span class="text-danger">[{0}]</span> has returned <span class="text-info">[{1}]</span> back ?</span>
+	<span id="remove-confirm-txt">Are you sure to remove <span class="text-info">[{0}]</span> ? This action can't be undone.</span>
+	<span id="return-confirm-txt">Do you want to return <span class="text-info">[{0}]</span> back ?</span>
+	<span id="cancel-confirm-txt">Do you want to cancel request for game <span class="text-info">[{0}]</span> ?</span>
+	<span id="change-confirm-txt">Allow <span class="text-danger">[{0}]</span> to change due date of <span class="text-info">[{1}]</span> ?</span>
+	
+	#if (${type_list})
+	#foreach (${type} in ${type_list})
+		<span id="image-type-${type.getType()}">${context}/img/tools/device/${type.getImage()}</span>
+	#end
+	#end
+</div>

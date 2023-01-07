@@ -6,10 +6,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
+
 import dev.boom.common.CommonDefine;
 import dev.boom.common.CommonMethod;
 import dev.boom.common.enums.EventFlagEnum;
-import dev.boom.common.enums.UserFlagEnum;
 import dev.boom.common.milktea.MilkTeaCommonFunc;
 import dev.boom.common.milktea.MilkTeaItemOptionType;
 import dev.boom.common.milktea.MilkTeaOrderFlag;
@@ -62,6 +63,17 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 		if (!getContext().isPost()) {
 			return false;
 		}
+		if (!initUserInfo()) {
+			return false;
+		}
+		if (!userInfo.isActive()) {
+			GameLog.getInstance().error("[MilkTeaManageOrder] user is not active yet!");
+			return false;
+		}
+		if (userInfo.isMilkteaBanned()) {
+			GameLog.getInstance().error("[MilkTeaManageOrder] user is banned!");
+			return false;
+		}
 		return true;
 	}
 
@@ -82,7 +94,7 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 			menuInfo = MenuService.getMenuById(Long.parseLong(strMenuId));
 		}
 		milkteaUser = MilkTeaUserService.getMilkTeaUserInfoById(getUserInfo().getId());
-		isAdminAccess = (userInfo!= null && UserFlagEnum.ADMINISTRATOR.isValid(userInfo.getFlag()));
+		isAdminAccess = (userInfo!= null && userInfo.isMilkteaAdmin());
 	}
 
 	@Override
@@ -174,7 +186,7 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 				}
 			} else if (key.equals("quantity")) {
 				if (values != null && values.length > 0) {
-					if (CommonMethod.isValidNumeric(values[0], 1, Integer.MAX_VALUE)) {
+					if (CommonMethod.isValidNumeric(values[0], 1, 15)) {
 						quantity = Integer.parseInt(values[0]);
 					}
 				}
@@ -298,7 +310,7 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 		orderInfo.setDishType(menuItem.getType());
 		orderInfo.setDishPrice(menuItem.getPrice());
 		orderInfo.setAttrPrice(plusPrice);
-		orderInfo.setDishCode(menuItem.getName().hashCode());
+		orderInfo.setDishCode(MilkTeaCommonFunc.getItemCodeName(menuItem.getName()));
 		orderInfo.setQuantity(quantity);
 		orderInfo.setFlag(MilkTeaOrderFlag.KOC_VALID.getValidFlag(orderInfo.getFlag()));
 		if (isTicket) {
@@ -352,6 +364,11 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 	}
 	
 	private void doRatingOrder() {
+		if (!worldInfo.isActiveEventFlag(EventFlagEnum.ORDER_VOTING)) {
+			GameLog.getInstance().error("[MilkTeaManageOrder] Voting system is disabled!");
+			error = true;
+			return;
+		}
 		String strOrderId = getContext().getRequestParameter("order_id");
 		if (strOrderId == null || !CommonMethod.isValidNumeric(strOrderId, 1, Long.MAX_VALUE)) {
 			GameLog.getInstance().error("[MilkTeaManageOrder] Order's id is invalid!");
@@ -364,6 +381,7 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 			error = true;
 			return;
 		}
+		String strComment = getContext().getRequestParameter("comment");
 		Byte star = Byte.parseByte(strStar);
 		Date now = new Date();
 		OrderInfo order = OrderService.getOrderInfoById(Long.parseLong(strOrderId));
@@ -372,10 +390,16 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 			error = true;
 			return;
 		}
-		if (order.isVoted()) {
-			GameLog.getInstance().error("[MilkTeaManageOrder] Order is voted up!");
-			error = true;
-			return;
+		if (order.isVoted() && order.getVotingStar() > 0) {
+			if (order.isCommented()) {
+				GameLog.getInstance().error("[MilkTeaManageOrder] Order is voted up!");
+				error = true;
+				return;
+			} else if (StringUtils.isBlank(strComment)) {
+				GameLog.getInstance().warn("[MilkTeaManageOrder] Comment is empty!");
+				error = true;
+				return;
+			}
 		}
 		MenuInfo menuInfo = MenuService.getMenuById(order.getMenuId());
 		if (menuInfo == null) {
@@ -395,37 +419,43 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 			return;
 		}
 		List<DaoValue> updates = new ArrayList<>();
-		order.setVotingStar(star);
-		order.setUpdated(now);
 		updates.add(order.getTblInfo());
-		if (!worldInfo.isActiveEventFlag(EventFlagEnum.RATING_CRONJOB)) {
-			order.setFlag(MilkTeaOrderFlag.VOTE.getValidFlag(order.getFlag()));
-			DishRatingInfo dishRatingInfo = DishRatingService.getDishRatingInfo(order.getDishCode(), order.getShopId());
-			if (dishRatingInfo == null) {
-				dishRatingInfo = new DishRatingInfo();
-				dishRatingInfo.setShopId(shopInfo.getId());
-				dishRatingInfo.setName(order.getDishName());
-				dishRatingInfo.setCode(order.getDishCode());
+		order.setUpdated(now);
+		if (!order.isCommented() && StringUtils.isNotBlank(strComment)) {
+			order.setComment(strComment.trim());
+			order.setFlag(MilkTeaOrderFlag.COMMENT.getValidFlag(order.getFlag()));
+		}
+		if (!order.isVoted() || order.getVotingStar() <= 0) {
+			order.setVotingStar(star);
+			if (!worldInfo.isActiveEventFlag(EventFlagEnum.RATING_CRONJOB)) {
+				order.setFlag(MilkTeaOrderFlag.VOTE.getValidFlag(order.getFlag()));
+				DishRatingInfo dishRatingInfo = DishRatingService.getDishRatingInfo(order.getDishCode(), order.getShopId());
+				if (dishRatingInfo == null) {
+					dishRatingInfo = new DishRatingInfo();
+					dishRatingInfo.setShopId(shopInfo.getId());
+					dishRatingInfo.setName(order.getDishName());
+					dishRatingInfo.setCode(order.getDishCode());
+				} else {
+					dishRatingInfo.setUpdated(now);
+				}
+				dishRatingInfo.setOrderCount(dishRatingInfo.getOrderCount() + order.getQuantity());
+				dishRatingInfo.setStarCount(dishRatingInfo.getStarCount() + order.getQuantity() * star);
+				updates.add(dishRatingInfo.getTblInfo());
+				
+				shopInfo.setVotingCount(shopInfo.getVotingCount() + 1);
+				shopInfo.setStarCount(shopInfo.getStarCount() + star);
+				updates.add(shopInfo.getTblInfo());
 			} else {
-				dishRatingInfo.setUpdated(now);
+				GameLog.getInstance().info("[MilkTeaManageOrder] Rating update by cronjob!");
+				order.setFlag(MilkTeaOrderFlag.VOTE_CRON.getValidFlag(order.getFlag()));
 			}
-			dishRatingInfo.setOrderCount(dishRatingInfo.getOrderCount() + order.getQuantity());
-			dishRatingInfo.setStarCount(dishRatingInfo.getStarCount() + order.getQuantity() * star);
-			updates.add(dishRatingInfo.getTblInfo());
-			
-			shopInfo.setVotingCount(shopInfo.getVotingCount() + 1);
-			shopInfo.setStarCount(shopInfo.getStarCount() + star);
-			updates.add(shopInfo.getTblInfo());
-		} else {
-			GameLog.getInstance().info("[MilkTeaManageOrder] Rating update by cronjob!");
-			order.setFlag(MilkTeaOrderFlag.VOTE_CRON.getValidFlag(order.getFlag()));
 		}
 		if (!CommonDaoService.update(updates)) {
 			GameLog.getInstance().error("[MilkTeaManageOrder] Update failed!");
 			error = true;
 			return;
 		}
-		putJsonData("data", MilkTeaCommonFunc.getOrderRating(order));
+		putJsonData("data", MilkTeaCommonFunc.getOrderRatingWithComment(order));
 	}
 
 	@Override
@@ -458,7 +488,7 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 		}
 		putJsonData("model_list", sb.toString());
 		List<OrderInfo> listOrder = OrderService.getOrderInfoListByMenuId(menuInfo.getId());
-		putJsonData("order_list", MilkTeaCommonFunc.getHtmlListOrder(listOrder, menuInfo, userInfo, getHostURL() + getContextPath(), getMessages()));
+		putJsonData("order_list", MilkTeaCommonFunc.getHtmlListOrder(listOrder, menuInfo, userInfo, getHostURL() + getContextPath(), getMessages(), getWorldInfo()));
 	}
 	
 }

@@ -21,6 +21,7 @@ public class TblMenuInfo extends DaoValueInfo {
 	private long shipping_fee;
 	private String description;
 	private byte status;
+	private int dept;
 	private int flag;
 	private Date created;
 	private Date expired;
@@ -36,6 +37,7 @@ public class TblMenuInfo extends DaoValueInfo {
 		this.shipping_fee = 0;
 		this.description = "";
 		this.status = 0;
+		this.dept = 0;
 		this.flag = 0;
 		this.created = new Date();
 		this.expired = new Date(this.created.getTime() + CommonDefine.MILLION_SECOND_DAY);
@@ -113,6 +115,14 @@ public class TblMenuInfo extends DaoValueInfo {
 
 	public void setStatus(byte status) {
 		this.status = status;
+	}
+
+	public int getDept() {
+		return dept;
+	}
+
+	public void setDept(int dept) {
+		this.dept = dept;
 	}
 
 	public int getFlag() {

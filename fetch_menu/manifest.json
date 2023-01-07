@@ -20,7 +20,7 @@
 	},
 	"content_scripts" : [
 		{
-			"matches" : [ "https://www.now.vn/*" ],
+			"matches" : [ "https://shopeefood.vn/*" ],
 			"js": ["js/jquery-3.2.1.min.js","js/data_object.js","content/content.js"]
 		}
 	],

@@ -1,0 +1,52 @@
+<style>
+table#cat-seacrh-table td{
+	vertical-align: middle;
+}
+</style>
+<div id='search-main'>
+	<span style="font-size: 20pt; position: relative; left: 400px;">
+		Nyaga cat search </span>
+
+	<div class="row"><div class="col-lg-3 col-md-4 col-sm-6">
+	<form id="search-form" action="${context}/tools/nyaga_cat_search.htm" method="get" class="my-2 my-md">
+		<div class="form-group">
+			<label for="id">Cat Id:</label>
+			<input type="text" class="form-control" id="id" name="id" value="${id}" />
+		</div>
+		<div class="form-group">
+			<label for="fname">Cat name:</label>
+			<input type="text" class="form-control" id="fname" name="fname" value="${fname}" />
+		</div>
+		<div class="form-group">
+			<label for="disp">Display Number:</label>
+			<input type="text" class="form-control" id="disp" name="disp" value="${disp}" />
+		</div>
+		<div class="form-group">
+			<label for="disp">Skill Name:</label>
+			<input type="text" class="form-control" id="skill" name="skill" value="${skill}" />
+		</div>
+		<input type="hidden" name="element" value="${element}" />
+		<input type="hidden" name="cost" value="${cost}" />
+		<input type="hidden" name="rank" value="${rank}" />
+		<input type="hidden" name="star" value="${star}" />
+		<input type="hidden" name="job" value="${job}" />
+		<input type="hidden" name="miltype" value="${miltype}" />
+		<div class="row">
+			<div class="col-md-6">
+				<button type="button" class="btn btn-secondary" id="filter-button" style="width:100%;">Filter</button>
+			</div>
+			<div class="col-md-6">
+				<button type="button" class="btn btn-danger" id="clear-button" style="width:100%;">Clear</button>
+			</div>
+		</div>
+		<div class="row" style="margin-top:0.5em;">
+			<div class="col-md-12">
+				<button type="submit" class="btn btn-primary" style="width:100%;">Search</button>
+			</div>
+		</div>
+	</form>
+	</div></div>
+	$!{Content}
+	$!{paging}
+	$!{Input}
+</div>

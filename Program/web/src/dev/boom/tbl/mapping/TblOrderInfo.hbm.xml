@@ -27,7 +27,7 @@
             <column name="dish_type" length="125" not-null="true" />
         </property>
         <property name="dish_price" type="java.lang.Long">
-            <column name="dish_price" not-null="true" />
+        	<column name="dish_price" not-null="true" />
         </property>
         <property name="attr_price" type="java.lang.Long">
             <column name="attr_price" not-null="true" />
@@ -40,6 +40,9 @@
         </property>
         <property name="voting_star" type="java.lang.Byte">
             <column name="voting_star" not-null="true" />
+        </property>
+        <property name="comment" type="java.lang.String">
+            <column name="comment" length="256" not-null="true" />
         </property>
         <property name="quantity" type="java.lang.Long">
             <column name="quantity" not-null="true" />

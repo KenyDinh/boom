@@ -1,0 +1,169 @@
+#if (${user})
+#if (${inspector})
+<style>
+nav#main-nav-bar {
+	transition: 1s;
+	opacity: 0;
+}
+nav#main-nav-bar:hover {
+	opacity: 1;
+}
+</style>
+#end
+<div style="position:relative">
+	<div id="game-control">
+		<div style="padding:3rem;">
+			#if (${inspector})
+			<div class="col-3">
+				#if (${stage_list})
+				<select name="stage" id="stage" class="custom-select" style="width:10rem;">
+				#foreach (${stage} in ${stage_list})
+					<option value="${stage.ordinal()}">${stage.getName()}</option>
+				#end
+				</select>
+				#end
+				<div class="custom-control custom-checkbox" style="margin:1rem 0;">
+					<input type="checkbox" class="custom-control-input" id="inspector-mode"/>
+					<label class="custom-control-label none-select" for="inspector-mode">Inspector Mode</label>
+				</div>
+				<button class="btn btn-info" id="create-game" style="width:10rem;margin-top:1rem;">Create Game</button>
+			</div>
+			#else
+				#if (!${stage_list})
+				<button class="btn btn-info" id="create-game" style="width:10rem;margin-top:1rem;">Create Game</button>
+				#end
+			#end
+		</div>
+		<div id="room-list">
+			#if (${list})
+			<h3 class="text-center">Available rooms</h3>
+			<div style="display:flex;justify-content:center;">
+				#foreach (${game} in ${list})
+				<div class="game-room border" style="width:150px;text-align:center;background-color:#CCD1D1;color:#6C3483;" data-id="${game.getGameId()}" title="Join this room">
+					<img src="${context}/img/game/boom/${game.getMapImage()}" style="width:100%;object-fit:cover;"/>
+					<div class="font-weight-bold bg-success text-center" data-toggle="tooltip" data-placement="bottom" style="text-overflow:ellipsis;overflow:hidden;white-space:nowrap;" title="Boom room">${game.getHostName()}</div>
+				</div>
+				#end
+			</div>
+			#end
+		</div>
+	</div>
+	<div id="game-board" style="flex-direction: column;align-items: center;justify-content:center;margin-top:10rem;font-family: monospace;display:none;">
+		<div id="left-panel" style="position:absolute;left:0;top:0;">
+			<div style="display:flex;flex-direction:column;">
+			<div id="map-list" style="display:none;">
+			<h5 class="text-center">Available maps</h5>
+			<div style="display:flex;max-width:240px;flex-wrap: wrap;">
+			#foreach (${map} in ${maps})
+				<div class="game-map" data-id="${map.getId()}" title="Choose this map">
+				<img src="${context}/img/game/boom/${map.getImage()}" style="width:100%;object-fit:cover;"/>
+				</div>
+			#end
+			</div>
+			</div>
+			<div id="character-class" style="margin-top:1rem;">
+			<h5>Character classes:</h5>
+			#foreach (${type} in ${char_types})
+				<div class="form-check">
+					<input class="form-check-input char-class-select" type="radio" id="char_class_${type.ordinal()}" name="char_class" value="${type.ordinal()}">
+					<label class="form-check-label font-weight-bold text-info" for="char_class_${type.ordinal()}">${type.name()}</label>
+				</div>
+			#end
+			</div>
+			<div id="character-info" style="margin-top:1rem;font-size: 13px;">
+			<h5>Character base stats:</h5>
+			#foreach ($char in ${characters})
+				<p class="char-info-detail" data-id="${char.getId()}" style="display:none;">
+					Max HP: ${char.getMaxHP()}<br/>
+					Base movement speed: ${char.getMovementSpeed()}<br/>
+					Max movement speed: ${char.getMaxMovementSpeed()}<br/>
+					Base damage: ${char.getDamage()}<br/>
+					Max damage: ${char.getMaxDamage()}<br/>
+					#if (${char.getType()} == 0)
+						Base bomb capacity: ${char.getFormatStat(${char.getAttackSpeed()})}<br/>
+						Max bomb capacity: ${char.getFormatStat(${char.getMaxAttackSpeed()})}<br/>
+						Base bomb explosion range: ${char.getFormatStat(${char.getAttackRange()})}<br/>
+						Max bomb explosion range: ${char.getFormatStat(${char.getMaxAttakRange()})}<br/>
+					#else
+						Base attack speed: ${char.getFormatStat(${char.getAttackSpeed()})}<br/>
+						Max attack speed: ${char.getFormatStat(${char.getMaxAttackSpeed()})}<br/>
+						Base attack range: ${char.getFormatStat(${char.getAttackRange()})}<br/>
+						Max attack range: ${char.getFormatStat(${char.getMaxAttakRange()})}<br/>
+					#end
+				</p>
+			#end
+			</div>
+			<div style="margin-top:1rem;text-align:left;">
+			<h5>Hotkey cheat sheet:</h5>
+				<p>
+					Move right: &#129042;, D<br/>
+					Move left: &#129040;, A<br/>
+					Move up: &#129041;, W<br/>
+					Move down: &#129043;, S<br/>
+					Plant bomb/Attack: Space<br/>
+				</p>
+			</div>
+			</div>
+		</div>
+		<div id="score-panel" style="position:absolute;left:0;top:0;">
+			<div style="margin-top:1rem;">
+				<h5>Player Score:</h5>
+				<div id="player-score">
+				</div>
+			</div>
+			#if (${inspector})
+			<div id="exit-game" style="margin-top:3rem;text-align:center;display:none;"><button class="btn btn-danger inspec">Force Finish</button></div>
+			#end
+		</div>
+		#if (!${inspector})
+		<div id="exit-game" style="position:absolute;top:-3rem;display:none;"><button class="btn btn-danger" >Exit Game</button></div>
+		#end
+		<div id="character-list" style="max-width:864px;overflow-x:auto;display:none;cursor:grab;">
+			#foreach($char in ${characters})
+				#if ( ${char.getId()} gt 0 )
+					<div class="character" data-id="${char.getId()}" data-type="${char.getType()}" style="background-image:url('${context}/img/game/boom/char/${char.getImage()}');"></div>
+				#end
+			#end
+		</div>
+		<canvas id="canvas" style="max-width:864px;max-height:672px"> </canvas>
+		<div id="item-list" class="none-select" style="position:absolute;right:0;top:0;display:none;">
+			<h5 class="text-center">Available items</h5>
+			<div id="scroll-items" style="display:flex;flex-direction:column;overflow-y:scroll;max-height:672px;cursor:grab;">
+			#foreach (${item} in ${items})
+				#set ($posx = (${item.getImageID()} % 16) * 32)
+				#set ($posy = (${item.getImageID()} / 16) * 32)
+				<div class="game-item border" data-id="${item.getId()}" style="width:250px;text-align:center;color:#00bc8c;display:flex;">
+					<div style="background-image:url('${context}/img/game/boom/map/items.png');background-position: -${posx}px -${posy}px;width:32px;height:32px;flex-shrink:0;"></div>
+					<div style="font-size: 13px;">${format.message(${messages.get(${item.getLableExplain()})},${item.getItemEffectParam(1)},${item.getItemEffectDuration(1)})}</div>
+				</div>
+			#end
+			</div>
+		</div>
+	</div>
+</div>
+<span class="d-none" id="token">${token}</span>
+<div class="d-none" id="sound-effect">
+	<audio id="se-explosion">
+		<source src="${context}/img/game/boom/sound/explosion.mp3" type="audio/mpeg"/>
+	</audio>
+	<audio class="se-track" data-id="1">
+		<source src="${context}/img/game/boom/sound/sound_track_1.mp3" type="audio/mpeg"/>
+	</audio>
+	<audio class="se-track" data-id="2">
+		<source src="${context}/img/game/boom/sound/sound_track_2.mp3" type="audio/mpeg"/>
+	</audio>
+	<audio class="se-track" data-id="3">
+		<source src="${context}/img/game/boom/sound/sound_track_3.mp3" type="audio/mpeg"/>
+	</audio>
+	<audio class="se-track" data-id="4">
+		<source src="${context}/img/game/boom/sound/sound_track_4.mp3" type="audio/mpeg"/>
+	</audio>
+</div>
+<script type="text/javascript">
+//<![CDATA[
+#if(${js_variable})
+	${js_variable}
+#end
+//]]>
+</script>
+#end

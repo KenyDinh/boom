@@ -1,0 +1,11 @@
+#if (${list})
+<h3 class="text-center">Available rooms</h3>
+<div style="display:flex;justify-content:center;">
+	#foreach (${game} in ${list})
+	<div class="game-room border" style="width:150px;text-align:center;background-color:#CCD1D1;color:#6C3483;" data-id="${game.getGameId()}" title="Join this room">
+		<img src="${context}/img/game/boom/${game.getMapImage()}" style="width:100%;object-fit:cover;"/>
+		<div class="font-weight-bold bg-success text-center" data-toggle="tooltip" data-placement="bottom" style="text-overflow:ellipsis;overflow:hidden;white-space:nowrap;" title="Boom room">${game.getHostName()}</div>
+	</div>
+	#end
+</div>
+#end

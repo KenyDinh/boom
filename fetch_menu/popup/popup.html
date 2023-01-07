@@ -5,7 +5,22 @@
 <script src="popup.js"></script>
 <link rel="stylesheet" type="text/css" href="../css/style.css">
 </head>
-<input type="button" id="looking-for-menu" value="looking for menu" />
 <body>
+    <h3>Friday Tool</h3>
+    <div class="div-info">
+        <label class="label">
+            Socket status: <span id="socket-status"></span>
+        </label>
+    </div>
+    <div class="div-info">
+        <label class="label">
+            API key: 
+        </label>
+        <input type="text" value="" id="api-key"/>
+        <button type="button" id="btn-connect" class="button">Connect</button>
+    </div>
+    <div class="div-menu">
+        <button id="looking-for-menu" class="button">Looking for menu</button>
+    </div>
 </body>
 </html>

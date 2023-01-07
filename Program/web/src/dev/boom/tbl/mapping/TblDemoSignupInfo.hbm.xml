@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="dev.boom.tbl.info.TblDemoSignupInfo" table="demo_signup_info" catalog="boom">
+        <id name="id" type="java.lang.Integer">
+            <column name="id" />
+            <generator class="increment" />
+        </id>
+        <property name="game_name" type="java.lang.String">
+            <column name="game_name" length="32" not-null="true" />
+        </property>
+        <property name="speaker_name" type="java.lang.String">
+            <column name="speaker_name" length="32" not-null="true" />
+        </property>
+        <property name="description" type="java.lang.String">
+            <column name="description" not-null="true" />
+        </property>
+        <property name="flag" type="java.lang.Integer">
+            <column name="flag" not-null="true" />
+        </property>
+    </class>
+</hibernate-mapping>

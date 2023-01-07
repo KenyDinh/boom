@@ -1,5 +1,7 @@
 package dev.boom.milktea.object;
 
+import dev.boom.common.milktea.MilkTeaCommonFunc;
+
 public class MenuItemOption {
 
 	private long id;
@@ -47,7 +49,7 @@ public class MenuItemOption {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + MilkTeaCommonFunc.getItemCodeName(name);
 		result = prime * result + price;
 		result = prime * result + type;
 		return result;

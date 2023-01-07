@@ -9,6 +9,7 @@ public enum MilkTeaOrderFlag {
 	CANCELED,	//5
 	KOC_TICKET,	//6
 	KOC_VALID,	//7
+	COMMENT,	//8
 	;
 	
 	public boolean isValidFlag(int flag) {

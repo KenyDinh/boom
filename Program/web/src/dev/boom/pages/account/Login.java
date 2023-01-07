@@ -2,9 +2,10 @@ package dev.boom.pages.account;
 
 import org.apache.commons.lang.StringUtils;
 
-import dev.boom.common.enums.UserFlagEnum;
 import dev.boom.core.BoomSession;
 import dev.boom.pages.JsonPageBase;
+import dev.boom.services.AuthToken;
+import dev.boom.services.AuthTokenService;
 import dev.boom.services.UserInfo;
 import dev.boom.services.UserService;
 import dev.boom.socket.endpoint.FridayEndpoint;
@@ -55,10 +56,21 @@ public class Login extends JsonPageBase {
 			putJsonData("error", getMessage("MSG_ACCOUNT_LOGIN_INCORRECT"));
 			return;
 		}
-		storeBoomSession(info);
-		if (UserFlagEnum.ADMINISTRATOR.isValid(info.getFlag())) {
+ 		storeBoomSession(info);
+		if (info.isMilkteaAdmin()) {
 			token = FridayEndpoint.registerToken(info);
-			putJsonData("token", token);
+ 			putJsonData("token", token);
+		}
+		String remember = getContext().getRequestParameter("remember");
+		if (remember != null && remember.equals("true")) {
+			AuthToken authToken = AuthTokenService.generateAuthToken(info);
+			if (authToken != null) {
+				String tokenValidator = AuthTokenService.getTokenValidator(authToken);
+				if (tokenValidator != null) {
+					putJsonData("remember_me", tokenValidator);
+					putJsonData("expired", AuthTokenService.TOKEN_EXPIRED_DAY);
+				}		
+			}
 		}
 		putJsonData("success", 1);
 	}
