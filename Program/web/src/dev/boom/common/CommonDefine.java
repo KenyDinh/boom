@@ -5,11 +5,13 @@ public class CommonDefine {
 	private CommonDefine() {
 	}
 	
+	public static final int MAX_SLAVE_DB = 3;
+	public static final int MAX_SLAVE_DB_ERROR_COUNT = 5;
 	public static final String DATE_FORMAT_PATTERN_DB = "yyyy-MM-dd HH:mm:ss";
-	public static final String DATE_FORMAT_PATTERN = "yyyy/MM/dd HH:mm:ss";
-	public static final String DATE_FORMAT_PATTERN_WITHOUT_TIME = "yyyy/MM/dd";
-	public static final String DATE_REGEX_PATTERN = "[0-9]{4}[/-][0-1][0-9][/-][0-3][0-9] [0-2][0-9]:[0-5][0-9]:[0-5][0-9]";
-	public static final String DATE_REGEX_PATTERN_2 = "[0-9]{4}-[0-1][0-9]-[0-3][0-9] [0-2][0-9]:[0-5][0-9]:[0-5][0-9]";
+	public static final String DATE_FORMAT_PATTERN = DATE_FORMAT_PATTERN_DB;
+	public static final String DATE_FORMAT_PATTERN_WITHOUT_TIME = "yyyy-MM-dd";
+	public static final String DATE_REGEX_PATTERN = "[0-9]{4}-[0-1][0-9]-[0-3][0-9] [0-2][0-9]:[0-5][0-9]:[0-5][0-9]";
+	public static final String DATE_REGEX_PATTERN_2 = DATE_REGEX_PATTERN;//"[0-9]{4}[/-][0-1][0-9][/-][0-3][0-9] [0-2][0-9]:[0-5][0-9]:[0-5][0-9]";
 	public static final String DEFAULT_DATE_TIME = "1970-01-01 00:00:00";
 	public static final int MAX_MILKTEA_VOTING_STAR = 5;
 	public static final long MILLION_SECOND_SECOND = 1000;

@@ -1,110 +1,98 @@
 package dev.boom.tbl.info;
 
-import java.util.List;
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
 
-import dev.boom.dao.core.DaoValueInfo;
+import dev.boom.dao.DaoValueInfo;
+import dev.boom.dao.IDaoValue;
 
-public class TblUserInfo extends DaoValueInfo {
-	
-	private static final long serialVersionUID = 1L;
+public class TblUserInfo extends DaoValueInfo implements IDaoValue {
+
 	private static final String TABLE_NAME = "user_info";
 	private static final String PRIMARY_KEY = "id";
-	
-	private long id;
-	private String username;
-	private String password;
-	private String empid;
-	private String name;
-	private int role;
-	private int dept;
-	private int flag;
+	private static final String SUB_KEY = ""; // <><>
+	private static Map<String, String> mapForeignKey = new HashMap<String, String>();
+
+	public final class Fields implements IDaoValue.Fields {
+
+		public long id;
+		public String username;
+		public String password;
+		public String empid;
+		public String name;
+		public int role;
+		public int dept;
+		public int flag;
+
+		public Fields() {
+			id = 0;
+			username = "";
+			password = "";
+			empid = "";
+			name = "";
+			role = 0;
+			dept = 0;
+			flag = 0;
+		}
+	}
+
+	private Fields fieldRead;
+
+	private Fields fieldWrite;
+
+	private static Field[] fields;
 
 	public TblUserInfo() {
-		this.id = 0;
-		this.username = "";
-		this.password = "";
-		this.empid = "";
-		this.name = "";
-		this.role = 0;
-		this.dept = 0;
-		this.flag = 0;
-		Sync();
-	}
-	
-	public long getId() {
-		return id;
+		fieldRead = new Fields();
+		fieldWrite = new Fields();
+
+		if (fields == null) {
+			fields = fieldRead.getClass().getFields();
+		}
 	}
 
-	public void setId(long id) {
-		this.id = id;
+	public String getTblName() {
+		return TABLE_NAME;
 	}
 
-	public String getUsername() {
-		return username;
-	}
-
-	public void setUsername(String username) {
-		this.username = username;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
-	public String getEmpid() {
-		return empid;
-	}
-
-	public void setEmpid(String empid) {
-		this.empid = empid;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public int getRole() {
-		return role;
-	}
-
-	public void setRole(int role) {
-		this.role = role;
-	}
-
-	public int getDept() {
-		return dept;
-	}
-
-	public void setDept(int dept) {
-		this.dept = dept;
-	}
-
-	public int getFlag() {
-		return flag;
-	}
-
-	public void setFlag(int flag) {
-		this.flag = flag;
-	}
-
-	public List<String> getSubKey() {
-		return null;
-	}
-	
 	public String getPrimaryKey() {
 		return PRIMARY_KEY;
 	}
-	
-	public String getTableName() {
-		return TABLE_NAME;
+
+	public String getSubKey() {
+		return SUB_KEY;
 	}
-	
+
+	public String getForeignKey(String strKey) {
+		return mapForeignKey.get(strKey);
+	}
+
+	public Field[] getClassField() {
+		return fields;
+	}
+
+	public Object getFieldRead() {
+		return (Object) fieldRead;
+	}
+
+	public Object getFieldWrite() {
+		return (Object) fieldWrite;
+	}
+
+	public Fields getInstance() {
+		return fieldWrite;
+	}
+
+	public void Sync() {
+		fieldRead.id = fieldWrite.id;
+		fieldRead.username = fieldWrite.username;
+		fieldRead.password = fieldWrite.password;
+		fieldRead.empid = fieldWrite.empid;
+		fieldRead.name = fieldWrite.name;
+		fieldRead.role = fieldWrite.role;
+		fieldRead.dept = fieldWrite.dept;
+		fieldRead.flag = fieldWrite.flag;
+	}
 }
+

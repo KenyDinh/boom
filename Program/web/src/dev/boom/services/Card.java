@@ -7,11 +7,9 @@ import java.util.Set;
 
 import dev.boom.tbl.data.TblCardBaseData;
 import dev.boom.tbl.data.TblCardData;
-import dev.boom.tbl.info.TblCardInfo;
 
 public class Card {
 	
-	private TblCardInfo tblCardInfo;
 	private TblCardData tblCardData;
 	private TblCardBaseData tblCardBaseData;
 
@@ -235,10 +233,6 @@ public class Card {
 		this.tblCardBaseData = tblCardBaseData;
 	}
 	
-	public TblCardInfo getTblCardInfo() {
-		return tblCardInfo;
-	}
-
 	public TblCardData getTblCardData() {
 		return tblCardData;
 	}
@@ -255,10 +249,6 @@ public class Card {
 		tblCardBaseData = p;
 	}
 	
-	public long getUniqueCardID() {
-		return (Long) tblCardInfo.Get("id");
-	}
-
 	public int getCardID() {
 		return (Integer) tblCardData.Get("id");
 	}
@@ -361,9 +351,9 @@ public class Card {
 	public List<Skill> getSkillList() {
 		Set<Integer> skillIdSet = new HashSet<Integer>();
 		for (int i = 1; i <= 10; i++) {
-			skillIdSet.add(tblCardData.getSkillIndex(i));
+			skillIdSet.add((Integer)tblCardData.Get(String.format("skill_index_%d", i)));
 		}
-		skillIdSet.add(tblCardData.getInit_skill());
+		skillIdSet.add((Integer)tblCardData.Get("init_skill"));
 		return SkillService.getSkillList(skillIdSet);
 	}
 
@@ -389,19 +379,15 @@ public class Card {
 			return true;
 		}
 		for (int i = 1; i <= 10; i++) {
-			if (skillID.contains(tblCardData.getSkillIndex(i))) {
+			if (skillID.contains((Integer)tblCardData.Get(String.format("skill_index_%d", i)))) {
 				return true;
 			}
 		}
-		if (skillID.contains(tblCardData.getInit_skill())) {
+		if (skillID.contains((Integer)tblCardData.Get("init_skill"))) {
 			return true;
 		}
 		
 		return false;
-	}
-	
-	public short getMaxHP() {
-		return (Short) tblCardInfo.Get("max_hp");
 	}
 	
 	public byte getProperty() {
@@ -412,10 +398,6 @@ public class Card {
 		return 0;
 	}
 	
-	public boolean isValid() {
-		return (getUniqueCardID() != 0);
-	}
-	
 	public int getCardIDFromBase() {
 		return (Integer) tblCardBaseData.Get("id");
 	}
@@ -424,23 +406,6 @@ public class Card {
 		return (Short) tblCardData.Get("image_id");
 	}
 	
-	public String getImageSrc() {
-		if (tblCardInfo.Get("id").toString().equals("0")) { // 繝�繝�繧ｭ縺ｮ莉ｮ繧ｬ繝ｼ繝�.
-			return "/img/UI/img_overlay.gif?@img_overlay.gif@";
-		}
-
-		String filename = String.format("character_card_%05d.jpg", getImgID());
-		return String.format("/img/card/illustration/%s", filename);
-	}
-
-	public String getFaceImage() {
-		if (tblCardInfo.Get("id").toString().equals("0")) { // 繝�繝�繧ｭ縺ｮ莉ｮ繧ｬ繝ｼ繝�.
-			return "/img/UI/img_overlay.gif?@img_overlay.gif@";
-		}
-
-		return getFaceImageMain();
-	}
-
 	public String getFaceImageMain() {
 		String filename = String.format("character_still_%05d.png", getImgID());
 		return String.format("/img/card/still/%s", filename);

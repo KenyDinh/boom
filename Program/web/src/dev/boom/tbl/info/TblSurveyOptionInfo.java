@@ -1,100 +1,95 @@
 package dev.boom.tbl.info;
 
-import java.util.List;
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
 
-import dev.boom.dao.core.DaoValueInfo;
+import dev.boom.dao.DaoValueInfo;
+import dev.boom.dao.IDaoValue;
 
-public class TblSurveyOptionInfo extends DaoValueInfo {
+public class TblSurveyOptionInfo extends DaoValueInfo implements IDaoValue {
 
-	private static final long serialVersionUID = 1L;
 	private static final String TABLE_NAME = "survey_option_info";
 	private static final String PRIMARY_KEY = "id";
+	private static final String SUB_KEY = ""; // <><>
+	private static Map<String, String> mapForeignKey = new HashMap<String, String>();
 
-	private long id;
-	private long question_id;
-	private byte type;
-	private String title;
-	private String content;
-	private String description;
-	private int param;
+	public final class Fields implements IDaoValue.Fields {
+
+		public long id;
+		public long question_id;
+		public byte type;
+		public String title;
+		public String content;
+		public String description;
+		public int param;
+
+		public Fields() {
+			id = 0;
+			question_id = 0;
+			type = 0;
+			title = "";
+			content = "";
+			description = "";
+			param = 0;
+		}
+	}
+
+	private Fields fieldRead;
+
+	private Fields fieldWrite;
+
+	private static Field[] fields;
 
 	public TblSurveyOptionInfo() {
-		this.id = 0;
-		this.question_id = 0;
-		this.type = 0;
-		this.title = "";
-		this.content = "";
-		this.description = "";
-		this.param = 0;
-		Sync();
+		fieldRead = new Fields();
+		fieldWrite = new Fields();
+
+		if (fields == null) {
+			fields = fieldRead.getClass().getFields();
+		}
 	}
 
-	public long getId() {
-		return id;
-	}
-
-	public void setId(long id) {
-		this.id = id;
-	}
-
-	public long getQuestion_id() {
-		return question_id;
-	}
-
-	public void setQuestion_id(long question_id) {
-		this.question_id = question_id;
-	}
-
-	public byte getType() {
-		return type;
-	}
-
-	public void setType(byte type) {
-		this.type = type;
-	}
-
-	public String getTitle() {
-		return title;
-	}
-
-	public void setTitle(String title) {
-		this.title = title;
-	}
-
-	public String getContent() {
-		return content;
-	}
-
-	public void setContent(String content) {
-		this.content = content;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
-	public int getParam() {
-		return param;
-	}
-
-	public void setParam(int param) {
-		this.param = param;
-	}
-
-	public List<String> getSubKey() {
-		return null;
+	public String getTblName() {
+		return TABLE_NAME;
 	}
 
 	public String getPrimaryKey() {
 		return PRIMARY_KEY;
 	}
 
-	public String getTableName() {
-		return TABLE_NAME;
+	public String getSubKey() {
+		return SUB_KEY;
 	}
 
+	public String getForeignKey(String strKey) {
+		return mapForeignKey.get(strKey);
+	}
+
+	public Field[] getClassField() {
+		return fields;
+	}
+
+	public Object getFieldRead() {
+		return (Object) fieldRead;
+	}
+
+	public Object getFieldWrite() {
+		return (Object) fieldWrite;
+	}
+
+	public Fields getInstance() {
+		return fieldWrite;
+	}
+
+	public void Sync() {
+		fieldRead.id = fieldWrite.id;
+		fieldRead.question_id = fieldWrite.question_id;
+		fieldRead.type = fieldWrite.type;
+		fieldRead.title = fieldWrite.title;
+		fieldRead.content = fieldWrite.content;
+		fieldRead.description = fieldWrite.description;
+		fieldRead.param = fieldWrite.param;
+	}
 }
+

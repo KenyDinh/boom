@@ -3,7 +3,8 @@ package dev.boom.services;
 import java.util.ArrayList;
 import java.util.List;
 
-import dev.boom.dao.core.DaoValue;
+import dev.boom.dao.CommonDaoFactory;
+import dev.boom.dao.DaoValue;
 import dev.boom.tbl.info.TblDemoSignupInfo;
 
 public class DemoSignupService {
@@ -12,47 +13,73 @@ public class DemoSignupService {
 
 	private DemoSignupService() {
 	}
-	
-	public static List<DemoSignupInfo> getDemoSignupList() {
-		TblDemoSignupInfo info = new TblDemoSignupInfo();
-		List<DaoValue> list = CommonDaoService.select(info);
+
+	public static List<DemoSignup> getDemoSignupListAll(String option) {
+		TblDemoSignupInfo tblInfo = new TblDemoSignupInfo();
+
+		if (option != null && !option.isEmpty()) {
+			tblInfo.SetSelectOption(option);
+		}
+
+		List<DaoValue> list = CommonDaoFactory.Select(tblInfo);
 		if (list == null || list.isEmpty()) {
 			return null;
 		}
-		List<DemoSignupInfo> ret = new ArrayList<DemoSignupInfo>();
+
+		List<DemoSignup> ret = new ArrayList<>();
 		for (DaoValue dao : list) {
-			ret.add(new DemoSignupInfo((TblDemoSignupInfo)dao));
+			ret.add(new DemoSignup((TblDemoSignupInfo) dao));
+		}
+
+		return ret;
+	}
+
+	public static List<DemoSignup> getDemoSignupListAll() {
+		return getDemoSignupListAll(null);
+	}
+	
+	public static List<DemoSignup> getDemoSignupList() {
+		TblDemoSignupInfo info = new TblDemoSignupInfo();
+		List<DaoValue> list = CommonDaoFactory.Select(info);
+		if (list == null || list.isEmpty()) {
+			return null;
+		}
+		List<DemoSignup> ret = new ArrayList<DemoSignup>();
+		for (DaoValue dao : list) {
+			ret.add(new DemoSignup((TblDemoSignupInfo)dao));
 		}
 		
 		return ret;
 	}
 	
-	public static DemoSignupInfo getDemoSignupById(int id) {
+	public static DemoSignup getDemoSignupById(int id) {
 		TblDemoSignupInfo info = new TblDemoSignupInfo();
-		info.setId(id);
-		List<DaoValue> daos = CommonDaoService.select(info);
+		info.Set("id", id);
+		List<DaoValue> daos = CommonDaoFactory.Select(info);
 		if (daos == null || daos.isEmpty() || daos.size() != 1) {
 			return null;
 		}
-		return new DemoSignupInfo((TblDemoSignupInfo) daos.get(0));
+		return new DemoSignup((TblDemoSignupInfo) daos.get(0));
 	}
 	
-	public static boolean update(DemoSignupInfo DemoSignupInfo) {
-		return CommonDaoService.update(DemoSignupInfo.TblDemoSignupInfo());
+	public static boolean update(DemoSignup DemoSignupInfo) {
+		return (CommonDaoFactory.Update(DemoSignupInfo.getDemoSignupInfo()) > 0);
 	}
 	
 	public static boolean createNewSignup(String gameName, String speakerName, String description) {
 		TblDemoSignupInfo tblDemoSignupInfo = new TblDemoSignupInfo();
-		tblDemoSignupInfo.setGame_name(gameName);
-		tblDemoSignupInfo.setSpeaker_name(speakerName);
-		tblDemoSignupInfo.setDescription(description);
-		tblDemoSignupInfo.setFlag(FLAG_NEW_ENTRY);
+		tblDemoSignupInfo.Set("game_name", gameName);
+		tblDemoSignupInfo.Set("speaker_name", speakerName);
+		tblDemoSignupInfo.Set("description", description);
+		tblDemoSignupInfo.Set("flag", FLAG_NEW_ENTRY);
 		
-		Integer id = (Integer) CommonDaoService.insert(tblDemoSignupInfo);
+		Integer id = (Integer) CommonDaoFactory.Insert(tblDemoSignupInfo);
 		return (id != null && id > 0);
 	}
 	
-	public static boolean delete(DemoSignupInfo DemoSignupInfo) {
-		return CommonDaoService.delete(DemoSignupInfo.TblDemoSignupInfo());
+	public static boolean delete(DemoSignup DemoSignupInfo) {
+		return (CommonDaoFactory.Delete(DemoSignupInfo.getDemoSignupInfo()) > 0);
 	}
+	
 }
+

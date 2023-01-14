@@ -3,17 +3,15 @@ package dev.boom.services;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hibernate.Session;
-import org.hibernate.Transaction;
-
 import dev.boom.common.CommonDefine;
 import dev.boom.common.game.QuizJapaneseLevel;
 import dev.boom.common.game.QuizPlayerStatus;
 import dev.boom.common.game.QuizStatus;
 import dev.boom.common.game.QuizSubject;
-import dev.boom.connect.HibernateSessionFactory;
 import dev.boom.core.GameLog;
-import dev.boom.dao.core.DaoValue;
+import dev.boom.dao.CommonDaoFactory;
+import dev.boom.dao.DaoValue;
+import dev.boom.dao.FunctionTransaction;
 import dev.boom.socket.func.PatpatCommandType;
 import dev.boom.socket.func.PatpatFunc;
 import dev.boom.socket.func.PatpatOutgoingMessage;
@@ -21,13 +19,16 @@ import dev.boom.tbl.info.TblQuizInfo;
 
 public class QuizService {
 
-	public static QuizInfo getInsessionQuizByName(String name) {
+	private QuizService() {
+	}
+
+	public static Quiz getInsessionQuizByName(String name) {
 		TblQuizInfo tblQuizInfo = new TblQuizInfo();
 		tblQuizInfo.Set("name", name);
-		tblQuizInfo.setSelectOption("AND status IN (" + QuizStatus.IN_SESSION.getStatus() + "," + QuizStatus.BREAK_TIME.getStatus() + ")");
-		tblQuizInfo.setSelectOption("AND expired > NOW() ORDER BY id ASC");
+		tblQuizInfo.SetSelectOption("AND status IN (" + QuizStatus.IN_SESSION.getStatus() + "," + QuizStatus.BREAK_TIME.getStatus() + ")");
+		tblQuizInfo.SetSelectOption("AND expired > NOW() ORDER BY id ASC");
 
-		List<DaoValue> list = CommonDaoService.select(tblQuizInfo);
+		List<DaoValue> list = CommonDaoFactory.Select(tblQuizInfo);
 		if (list == null || list.isEmpty()) {
 			return null;
 		}
@@ -35,16 +36,16 @@ public class QuizService {
 			GameLog.getInstance().warn("[QuizService](getQuizInfoByName) more than 1 quiz info");
 		}
 
-		return new QuizInfo((TblQuizInfo) list.get(0));
+		return new Quiz((TblQuizInfo) list.get(0));
 	}
 	
-	public static QuizInfo getNotFinishQuizByName(String name) {
+	public static Quiz getNotFinishQuizByName(String name) {
 		TblQuizInfo tblQuizInfo = new TblQuizInfo();
 		tblQuizInfo.Set("name", name);
-		tblQuizInfo.setSelectOption("AND status <> " + QuizStatus.FINISHED.getStatus());
-		tblQuizInfo.setSelectOption("AND expired > NOW() ORDER BY id ASC");
+		tblQuizInfo.SetSelectOption("AND status <> " + QuizStatus.FINISHED.getStatus());
+		tblQuizInfo.SetSelectOption("AND expired > NOW() ORDER BY id ASC");
 
-		List<DaoValue> list = CommonDaoService.select(tblQuizInfo);
+		List<DaoValue> list = CommonDaoFactory.Select(tblQuizInfo);
 		if (list == null || list.isEmpty()) {
 			return null;
 		}
@@ -52,104 +53,99 @@ public class QuizService {
 			GameLog.getInstance().warn("[QuizService](getQuizInfoByName) more than 1 quiz info");
 		}
 
-		return new QuizInfo((TblQuizInfo) list.get(0));
+		return new Quiz((TblQuizInfo) list.get(0));
 	}
 
-	public static QuizInfo getQuizById(long id) {
+	public static Quiz getQuizById(long id) {
 		TblQuizInfo tblQuizInfo = new TblQuizInfo();
 		tblQuizInfo.Set("id", id);
 
-		List<DaoValue> list = CommonDaoService.select(tblQuizInfo);
+		List<DaoValue> list = CommonDaoFactory.Select(tblQuizInfo);
 		if (list == null || list.isEmpty()) {
 			return null;
 		}
 
-		return new QuizInfo((TblQuizInfo) list.get(0));
+		return new Quiz((TblQuizInfo) list.get(0));
 	}
 
-	public static QuizInfo getInsessionQuizById(long id) {
+	public static Quiz getInsessionQuizById(long id) {
 		TblQuizInfo tblQuizInfo = new TblQuizInfo();
 		tblQuizInfo.Set("id", id);
-		tblQuizInfo.setSelectOption("AND status <> " + QuizStatus.FINISHED.getStatus());
-		tblQuizInfo.setSelectOption("AND expired > NOW()");
+		tblQuizInfo.SetSelectOption("AND status <> " + QuizStatus.FINISHED.getStatus());
+		tblQuizInfo.SetSelectOption("AND expired > NOW()");
 
-		List<DaoValue> list = CommonDaoService.select(tblQuizInfo);
+		List<DaoValue> list = CommonDaoFactory.Select(tblQuizInfo);
 		if (list == null || list.isEmpty()) {
 			return null;
 		}
 
-		return new QuizInfo((TblQuizInfo) list.get(0));
+		return new Quiz((TblQuizInfo) list.get(0));
 	}
 	
 	/////////////////////////
-	public static boolean createQuiz(QuizPlayerInfo quizPlayer, QuizInfo quiz) {
+	public static boolean createQuiz(QuizPlayer quizPlayer, Quiz quiz) {
 		if (quiz == null || quizPlayer == null) {
 			return false;
 		}
-		boolean ret = false;
-		Session session = HibernateSessionFactory.openSession();
-		Transaction tx = null;
-		try {
-			GameLog.getInstance().info("Transaction Begin!");
-			tx = session.beginTransaction();
+		FunctionTransaction ft = (conn) -> {
 			quiz.setPlayerNum((byte) 1);
-			Long id = (Long) CommonDaoService.insert(session, quiz.getTblQuizInfo());
-			if (id != null && id.longValue() > 0) {
+			Integer id = (Integer) CommonDaoFactory.Insert(conn, quiz.getQuizInfo());
+			if (id != null && id.intValue() > 0) {
 				quizPlayer.initNewQuiz(quiz);
 				quizPlayer.setQuizId(id.longValue());
-				if (quizPlayer.getTblQuizPlayerInfo().isInsert()) {
-					if (CommonDaoService.insert(session, quizPlayer.getTblQuizPlayerInfo()) == null) {
+				if (quizPlayer.getQuizPlayerInfo().isInsert()) {
+					if (CommonDaoFactory.Insert(conn, quizPlayer.getQuizPlayerInfo()) < 0) {
 						GameLog.getInstance().error("[createQuiz] create quiz player fail!");
-						tx.rollback();
 						return false;
 					}
 				} else {
-					if (!CommonDaoService.update(session, quizPlayer.getTblQuizPlayerInfo())) {
+					if (CommonDaoFactory.Update(conn, quizPlayer.getQuizPlayerInfo()) < 0) {
 						GameLog.getInstance().error("[createQuiz] create quiz player fail!");
-						tx.rollback();
 						return false;
 					}
 				}
 			} else {
 				GameLog.getInstance().error("[createQuiz] create quiz fail!");
-				tx.rollback();
 				return false;
 			}
-			tx.commit();
-			GameLog.getInstance().info("Transaction Commit!");
-			ret = true;
-		} catch (Exception e) {
-			e.printStackTrace();
-			if (tx != null) {
-				tx.rollback();
-			}
-		} finally {
-			HibernateSessionFactory.closeSession(session);
-		}
+			return true;
+		};
 		showQuizDetail(quiz, false);
 		
-		return ret;
+		return CommonDaoFactory.functionTransaction(ft);
 	}
 	
-	public static boolean startQuiz(QuizInfo quiz) {
+	public static boolean startQuiz(Quiz quiz) {
 		List<String> list = new ArrayList<>();
-		if (!quiz.isInSession()) {
-			list.add(String.format("UPDATE quiz_info SET status = %d WHERE id = %d", QuizStatus.IN_SESSION.getStatus(), quiz.getId()));
-		}
-		list.add(String.format("UPDATE quiz_player_info SET status = %d WHERE quiz_id = %d", QuizPlayerStatus.PLAYING.getStatus(), quiz.getId()));
-		return CommonDaoService.executeQueryUpdate(list);
+		FunctionTransaction ft = (conn) -> {
+			if (!quiz.isInSession()) {
+				list.add(String.format("UPDATE quiz_info SET status = %d WHERE id = %d", QuizStatus.IN_SESSION.getStatus(), quiz.getId()));
+			}
+			list.add(String.format("UPDATE quiz_player_info SET status = %d WHERE quiz_id = %d", QuizPlayerStatus.PLAYING.getStatus(), quiz.getId()));
+			for (String query : list) {
+				CommonDaoFactory.executeUpdate(conn, query);
+			}
+			return true;
+		};
+		return CommonDaoFactory.functionTransaction(ft);
 	}
 	
-	public static boolean endQuiz(QuizInfo quiz) {
+	public static boolean endQuiz(Quiz quiz) {
 		List<String> list = new ArrayList<>();
-		if (!quiz.isFinish()) {
-			list.add(String.format("UPDATE quiz_info SET status = %d WHERE id = %d", QuizStatus.FINISHED.getStatus(), quiz.getId()));
-		}
-		list.add(String.format("UPDATE quiz_player_info SET status = %d WHERE quiz_id = %d", QuizPlayerStatus.FINISHED.getStatus(), quiz.getId()));
-		return CommonDaoService.executeQueryUpdate(list);
+		FunctionTransaction ft = (conn) -> {
+			if (!quiz.isFinish()) {
+				list.add(String.format("UPDATE quiz_info SET status = %d WHERE id = %d", QuizStatus.FINISHED.getStatus(), quiz.getId()));
+			}
+			list.add(String.format("UPDATE quiz_player_info SET status = %d WHERE quiz_id = %d", QuizPlayerStatus.FINISHED.getStatus(), quiz.getId()));
+			for (String query : list) {
+				CommonDaoFactory.executeUpdate(conn, query);
+			}
+			return true;
+		};
+		return CommonDaoFactory.functionTransaction(ft);
 	}
 	
-	public static boolean hasQuestion(QuizInfo quizInfo) {
+	public static boolean hasQuestion(Quiz quizInfo) {
 		if (quizInfo == null || quizInfo.isFinish()) {
 			return false;
 		}
@@ -164,7 +160,7 @@ public class QuizService {
 		return true;
 	}
 	
-	public static boolean showQuizAnswer(QuizInfo quizInfo) {
+	public static boolean showQuizAnswer(Quiz quizInfo) {
 		if (quizInfo == null) {
 			return false;
 		}
@@ -179,14 +175,14 @@ public class QuizService {
 		return true;
 	}
 	
-	public static boolean showQuizDetail(QuizInfo quizInfo, boolean start) {
+	public static boolean showQuizDetail(Quiz quizInfo, boolean start) {
 		if (quizInfo == null || quizInfo.isFinish()) {
 			return false;
 		}
-		List<QuizPlayerInfo> playerList = QuizPlayerService.getQuizPlayerListByQuizId(quizInfo.getId(), "AND status <> " + QuizPlayerStatus.FINISHED.getStatus() + " ORDER BY updated ASC");
+		List<QuizPlayer> playerList = QuizPlayerService.getQuizPlayerListByQuizId(quizInfo.getId(), "AND status <> " + QuizPlayerStatus.FINISHED.getStatus() + " ORDER BY updated ASC");
 		StringBuilder sb = new StringBuilder();
 		String hostName = "";
-		for (QuizPlayerInfo player : playerList) {
+		for (QuizPlayer player : playerList) {
 			if (player.getUserId() == quizInfo.getHost()) {
 				hostName = player.getUsername();
 			}
@@ -236,7 +232,7 @@ public class QuizService {
 		return true;
 	}
 	
-	public static boolean nextQuizQuestion(QuizInfo quizInfo) {
+	public static boolean nextQuizQuestion(Quiz quizInfo) {
 		if (quizInfo == null || quizInfo.isFinish()) {
 			return false;
 		}
@@ -266,32 +262,20 @@ public class QuizService {
 			return false;
 		}
 		/////////////////////////////////////////////
-		Session session = HibernateSessionFactory.openSession();
-		Transaction tx = null;
-		try {
-			GameLog.getInstance().info("Transaction Begin!");
-			tx = session.beginTransaction();
+		FunctionTransaction ft = (conn) -> {
 			quizInfo.setCurrentQuestion((byte) (currentQ + 1));
 			quizInfo.setStatus(QuizStatus.IN_SESSION.getStatus());
-			if (!CommonDaoService.update(session, quizInfo.getTblQuizInfo())) {
+			if (CommonDaoFactory.Update(conn, quizInfo.getQuizInfo()) < 0) {
 				GameLog.getInstance().error("[nextQuizQuestion] Update quiz status in_session failed!");
-				tx.rollback();
 				return false;
 			}
 			String query = String.format("UPDATE quiz_player_info SET retry = %d WHERE quiz_id = %d AND status <> %d", quizInfo.getRetry(), quizInfo.getId(), QuizPlayerStatus.FINISHED.getStatus());
-			CommonDaoService.executeQueryUpdate(session, query);
-			tx.commit();
-			GameLog.getInstance().info("Transaction Commit!");
-		} catch (Exception e) {
-			e.printStackTrace();
-			if (tx != null) {
-				tx.rollback();
-			}
-		} finally {
-			HibernateSessionFactory.closeSession(session);
-		}
+			CommonDaoFactory.executeUpdate(conn, query);
+			return true;
+		};
+		CommonDaoFactory.functionTransaction(ft);
 		/////////////////////////////////////////////
-		quizInfo.getTblQuizInfo().Sync();
+		quizInfo.getQuizInfo().Sync();
 		String channel = quizInfo.getName();
 		if (channel != null && !channel.isEmpty()) {
 			PatpatOutgoingMessage message = new PatpatOutgoingMessage();
@@ -319,7 +303,7 @@ public class QuizService {
 		return true;
 	}
 	
-	public static boolean showNotice(QuizInfo quizInfo) {
+	public static boolean showNotice(Quiz quizInfo) {
 		if (quizInfo == null || quizInfo.isFinish()) {
 			return false;
 		}
@@ -335,4 +319,6 @@ public class QuizService {
 		}
 		return true;
 	}
+	
 }
+

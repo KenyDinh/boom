@@ -15,9 +15,9 @@ import dev.boom.common.CommonDefine;
 import dev.boom.common.CommonMethod;
 import dev.boom.pages.GameDemo;
 import dev.boom.pages.Home;
+import dev.boom.services.DemoSession;
 import dev.boom.services.DemoSessionContent;
 import dev.boom.services.DemoSessionContent.DemoSessionSingleContent;
-import dev.boom.services.DemoSessionInfo;
 import dev.boom.services.DemoSessionService;
 
 public class ManageGameDemo extends ManagePageBase {
@@ -81,7 +81,7 @@ public class ManageGameDemo extends ManagePageBase {
 					Date demoDate = new SimpleDateFormat(CommonDefine.GAME_DEMO_DATE_FORMAT).parse(demoTime);
 					
 					if (intDemoId > 0) {
-						DemoSessionInfo currentDemoSessionInfo = DemoSessionService.getDemoSessionById(intDemoId);
+						DemoSession currentDemoSessionInfo = DemoSessionService.getDemoSessionById(intDemoId);
 						if (currentDemoSessionInfo != null) {
 							currentDemoSessionInfo.updateValue(demoLocation, demoDate, demoContent);
 						}
@@ -114,7 +114,7 @@ public class ManageGameDemo extends ManagePageBase {
 					intDemoId = Integer.parseInt(demoId);
 				}
 				if (intDemoId > 0) {
-					DemoSessionInfo currentDemoSessionInfo = DemoSessionService.getDemoSessionById(intDemoId);
+					DemoSession currentDemoSessionInfo = DemoSessionService.getDemoSessionById(intDemoId);
 					if (currentDemoSessionInfo != null) {
 						addModel("demoId", intDemoId);
 						addModel("demoTime", currentDemoSessionInfo.getFormattedForJSDemoTime());
@@ -135,7 +135,7 @@ public class ManageGameDemo extends ManagePageBase {
 					intDemoId = Integer.parseInt(demoId);
 				}
 				if (intDemoId > 0) {
-					DemoSessionInfo currentDemoSessionInfo = DemoSessionService.getDemoSessionById(intDemoId);
+					DemoSession currentDemoSessionInfo = DemoSessionService.getDemoSessionById(intDemoId);
 					if (currentDemoSessionInfo != null) {
 						DemoSessionService.delete(currentDemoSessionInfo);
 					}
@@ -145,7 +145,7 @@ public class ManageGameDemo extends ManagePageBase {
 		}
 	}
 	
-	private void initGameDemoTable(List<DemoSessionInfo> demoSessionList) {
+	private void initGameDemoTable(List<DemoSession> demoSessionList) {
 		StringBuilder gameDemoContainer = new StringBuilder();
 			
 		String addBtn = String.format("<a href=\"%s\"><button class=\"btn btn-info\" style=\"text-align: center; margin-bottom: 20px; box-shadow: 5px 5px 5px 0px rgba(0,0,0,0.75);\">"
@@ -157,7 +157,7 @@ public class ManageGameDemo extends ManagePageBase {
 			Collections.sort(demoSessionList);
 			Collections.reverse(demoSessionList);
 			int count = demoSessionList.size();
-			for (DemoSessionInfo demoSessionInfo : demoSessionList) {
+			for (DemoSession demoSessionInfo : demoSessionList) {
 				gameDemoContainer.append(getGameDemoInfo(demoSessionInfo, count));
 				count--;
 			}
@@ -167,7 +167,7 @@ public class ManageGameDemo extends ManagePageBase {
 		addModel("gameDemo", gameDemoContainer.toString());
 	}
 	
-	private String getGameDemoInfo(DemoSessionInfo info, int count) {
+	private String getGameDemoInfo(DemoSession info, int count) {
 		StringBuilder gameDemoBox = new StringBuilder();
 		
 		DemoSessionContent sessionContent = new Gson().fromJson(info.getContent(), DemoSessionContent.class);

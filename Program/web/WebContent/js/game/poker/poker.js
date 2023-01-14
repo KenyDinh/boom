@@ -1,3 +1,21 @@
+function getButtonLabel(type) {
+	switch (type)  {
+	case 1:
+		return 'Bet';
+	case 2:
+		return 'Raise';
+	case 3:
+		return 'Check';
+	case 4:
+		return 'Call';
+	case 5:
+		return 'All In';
+	case 6:
+		return 'Fold';
+	default:
+		return '';
+	}
+}
 class Sprite {
 	constructor(ctx, x, y, imgSrc, width, height, {sx = 0, sy = 0, sw, sh, frameMax = 1, frameHoldMax = 1, initRotateDeg = 0, rotate = false, rotateSpeed = 0, loop = true, loopEndFunc = ()=>{this.currentFrame = this.frameMax - 1}} = {}) {
 		this.ctx = ctx;
@@ -164,6 +182,20 @@ class ShareCard extends Sprite {
 	
 }
 
+class Button extends Sprite {
+	constructor(ctx, x, y, width, height, type) {
+		super(ctx, x, y, BTN_IMAGE[type], width, height);
+		this.sw = this.image.width;
+		this.sh = this.image.height;
+		this.label = getButtonLabel(type);
+	}
+	
+	draw() {
+		super.draw();
+		
+	}
+}
+
 class Player extends Sprite {
 	constructor(ctx, x, y, width, height, index, avatar, name, coin, holdCards = []) {
 		super(ctx, x, y, '', width, height);
@@ -186,6 +218,11 @@ class Player extends Sprite {
 			const card = holdCards[i];
 			this.cardList.push(new Card(this.ctx, sx + i * this.cardWidth * scale, sy, card.num, card.type, this.cardWidth * scale, this.cardHeight * scale));
 		}
+		if (this.index == 7 || this.index == 8) {
+			this.x = this.x - this.width / 2 + (this.cardWidth * scale);
+		} else {
+			this.x = this.x + this.width / 2 - (this.cardWidth * scale);
+		}
 	}
 	
 	checkMouseEvent(e) {
@@ -205,7 +242,7 @@ class Player extends Sprite {
 	}
 }
 
-class TablePlayer extends Sprite {
+class TablePlay extends Sprite {
 	constructor(ctx, pwidth, pheight, twidth, theight, tscale, players) {
 		super(ctx, 0, 0, '', 0, 0);
 		this.pw = pwidth;
@@ -213,14 +250,15 @@ class TablePlayer extends Sprite {
 		this.tw = twidth;
 		this.th = theight;
 		this.ts = tscale;
-		this.width = 64;
-		this.height = 64;
+		this.width = 48;
+		this.height = 48;
 		this.margin = 5;
 		this.playerList = [];
-		this.adjustPlayerPosView(players);
+		this.actionList = [];
+		this.initlialize(players);
 	}
 	
-	adjustPlayerPosView(players) {
+	initlialize(players) {
 		let selfIdx = 0;
 		for (let i = 0; i < players.length; i++) {
 			if (players[i].self) {
@@ -231,8 +269,13 @@ class TablePlayer extends Sprite {
 		for (let i = 0; i < players.length; i++) {
 			const index = (i - selfIdx + 10) % 10;
 			const pos = this.getPlayerPos(index);
-			const avatar = 'http://localhost/friday-legacy/img/page/common-user.png';
+			const avatar = 'http://localhost/friday/img/page/common-user.png';
 			this.playerList.push(new Player(this.ctx, pos.x, pos.y, this.width, this.height, index, avatar, '', 0, players[i].hold_card));
+			if (this.actionList.length <= 0 && players[i].action_list) {
+				for (const action of players[i].action_list) {
+					this.actionList.push(new Button(this.ctx, 0, 0, 100, 50, action.type));
+				}
+			}
 		}
 	}
 	
@@ -296,6 +339,9 @@ class TablePlayer extends Sprite {
 		for (const player of this.playerList) {
 			player.update();
 		}
+		for (const button of this.actionList) {
+			button.update();
+		}
 	}
 }
 
@@ -356,16 +402,16 @@ class PokerGame {
 		const players = [];
 		players.push({hold_card: [{num:0,type:0},{num:0,type:0}]});
 		players.push({hold_card: [{num:0,type:0},{num:0,type:0}]});
-		players.push({self:1, hold_card: [{num:(Math.floor(Math.random() * 13)+ 1),type:Math.floor(Math.random() * 3)},{num:(Math.floor(Math.random() * 13)+ 1),type:Math.floor(Math.random() * 3)}]});
+		players.push({self:1,action_list: [{type:1},{type:2},{type:3}], hold_card: [{num:(Math.floor(Math.random() * 13)+ 1),type:Math.floor(Math.random() * 3)},{num:(Math.floor(Math.random() * 13)+ 1),type:Math.floor(Math.random() * 3)}]});
 		players.push({hold_card: [{num:0,type:0},{num:0,type:0}]});
 		players.push({hold_card: [{num:0,type:0},{num:0,type:0}]});
 		players.push({hold_card: [{num:0,type:0},{num:0,type:0}]});
 		players.push({hold_card: [{num:0,type:0},{num:0,type:0}]});
 		players.push({hold_card: [{num:0,type:0},{num:0,type:0}]});
 		players.push({hold_card: [{num:0,type:0},{num:0,type:0}]});
-		//players.push({hold_card: [{num:0,type:0},{num:0,type:0}]});
+		players.push({hold_card: [{num:0,type:0},{num:0,type:0}]});
 		
-		this.gameObjects.get('tablePlayers').push(new TablePlayer(this.ctx, this.width, this.height, this.tableWidth, this.tableHeight, this.tableScale, players));
+		this.gameObjects.get('tablePlayers').push(new TablePlay(this.ctx, this.width, this.height, this.tableWidth, this.tableHeight, this.tableScale, players));
 	}
 	
 	checkMouseEvent(e) {

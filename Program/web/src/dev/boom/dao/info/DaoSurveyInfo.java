@@ -1,90 +1,59 @@
 package dev.boom.dao.info;
 
+import java.sql.Connection;
 import java.util.List;
 
-import org.hibernate.Session;
-
-import dev.boom.dao.core.DaoValue;
-import dev.boom.dao.core.IDaoFactory;
-import dev.boom.services.CommonDaoService;
+import dev.boom.dao.CommonDaoFactory;
+import dev.boom.dao.DaoValue;
+import dev.boom.dao.IDaoFactory;
 
 public class DaoSurveyInfo implements IDaoFactory {
-	
-	private final int readKey = 1;
+	private static final int nReadKey = 1;
 
 	@Override
-	public List<DaoValue> select(DaoValue dao) {
-		return CommonDaoService._Select(dao);
+	public List<DaoValue> select(Connection conn, List<DaoValue> self) {
+		return CommonDaoFactory._Select(conn, self);
 	}
 
 	@Override
-	public Object insert(DaoValue dao) {
-		return CommonDaoService._Insert(dao);
+	public List<DaoValue> select(Connection conn, DaoValue self) {
+		return CommonDaoFactory._Select(conn, self);
 	}
 
 	@Override
-	public boolean update(DaoValue dao) {
-		return CommonDaoService._Update(dao);
+	public int insert(Connection conn, DaoValue self) {
+		return CommonDaoFactory._Insert(conn, self);
 	}
 
 	@Override
-	public boolean delete(DaoValue dao) {
-		return CommonDaoService._Delete(dao);
+	public int delete(Connection conn, DaoValue self) {
+		return CommonDaoFactory._Delete(conn, self);
+	}
+
+	@Override
+	public int update(Connection conn, DaoValue self) {
+		return CommonDaoFactory._Update(conn, self);
+	}
+
+	@Override
+	public int count(Connection conn, DaoValue self) {
+		return CommonDaoFactory._Count(conn, self);
+	}
+
+	@Override
+	public long max(Connection conn, DaoValue self) {
+		return CommonDaoFactory._Max(conn, self);
+	}
+
+	@Override
+	public long min(Connection conn, DaoValue self) {
+		return CommonDaoFactory._Min(conn, self);
 	}
 
 	@Override
 	public int getReadKey() {
-		return readKey;
+		return nReadKey;
 	}
 
-	@Override
-	public long count(DaoValue dao) {
-		return CommonDaoService._Count(dao);
-	}
-
-	@Override
-	public long max(DaoValue dao) {
-		return CommonDaoService._Max(dao);
-	}
-
-	@Override
-	public long min(DaoValue dao) {
-		return CommonDaoService._Min(dao);
-	}
-	
-	@Override
-	public List<DaoValue> select(Session session, DaoValue dao) {
-		return CommonDaoService._Select(session, dao);
-	}
-	
-	@Override
-	public Object insert(Session session, DaoValue dao) {
-		return CommonDaoService._Insert(session, dao);
-	}
-	
-	@Override
-	public boolean update(Session session, DaoValue dao) {
-		return CommonDaoService._Update(session, dao);
-	}
-	
-	@Override
-	public boolean delete(Session session, DaoValue dao) {
-		return CommonDaoService._Delete(session, dao);
-	}
-	
-	@Override
-	public long count(Session session, DaoValue dao) {
-		return CommonDaoService._Count(session, dao);
-	}
-	
-	@Override
-	public long max(Session session, DaoValue dao) {
-		return CommonDaoService._Max(session, dao);
-	}
-	
-	@Override
-	public long min(Session session, DaoValue dao) {
-		return CommonDaoService._Min(session, dao);
-	}
-	
 }
+

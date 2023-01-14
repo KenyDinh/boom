@@ -3,6 +3,7 @@ package dev.boom.services.json;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 
 import net.arnx.jsonic.JSON;
@@ -60,7 +61,7 @@ public class SurveyAnswerWrapper {
 			return null;
 		}
 		try {
-			return JSON.decode(result, SurveyAnswerWrapper.class);
+			return JSON.decode(StringEscapeUtils.unescapeHtml(result), SurveyAnswerWrapper.class);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

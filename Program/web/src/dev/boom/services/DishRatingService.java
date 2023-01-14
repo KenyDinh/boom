@@ -6,72 +6,76 @@ import java.util.List;
 import java.util.Map;
 
 import dev.boom.core.GameLog;
-import dev.boom.dao.core.DaoValue;
+import dev.boom.dao.CommonDaoFactory;
+import dev.boom.dao.DaoValue;
 import dev.boom.tbl.info.TblDishRatingInfo;
 
 public class DishRatingService {
 
-	public static List<DishRatingInfo> getDishRatingList(String option) {
+	private DishRatingService() {
+	}
+
+	public static List<DishRating> getDishRatingList(String option) {
 		TblDishRatingInfo info = new TblDishRatingInfo();
-		info.setSelectOption("WHERE id > 0");
+		info.SetSelectOption("WHERE id > 0");
 		if (option != null && option.length() > 0) {
-			info.setSelectOption(option);
+			info.SetSelectOption(option);
 		}
-		List<DaoValue> list = CommonDaoService.select(info);
+		List<DaoValue> list = CommonDaoFactory.Select(info);
 		if (list == null || list.size() == 0) {
 			return null;
 		}
-		List<DishRatingInfo> ret = new ArrayList<>();
+		List<DishRating> ret = new ArrayList<>();
 		for (DaoValue dao : list) {
-			ret.add(new DishRatingInfo((TblDishRatingInfo) dao));
+			ret.add(new DishRating((TblDishRatingInfo) dao));
 		}
 		
 		return ret;
 	}
 	
-	public static DishRatingInfo getDishRatingInfoById(long id) {
+	public static DishRating getDishRatingInfoById(long id) {
 		TblDishRatingInfo info = new TblDishRatingInfo();
-		info.setId(id);
-		List<DaoValue> list = CommonDaoService.select(info);
+		info.Set("id", id);
+		List<DaoValue> list = CommonDaoFactory.Select(info);
 		if (list == null || list.size() != 1) {
 			return null;
 		}
 		
-		return new DishRatingInfo((TblDishRatingInfo) list.get(0));
+		return new DishRating((TblDishRatingInfo) list.get(0));
 	}
 	
-	public static List<DishRatingInfo> getDishRatingList(long shop_id) {
+	public static List<DishRating> getDishRatingList(long shop_id) {
 		TblDishRatingInfo info = new TblDishRatingInfo();
-		info.setShop_id(shop_id);
-		List<DaoValue> list = CommonDaoService.select(info);
+		info.Set("shop_id", shop_id);
+		List<DaoValue> list = CommonDaoFactory.Select(info);
 		if (list == null || list.size() != 1) {
 			return null;
 		}
-		List<DishRatingInfo> ret = new ArrayList<>();
+		List<DishRating> ret = new ArrayList<>();
 		for (DaoValue dao : list) {
-			ret.add(new DishRatingInfo((TblDishRatingInfo) dao));
+			ret.add(new DishRating((TblDishRatingInfo) dao));
 		}
 		
 		return ret;
 	}
 	
-	public static DishRatingInfo getDishRatingInfo(String name, long shop_id) {
+	public static DishRating getDishRatingInfo(String name, long shop_id) {
 		TblDishRatingInfo info = new TblDishRatingInfo();
-		info.setName(name);
-		info.setShop_id(shop_id);
-		List<DaoValue> list = CommonDaoService.select(info);
+		info.Set("name", name);
+		info.Set("shop_id", shop_id);
+		List<DaoValue> list = CommonDaoFactory.Select(info);
 		if (list == null || list.size() != 1) {
 			return null;
 		}
 		
-		return new DishRatingInfo((TblDishRatingInfo) list.get(0));
+		return new DishRating((TblDishRatingInfo) list.get(0));
 	}
 	
-	public static DishRatingInfo getDishRatingInfo(int code, long shop_id) {
+	public static DishRating getDishRatingInfo(int code, long shop_id) {
 		TblDishRatingInfo info = new TblDishRatingInfo();
-		info.setCode(code);
-		info.setShop_id(shop_id);
-		List<DaoValue> list = CommonDaoService.select(info);
+		info.Set("code", code);
+		info.Set("shop_id", shop_id);
+		List<DaoValue> list = CommonDaoFactory.Select(info);
 		if (list == null || list.isEmpty()) {
 			return null;
 		}
@@ -79,22 +83,24 @@ public class DishRatingService {
 			GameLog.getInstance().warn("[getDishRatingInfo] There are more than one dish have the same dish code!");
 		}
 		
-		return new DishRatingInfo((TblDishRatingInfo) list.get(0));
+		return new DishRating((TblDishRatingInfo) list.get(0));
 	}
 	
-	public static Map<Integer, DishRatingInfo> getDishRatingInfoMap(long shop_id) {
+	public static Map<Integer, DishRating> getDishRatingInfoMap(long shop_id) {
 		TblDishRatingInfo info = new TblDishRatingInfo();
-		info.setShop_id(shop_id);
-		List<DaoValue> list = CommonDaoService.select(info);
+		info.Set("shop_id", shop_id);
+		List<DaoValue> list = CommonDaoFactory.Select(info);
 		if (list == null || list.isEmpty()) {
 			return null;
 		}
-		Map<Integer, DishRatingInfo> ret = new HashMap<>();
+		Map<Integer, DishRating> ret = new HashMap<>();
 		for (DaoValue dao : list) {
-			DishRatingInfo dishRatingInfo = new DishRatingInfo((TblDishRatingInfo) dao);
+			DishRating dishRatingInfo = new DishRating((TblDishRatingInfo) dao);
 			ret.put(dishRatingInfo.getCode(), dishRatingInfo);
 		}
 		
 		return ret;
 	}
+	
 }
+

@@ -1,132 +1,104 @@
 package dev.boom.tbl.info;
 
-import java.util.Date;
-import java.util.List;
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
 
-import dev.boom.common.CommonDefine;
-import dev.boom.dao.core.DaoValueInfo;
+import dev.boom.dao.DaoValueInfo;
+import dev.boom.dao.IDaoValue;
 
-public class TblSurveyInfo extends DaoValueInfo {
+public class TblSurveyInfo extends DaoValueInfo implements IDaoValue {
 
-	private static final long serialVersionUID = 1L;
 	private static final String TABLE_NAME = "survey_info";
 	private static final String PRIMARY_KEY = "id";
+	private static final String SUB_KEY = ""; // <><>
+	private static Map<String, String> mapForeignKey = new HashMap<String, String>();
 
-	private long id;
-	private String name;
-	private String pathname;
-	private byte status;
-	private byte type;
-	private int flag;
-	private String description;
-	private Date created;
-	private Date expired;
-	private Date updated;
+	public final class Fields implements IDaoValue.Fields {
+
+		public long id;
+		public String name;
+		public String pathname;
+		public byte status;
+		public byte type;
+		public int flag;
+		public String description;
+		public String created;
+		public String expired;
+		public String updated;
+
+		public Fields() {
+			id = 0;
+			name = "";
+			pathname = "";
+			status = 0;
+			type = 0;
+			flag = 0;
+			description = "";
+			created = "";
+			expired = "";
+			updated = "";
+		}
+	}
+
+	private Fields fieldRead;
+
+	private Fields fieldWrite;
+
+	private static Field[] fields;
 
 	public TblSurveyInfo() {
-		this.id = 0;
-		this.name = "";
-		this.pathname = "";
-		this.status = 0;
-		this.type = 0;
-		this.flag = 0;
-		this.description = "";
-		this.created = new Date();
-		this.expired = new Date(this.created.getTime() + CommonDefine.MILLION_SECOND_DAY);
-		this.updated = this.created;
-		Sync();
+		fieldRead = new Fields();
+		fieldWrite = new Fields();
+
+		if (fields == null) {
+			fields = fieldRead.getClass().getFields();
+		}
 	}
 
-	public long getId() {
-		return id;
-	}
-
-	public void setId(long id) {
-		this.id = id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getPathname() {
-		return pathname;
-	}
-
-	public void setPathname(String pathname) {
-		this.pathname = pathname;
-	}
-
-	public byte getStatus() {
-		return status;
-	}
-
-	public void setStatus(byte status) {
-		this.status = status;
-	}
-
-	public byte getType() {
-		return type;
-	}
-
-	public void setType(byte type) {
-		this.type = type;
-	}
-
-	public int getFlag() {
-		return flag;
-	}
-
-	public void setFlag(int flag) {
-		this.flag = flag;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
-	public Date getCreated() {
-		return created;
-	}
-
-	public void setCreated(Date created) {
-		this.created = created;
-	}
-
-	public Date getExpired() {
-		return expired;
-	}
-
-	public void setExpired(Date expired) {
-		this.expired = expired;
-	}
-
-	public Date getUpdated() {
-		return updated;
-	}
-
-	public void setUpdated(Date updated) {
-		this.updated = updated;
-	}
-
-	public List<String> getSubKey() {
-		return null;
+	public String getTblName() {
+		return TABLE_NAME;
 	}
 
 	public String getPrimaryKey() {
 		return PRIMARY_KEY;
 	}
 
-	public String getTableName() {
-		return TABLE_NAME;
+	public String getSubKey() {
+		return SUB_KEY;
 	}
 
+	public String getForeignKey(String strKey) {
+		return mapForeignKey.get(strKey);
+	}
+
+	public Field[] getClassField() {
+		return fields;
+	}
+
+	public Object getFieldRead() {
+		return (Object) fieldRead;
+	}
+
+	public Object getFieldWrite() {
+		return (Object) fieldWrite;
+	}
+
+	public Fields getInstance() {
+		return fieldWrite;
+	}
+
+	public void Sync() {
+		fieldRead.id = fieldWrite.id;
+		fieldRead.name = fieldWrite.name;
+		fieldRead.pathname = fieldWrite.pathname;
+		fieldRead.status = fieldWrite.status;
+		fieldRead.type = fieldWrite.type;
+		fieldRead.flag = fieldWrite.flag;
+		fieldRead.description = fieldWrite.description;
+		fieldRead.created = fieldWrite.created;
+		fieldRead.expired = fieldWrite.expired;
+		fieldRead.updated = fieldWrite.updated;
+	}
 }
+

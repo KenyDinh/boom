@@ -3,7 +3,8 @@ package dev.boom.common.game;
 import java.util.ArrayList;
 import java.util.List;
 
-import dev.boom.services.WorldInfo;
+import dev.boom.services.World;
+
 
 public enum GameTypeEnum {
 	NONE(0, 0, "", "", ""), 
@@ -56,7 +57,7 @@ public enum GameTypeEnum {
 		return GameTypeEnum.NONE;
 	}
 	
-	public static List<GameTypeEnum> listValidGame(WorldInfo worldInfo) {
+	public static List<GameTypeEnum> listValidGame(World worldInfo) {
 		List<GameTypeEnum> ret = new ArrayList<>();
 		for (GameTypeEnum type : GameTypeEnum.values()) {
 			if (type == GameTypeEnum.NONE || !worldInfo.isActiveGameFlag(type)) {

@@ -5,25 +5,21 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import dev.boom.dao.core.DaoValue;
+import dev.boom.dao.CommonDaoFactory;
+import dev.boom.dao.DaoValue;
 import dev.boom.dao.fix.FixData;
 import dev.boom.dao.fix.FixDataBase;
 import dev.boom.tbl.data.TblCardBaseData;
 import dev.boom.tbl.data.TblCardData;
-import dev.boom.tbl.info.TblDeckInfo;
 
 public class CardService {
 
 	public static final Card EMPTY_CARD = new Card();
 	
-	public static List<Card> getCardListFromDeckInfo(TblDeckInfo deckInfo) {
-		return null;
-	}
-	
 	public static List<Card> getCardListAll() {
 		List<Card> cardList = new ArrayList<Card>();
 		TblCardData _value = new TblCardData();
-		List<DaoValue> result = CommonDaoService.select(_value);
+		List<DaoValue> result = CommonDaoFactory.Select(_value);
 		if (result != null && !result.isEmpty()) {
 			FixData fixData = (FixData) FixDataBase.getInstance("CardBaseData");
 			Map<Integer, DaoValue> cardBaseData = fixData.getData();
@@ -42,7 +38,7 @@ public class CardService {
 	
 	public static List<CardData> getCardDataList() {
 		TblCardData _value = new TblCardData();
-		List<DaoValue> result = CommonDaoService.select(_value);
+		List<DaoValue> result = CommonDaoFactory.Select(_value);
 		List<CardData> cardList = new ArrayList<CardData>();
 		if (result != null && !result.isEmpty()) {
 			for (DaoValue daoValue : result) {
@@ -73,7 +69,7 @@ public class CardService {
 				return Collections.emptyList();
 			}
 		}
-		List<DaoValue> result = CommonDaoService.select(_value);
+		List<DaoValue> result = CommonDaoFactory.Select(_value);
 		if (result == null || result.isEmpty()) {
 			return Collections.emptyList();
 		}
@@ -99,10 +95,10 @@ public class CardService {
 				if (costFlag > 0 && (costFlag & ( 1 << (cardData.getCost() - 1))) == 0) {
 					continue;
 				}
-				if (jobFlag > 0 && (jobFlag & (1 << pTblCardBaseData.getJob())) == 0) {
+				if (jobFlag > 0 && (jobFlag & (1 << (Integer)pTblCardBaseData.Get("job"))) == 0) {
 					continue;
 				}
-				if (miltypeFlag > 0 && (miltypeFlag & (1 << pTblCardBaseData.getMil_type())) == 0) {
+				if (miltypeFlag > 0 && (miltypeFlag & (1 << (Integer)pTblCardBaseData.Get("mil_type"))) == 0) {
 					continue;
 				}
 				Card card = new Card(cardData.getTblCardData(), pTblCardBaseData);

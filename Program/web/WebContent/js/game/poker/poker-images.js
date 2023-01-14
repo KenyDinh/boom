@@ -15,6 +15,14 @@ const TBL_IMAGE = [
 const USER_IMAGE = [
 	"common-user.png",
 ];
+const BTN_IMAGE = [
+	"btn_bet.png",
+	"btn_raise.png",
+	"btn_check.png",
+	"btn_call.png",
+	"btn_allin.png",
+	"btn_fold.png",
+];
 const IMAGES_MAP = {};
 (function initImage() {
 	for (const src of CARDS_IMAGE) {
@@ -32,6 +40,11 @@ const IMAGES_MAP = {};
 		image.src = CONTEXT + "/img/game/poker/" + src;
 		IMAGES_MAP[src] = image;
 	}
+	for (const src of BTN_IMAGE) {
+		const image = new Image();
+		image.src = CONTEXT + "/img/game/poker/" + src;
+		IMAGES_MAP[src] = image;
+	}
 	for (const src of USER_IMAGE) {
 		const image = new Image();
 		image.src = CONTEXT + "/img/page/" + src;
@@ -40,6 +53,9 @@ const IMAGES_MAP = {};
 })();
 
 const getImage = (name) => {
+	if (!name) {
+		return null;
+	}
 	return IMAGES_MAP[name];
 }
 

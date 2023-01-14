@@ -20,15 +20,15 @@ public class BoomGameItem {
 	}
 	
 	public int getId() {
-		return tblData.getId();
+		return (Integer) tblData.Get("id");
 	}
 	
 	public int getType() {
-		return tblData.getType();
+		return (Integer) tblData.Get("type");
 	}
 	
 	public int getTargetType() {
-		return tblData.getTarget_type();
+		return (Integer) tblData.Get("target_type");
 	}
 	
 	public BoomGameItemType getItemType() {
@@ -66,15 +66,15 @@ public class BoomGameItem {
 	}
 	
 	public int getImageID() {
-		return tblData.getImageID();
+		return (Integer) tblData.Get("imageID");
 	}
 	
 	public int getProbRate() {
-		return tblData.getProb_rate();
+		return (Integer) tblData.Get("prob_rate");
 	}
 	
 	public String getLableExplain() {
-		return tblData.getLabel_explain();
+		return (String) tblData.Get("label_explain");
 	}
 	
 	public boolean isHealingItem() {

@@ -10,13 +10,13 @@ import dev.boom.common.CommonMethod;
 import dev.boom.common.milktea.MilkTeaCommonFunc;
 import dev.boom.common.milktea.MilkTeaOrderFlag;
 import dev.boom.core.GameLog;
+import dev.boom.dao.CommonDaoFactory;
 import dev.boom.pages.manage.ManagePageBase;
-import dev.boom.services.CommonDaoService;
-import dev.boom.services.MenuInfo;
+import dev.boom.services.Menu;
 import dev.boom.services.MenuService;
-import dev.boom.services.OrderInfo;
+import dev.boom.services.Order;
 import dev.boom.services.OrderService;
-import dev.boom.services.UserInfo;
+import dev.boom.services.User;
 import dev.boom.services.UserService;
 import dev.boom.socket.SocketSessionPool;
 import dev.boom.socket.endpoint.ManageMilkTeaEndPoint;
@@ -25,9 +25,9 @@ public class MilkTeaManageOrder extends ManagePageBase {
 
 	private static final long serialVersionUID = 1L;
 
-	private MenuInfo menuInfo = null;
-	private OrderInfo orderInfo = null;
-	private List<OrderInfo> orderList = null;
+	private Menu menuInfo = null;
+	private Order orderInfo = null;
+	private List<Order> orderList = null;
 
 	public MilkTeaManageOrder() {
 	}
@@ -106,7 +106,7 @@ public class MilkTeaManageOrder extends ManagePageBase {
 		if (strMode.equals("Update")) {
 			String strUserName = getContext().getRequestParameter("username");
 			if (strUserName != null && strUserName.length() > 0) {
-				UserInfo _userInfo = UserService.getUserByName(strUserName);
+				User _userInfo = UserService.getUserByName(strUserName);
 				if (_userInfo == null) {
 					GameLog.getInstance().error("User is not exist, username:" + strUserName);
 					addModel("error", "Username is invalid!");
@@ -129,14 +129,13 @@ public class MilkTeaManageOrder extends ManagePageBase {
 					}
 				}
 			}
-			if (!CommonDaoService.update(orderInfo.getTblInfo())) {
+			if (CommonDaoFactory.Update(orderInfo.getOrderInfo()) < 0) {
 				GameLog.getInstance().error("update failed!");
 				addModel("error", "update failed!");
 				return;
 			}
 		} else if (strMode.equals("Delete")) {
-			orderInfo.getTblInfo().setDelete();
-			if (!CommonDaoService.delete(orderInfo.getTblInfo())) {
+			if (CommonDaoFactory.Delete(orderInfo.getOrderInfo()) < 0) {
 				GameLog.getInstance().error("delete failed!");
 				addModel("error", "delete failed!");
 				return;

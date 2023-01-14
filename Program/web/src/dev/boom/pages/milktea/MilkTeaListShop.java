@@ -9,9 +9,9 @@ import dev.boom.common.milktea.MilkTeaCommonFunc;
 import dev.boom.common.milktea.MilkTeaSocketMessage;
 import dev.boom.common.milktea.MilkTeaTabEnum;
 import dev.boom.milktea.object.MenuItem;
-import dev.boom.services.MenuInfo;
+import dev.boom.services.Menu;
 import dev.boom.services.MenuService;
-import dev.boom.services.ShopInfo;
+import dev.boom.services.Shop;
 import dev.boom.services.ShopService;
 
 public class MilkTeaListShop extends MilkTeaMainPage {
@@ -19,7 +19,7 @@ public class MilkTeaListShop extends MilkTeaMainPage {
 	private static final long serialVersionUID = 1L;
 	
 	private int page = 1;
-	private ShopInfo shopInfo = null;
+	private Shop shopInfo = null;
 
 	public MilkTeaListShop() {
 	}
@@ -63,13 +63,13 @@ public class MilkTeaListShop extends MilkTeaMainPage {
 		String contextPath = getHostURL() + getContextPath();
 		List<MenuItem> listMenuItem = MenuService.getMenuItemListByShopId(shopInfo.getId());
 		if (listMenuItem != null) {
-			MenuInfo menuInfo = new MenuInfo();
+			Menu menuInfo = new Menu();
 			menuInfo.setExpired(menuInfo.getCreated());
 			menuInfo.setShopId(shopInfo.getId());
 			addModel("dish_list", MilkTeaCommonFunc.getHtmlListMenuItem(menuInfo, listMenuItem, contextPath, getUserInfo(), getMessages()));
 			addModel("dish_type", MilkTeaCommonFunc.getHtmlListMenuItemType(listMenuItem, contextPath));
 		}
-		List<MenuInfo> menuList = MenuService.getMenuListByShopId(shopInfo.getId());
+		List<Menu> menuList = MenuService.getMenuListByShopId(shopInfo.getId());
 		if (menuList != null) {
 			addModel("menu_list", MilkTeaCommonFunc.getHtmlListMenuOnShop(menuList, contextPath, getMessages()));
 		}

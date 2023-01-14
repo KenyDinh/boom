@@ -7,14 +7,14 @@ import dev.boom.core.GameLog;
 import dev.boom.pages.PageBase;
 import dev.boom.services.Device;
 import dev.boom.services.DeviceService;
-import dev.boom.services.UserInfo;
+import dev.boom.services.User;
 import dev.boom.services.UserService;
 
 public class DeviceLoader extends PageBase {
 
 	private static final long serialVersionUID = 1L;
 	
-	private  UserInfo userInfo = null;
+	private  User userInfo = null;
 	@Override
 	public boolean onSecurityCheck() {
 		if (!super.onSecurityCheck()) {

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import dev.boom.common.CommonMethod;
-import dev.boom.services.WorldInfo;
+import dev.boom.services.World;
 
 public enum ToolsEnum {
 	NONE(0, 0, "", "", 0, "", false), 
@@ -70,7 +70,7 @@ public enum ToolsEnum {
 		return ToolsEnum.NONE;
 	}
 
-	public static List<ToolsEnum> listValidGame(WorldInfo worldInfo) {
+	public static List<ToolsEnum> listValidGame(World worldInfo) {
 		List<ToolsEnum> ret = new ArrayList<>();
 		for (ToolsEnum tool : ToolsEnum.values()) {
 			if (tool == ToolsEnum.NONE || !worldInfo.isActiveToolsFlag(tool)) {

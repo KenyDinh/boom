@@ -1,134 +1,104 @@
 package dev.boom.tbl.info;
 
-import java.util.List;
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
 
-import dev.boom.dao.core.DaoValueInfo;
+import dev.boom.dao.DaoValueInfo;
+import dev.boom.dao.IDaoValue;
 
-public class TblSurveyQuestionInfo extends DaoValueInfo {
+public class TblSurveyQuestionInfo extends DaoValueInfo implements IDaoValue {
 
-	private static final long serialVersionUID = 1L;
 	private static final String TABLE_NAME = "survey_question_info";
 	private static final String PRIMARY_KEY = "id";
+	private static final String SUB_KEY = ""; // <><>
+	private static Map<String, String> mapForeignKey = new HashMap<String, String>();
 
-	private long id;
-	private long survey_id;
-	private byte idx;
-	private byte type;
-	private String title;
-	private String content;
-	private String description;
-	private int min_choice;
-	private int max_choice;
-	private byte optional;
+	public final class Fields implements IDaoValue.Fields {
+
+		public long id;
+		public long survey_id;
+		public byte idx;
+		public byte type;
+		public String title;
+		public String content;
+		public String description;
+		public int min_choice;
+		public int max_choice;
+		public byte optional;
+
+		public Fields() {
+			id = 0;
+			survey_id = 0;
+			idx = 0;
+			type = 0;
+			title = "";
+			content = "";
+			description = "";
+			min_choice = 0;
+			max_choice = 0;
+			optional = 0;
+		}
+	}
+
+	private Fields fieldRead;
+
+	private Fields fieldWrite;
+
+	private static Field[] fields;
 
 	public TblSurveyQuestionInfo() {
-		this.id = 0;
-		this.survey_id = 0;
-		this.idx = 0;
-		this.type = 0;
-		this.title = "";
-		this.content = "";
-		this.description = "";
-		this.min_choice = 0;
-		this.max_choice = 0;
-		this.optional = 0;
-		Sync();
+		fieldRead = new Fields();
+		fieldWrite = new Fields();
+
+		if (fields == null) {
+			fields = fieldRead.getClass().getFields();
+		}
 	}
 
-	public long getId() {
-		return id;
-	}
-
-	public void setId(long id) {
-		this.id = id;
-	}
-
-	public long getSurvey_id() {
-		return survey_id;
-	}
-
-	public void setSurvey_id(long survey_id) {
-		this.survey_id = survey_id;
-	}
-
-	public byte getIdx() {
-		return idx;
-	}
-
-	public void setIdx(byte idx) {
-		this.idx = idx;
-	}
-
-	public byte getType() {
-		return type;
-	}
-
-	public void setType(byte type) {
-		this.type = type;
-	}
-
-	public String getTitle() {
-		return title;
-	}
-
-	public void setTitle(String title) {
-		this.title = title;
-	}
-
-	public String getContent() {
-		return content;
-	}
-
-	public void setContent(String content) {
-		this.content = content;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
-	public int getMin_choice() {
-		return min_choice;
-	}
-
-	public void setMin_choice(int min) {
-		this.min_choice = min;
-	}
-
-	public int getMax_choice() {
-		return max_choice;
-	}
-
-	public void setMax_choice(int max) {
-		this.max_choice = max;
-	}
-
-	public byte getOptional() {
-		return optional;
-	}
-
-	public void setOptional(byte optional) {
-		this.optional = optional;
-	}
-
-	public boolean isRequired() {
-		return (getOptional() == 0);
-	}
-
-	public List<String> getSubKey() {
-		return null;
+	public String getTblName() {
+		return TABLE_NAME;
 	}
 
 	public String getPrimaryKey() {
 		return PRIMARY_KEY;
 	}
 
-	public String getTableName() {
-		return TABLE_NAME;
+	public String getSubKey() {
+		return SUB_KEY;
 	}
 
+	public String getForeignKey(String strKey) {
+		return mapForeignKey.get(strKey);
+	}
+
+	public Field[] getClassField() {
+		return fields;
+	}
+
+	public Object getFieldRead() {
+		return (Object) fieldRead;
+	}
+
+	public Object getFieldWrite() {
+		return (Object) fieldWrite;
+	}
+
+	public Fields getInstance() {
+		return fieldWrite;
+	}
+
+	public void Sync() {
+		fieldRead.id = fieldWrite.id;
+		fieldRead.survey_id = fieldWrite.survey_id;
+		fieldRead.idx = fieldWrite.idx;
+		fieldRead.type = fieldWrite.type;
+		fieldRead.title = fieldWrite.title;
+		fieldRead.content = fieldWrite.content;
+		fieldRead.description = fieldWrite.description;
+		fieldRead.min_choice = fieldWrite.min_choice;
+		fieldRead.max_choice = fieldWrite.max_choice;
+		fieldRead.optional = fieldWrite.optional;
+	}
 }
+

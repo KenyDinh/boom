@@ -1,120 +1,101 @@
 package dev.boom.tbl.info;
 
-import java.util.Date;
-import java.util.List;
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
 
-import dev.boom.dao.core.DaoValueInfo;
+import dev.boom.dao.DaoValueInfo;
+import dev.boom.dao.IDaoValue;
 
-public class TblNihongoWordInfo extends DaoValueInfo {
+public class TblNihongoWordInfo extends DaoValueInfo implements IDaoValue {
 
-	private static final long serialVersionUID = 1L;
 	private static final String TABLE_NAME = "nihongo_word_info";
 	private static final String PRIMARY_KEY = "id";
+	private static final String SUB_KEY = ""; // <><>
+	private static Map<String, String> mapForeignKey = new HashMap<String, String>();
 
-	private long id;
-	private String word;
-	private String sideword;
-	private int wordtype;
-	private String meaning;
-	private String description;
-	private int reference;
-	private Date created;
-	private Date updated;
+	public final class Fields implements IDaoValue.Fields {
+
+		public long id;
+		public String word;
+		public String sideword;
+		public int wordtype;
+		public String meaning;
+		public String description;
+		public int reference;
+		public String created;
+		public String updated;
+
+		public Fields() {
+			id = 0;
+			word = "";
+			sideword = "";
+			wordtype = 0;
+			meaning = "";
+			description = "";
+			reference = 0;
+			created = "";
+			updated = "";
+		}
+	}
+
+	private Fields fieldRead;
+
+	private Fields fieldWrite;
+
+	private static Field[] fields;
 
 	public TblNihongoWordInfo() {
-		this.id = 0;
-		this.word = "";
-		this.sideword = "";
-		this.wordtype = 0;
-		this.meaning = "";
-		this.description = "";
-		this.reference = 0;
-		this.created = new Date();
-		this.updated = this.created;
-		Sync();
+		fieldRead = new Fields();
+		fieldWrite = new Fields();
+
+		if (fields == null) {
+			fields = fieldRead.getClass().getFields();
+		}
 	}
 
-	public long getId() {
-		return id;
-	}
-
-	public void setId(long id) {
-		this.id = id;
-	}
-
-	public String getWord() {
-		return word;
-	}
-
-	public void setWord(String word) {
-		this.word = word;
-	}
-
-	public String getSideword() {
-		return sideword;
-	}
-
-	public void setSideword(String sideword) {
-		this.sideword = sideword;
-	}
-
-	public int getWordtype() {
-		return wordtype;
-	}
-
-	public void setWordtype(int wordtype) {
-		this.wordtype = wordtype;
-	}
-
-	public String getMeaning() {
-		return meaning;
-	}
-
-	public void setMeaning(String meaning) {
-		this.meaning = meaning;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
-	public int getReference() {
-		return reference;
-	}
-
-	public void setReference(int reference) {
-		this.reference = reference;
-	}
-
-	public Date getCreated() {
-		return created;
-	}
-
-	public void setCreated(Date created) {
-		this.created = created;
-	}
-
-	public Date getUpdated() {
-		return updated;
-	}
-
-	public void setUpdated(Date updated) {
-		this.updated = updated;
-	}
-
-	public List<String> getSubKey() {
-		return null;
+	public String getTblName() {
+		return TABLE_NAME;
 	}
 
 	public String getPrimaryKey() {
 		return PRIMARY_KEY;
 	}
 
-	public String getTableName() {
-		return TABLE_NAME;
+	public String getSubKey() {
+		return SUB_KEY;
+	}
+
+	public String getForeignKey(String strKey) {
+		return mapForeignKey.get(strKey);
+	}
+
+	public Field[] getClassField() {
+		return fields;
+	}
+
+	public Object getFieldRead() {
+		return (Object) fieldRead;
+	}
+
+	public Object getFieldWrite() {
+		return (Object) fieldWrite;
+	}
+
+	public Fields getInstance() {
+		return fieldWrite;
+	}
+
+	public void Sync() {
+		fieldRead.id = fieldWrite.id;
+		fieldRead.word = fieldWrite.word;
+		fieldRead.sideword = fieldWrite.sideword;
+		fieldRead.wordtype = fieldWrite.wordtype;
+		fieldRead.meaning = fieldWrite.meaning;
+		fieldRead.description = fieldWrite.description;
+		fieldRead.reference = fieldWrite.reference;
+		fieldRead.created = fieldWrite.created;
+		fieldRead.updated = fieldWrite.updated;
 	}
 }
+

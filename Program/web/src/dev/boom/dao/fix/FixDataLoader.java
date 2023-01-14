@@ -4,7 +4,7 @@ import java.util.Map;
 
 import javax.servlet.ServletContext;
 
-import dev.boom.dao.core.DaoValue;
+import dev.boom.dao.DaoValue;
 
 public class FixDataLoader {
 

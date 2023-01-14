@@ -10,13 +10,14 @@ import java.util.Set;
 
 import dev.boom.common.enums.SurveyQuestionType;
 import dev.boom.common.enums.SurveyStatus;
-import dev.boom.services.CommonDaoService;
+import dev.boom.dao.CommonDaoFactory;
+import dev.boom.services.Survey;
+import dev.boom.services.SurveyQuestion;
+import dev.boom.services.SurveyResult;
 import dev.boom.services.SurveyService;
-import dev.boom.services.UserInfo;
+import dev.boom.services.SurveyUserAccess;
+import dev.boom.services.User;
 import dev.boom.services.json.SurveyAnswerWrapper;
-import dev.boom.tbl.info.TblSurveyInfo;
-import dev.boom.tbl.info.TblSurveyQuestionInfo;
-import dev.boom.tbl.info.TblSurveyResultInfo;
 import dev.boom.tbl.info.TblSurveyUserAccessInfo;
 
 public class VoteFuncs {
@@ -29,14 +30,14 @@ public class VoteFuncs {
 	
 	public static void initRewardID() {
 		LUCKY_REWARD_ID_LIST.clear();
-		List<TblSurveyInfo> listActiveSurvey = SurveyService.getActiveSurveyList(0);
-		for (TblSurveyInfo surveyInfo : listActiveSurvey) {
-			List<TblSurveyQuestionInfo> questionList = SurveyService.getSurveyQuestionList(surveyInfo.getId(), "AND type = " + SurveyQuestionType.MYSTERY_GIFT_BOX.ordinal());
+		List<Survey> listActiveSurvey = SurveyService.getActiveSurveyList(0);
+		for (Survey surveyInfo : listActiveSurvey) {
+			List<SurveyQuestion> questionList = SurveyService.getSurveyQuestionList(surveyInfo.getId(), "AND type = " + SurveyQuestionType.MYSTERY_GIFT_BOX.ordinal());
 			if (questionList == null || questionList.isEmpty()) {
 				continue;
 			}
-			Map<Byte, TblSurveyQuestionInfo> mapIdxQuestionInfo = new HashMap<>();
-			for (TblSurveyQuestionInfo questionInfo : questionList) {
+			Map<Byte, SurveyQuestion> mapIdxQuestionInfo = new HashMap<>();
+			for (SurveyQuestion questionInfo : questionList) {
 				if (questionInfo.getType() != SurveyQuestionType.MYSTERY_GIFT_BOX.ordinal()) {
 					continue;
 				}
@@ -45,19 +46,19 @@ public class VoteFuncs {
 			if (mapIdxQuestionInfo.isEmpty()) {
 				continue;
 			}
-			List<TblSurveyResultInfo> resultList = SurveyService.getSurveyResultList(surveyInfo.getId());
+			List<SurveyResult> resultList = SurveyService.getSurveyResultList(surveyInfo.getId());
 			if (resultList == null || resultList.isEmpty()) {
 				continue;
 			}
-			for (TblSurveyResultInfo resultInfo : resultList) {
+			for (SurveyResult resultInfo : resultList) {
 				SurveyAnswerWrapper resultObject = SurveyAnswerWrapper.parse(resultInfo.getResult());
 				if (resultObject == null) {
 					continue;
 				}
 				for (Byte questionIdx : mapIdxQuestionInfo.keySet()) {
-					TblSurveyQuestionInfo questionInfo = mapIdxQuestionInfo.get(questionIdx);
+					SurveyQuestion questionInfo = mapIdxQuestionInfo.get(questionIdx);
 					String answer = resultObject.getAnswer(questionIdx);
-					if (!CommonMethod.isValidNumeric(answer, 1, questionInfo.getMax_choice())) {
+					if (!CommonMethod.isValidNumeric(answer, 1, questionInfo.getMaxChoice())) {
 						continue;
 					}
 					Integer num = Integer.valueOf(answer);
@@ -116,12 +117,12 @@ public class VoteFuncs {
 	}
 	
 	private static int getIdWithConflictCheck(long surveyID, byte questionIdx, int firstNum, int secondNum) {
-		List<TblSurveyUserAccessInfo> listAccess = SurveyService.getSurveyUserAccessList(surveyID, String.format("AND flag IN (%d,%d)", firstNum, secondNum));
+		List<SurveyUserAccess> listAccess = SurveyService.getSurveyUserAccessList(surveyID, String.format("AND flag IN (%d,%d)", firstNum, secondNum));
 		if (listAccess == null || listAccess.isEmpty() || listAccess.size() != 2) { // expect 2 record only
 			return 0;
 		}
-		for (TblSurveyUserAccessInfo accessInfo : listAccess) {
-			TblSurveyResultInfo resultInfo = SurveyService.getSurveyResult(surveyID, accessInfo.getUser_code());
+		for (SurveyUserAccess accessInfo : listAccess) {
+			SurveyResult resultInfo = SurveyService.getSurveyResult(surveyID, accessInfo.getUserCode());
 			if (resultInfo == null) { // not answered yet
 				return accessInfo.getFlag();
 			}
@@ -146,7 +147,7 @@ public class VoteFuncs {
 		}
 	}
 	
-	public static boolean hasSurveyAccess(UserInfo userInfo, TblSurveyInfo surveyInfo) {
+	public static boolean hasSurveyAccess(User userInfo, Survey surveyInfo) {
 		if (userInfo == null || surveyInfo == null) {
 			return false;
 		}
@@ -156,17 +157,17 @@ public class VoteFuncs {
 		TblSurveyUserAccessInfo sas = new TblSurveyUserAccessInfo();
 		sas.Set("survey_id", surveyInfo.getId());
 		sas.Set("user_code", userInfo.getEmpid());
-		return (CommonDaoService.count(sas) > 0);
+		return (CommonDaoFactory.Count(sas) > 0);
 	}
 	
-	public static boolean isSurveyExpired(TblSurveyInfo surveyInfo) {
+	public static boolean isSurveyExpired(Survey surveyInfo) {
 		if (surveyInfo == null) {
 			return false;
 		}
 		if (surveyInfo.getStatus() == SurveyStatus.FINISHED.ordinal()) {
 			return true;
 		}
-		Date expire = surveyInfo.getExpired();
+		Date expire = surveyInfo.getExpiredDate();
 		Date now = new Date();
 		return (expire.getTime() < now.getTime());
 	}

@@ -14,7 +14,7 @@ import org.apache.commons.logging.LogFactory;
 
 import dev.boom.common.CommonMethod;
 import dev.boom.core.GameLog;
-import dev.boom. services.UserInfo;
+import dev.boom.services.User;
 
 public class SocketSessionPool {
 	
@@ -22,7 +22,7 @@ public class SocketSessionPool {
 
 	private static Map<String, Map<String, SocketSessionBase>> mapSocketSession = new ConcurrentHashMap<>();
 	private static Set<String> listValidToken = Collections.synchronizedSet(new HashSet<>());
-	private static Map<String, UserInfo> mapTokenUser = new ConcurrentHashMap<>();
+	private static Map<String, User> mapTokenUser = new ConcurrentHashMap<>();
 	private static Map<String, String> mapTokenUUID = new ConcurrentHashMap<>();
 
 	public static void applySocketSession(SocketSessionBase socketSession) {
@@ -166,7 +166,7 @@ public class SocketSessionPool {
 		return listValidToken.contains(token);
 	}
 	
-	public static boolean isExistToken(String enpoint, UserInfo userInfo) {
+	public static boolean isExistToken(String enpoint, User userInfo) {
 		String token = getPlayerKey(enpoint, userInfo);
 		if (listValidToken.contains(token)) {
 			return true;
@@ -174,7 +174,7 @@ public class SocketSessionPool {
 		return false;
 	}
 	
-	public static String generateValidToken(String endpoint, UserInfo userInfo) {
+	public static String generateValidToken(String endpoint, User userInfo) {
 		String key = getPlayerKey(endpoint, userInfo);
 		log.info("Generate token for " + endpoint + ", token:" + key);
 		listValidToken.add(key);
@@ -186,7 +186,7 @@ public class SocketSessionPool {
 	 * @param endpoint
 	 * @param uuid
 	 * @return token for non-user
-	 */
+	 */	
 	public static String generateValidToken(String endpoint, String uuid) {
 		String base = endpoint + "-" + uuid;
 		String key = CommonMethod.getEncryptMD5(base);
@@ -196,7 +196,7 @@ public class SocketSessionPool {
 		return key;
 	}
 	
-	private static String getPlayerKey(String endpoint, UserInfo userInfo) {
+	private static String getPlayerKey(String endpoint, User userInfo) {
 		String base = endpoint + userInfo.getId();
 		String key = CommonMethod.getEncryptMD5(base);
 		return key;

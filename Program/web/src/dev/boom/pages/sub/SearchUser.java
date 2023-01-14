@@ -8,7 +8,7 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 
 import dev.boom.pages.JsonPageBase;
-import dev.boom.services.UserInfo;
+import dev.boom.services.User;
 import dev.boom.services.UserService;
 
 public class SearchUser extends JsonPageBase {
@@ -31,12 +31,12 @@ public class SearchUser extends JsonPageBase {
 		String strName = getContext().getRequestParameter("username");
 		if (StringUtils.isNotBlank(strName)) {
 			strName = strName.replaceAll("'", "''").replaceAll("\\\\", "\\\\\\\\");
-			List<UserInfo> userList = UserService.searchForUser(strName);
+			List<User> userList = UserService.searchForUser(strName);
 			if (userList == null || userList.isEmpty()) {
 				return;
 			}
 			List<Map<String, String>> userMapData = new ArrayList<>();
-			for (UserInfo userInfo : userList) {
+			for (User userInfo : userList) {
 				Map<String, String> map = new HashMap<>();
 				map.put("id", String.valueOf(userInfo.getId()));
 				map.put("username", userInfo.getUsername());

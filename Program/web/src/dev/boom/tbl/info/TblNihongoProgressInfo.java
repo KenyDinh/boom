@@ -1,90 +1,92 @@
 package dev.boom.tbl.info;
 
-import java.util.Date;
-import java.util.List;
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
 
-import dev.boom.dao.core.DaoValueInfo;
+import dev.boom.dao.DaoValueInfo;
+import dev.boom.dao.IDaoValue;
 
-public class TblNihongoProgressInfo extends DaoValueInfo{
+public class TblNihongoProgressInfo extends DaoValueInfo implements IDaoValue {
 
-	private static final long serialVersionUID = 1L;
 	private static final String TABLE_NAME = "nihongo_progress_info";
 	private static final String PRIMARY_KEY = "id";
-	
-	private long id;
-	private long user_id;
-	private int test_id;
-	private int progress;
-	private Date created;
-	private Date updated;
-	
+	private static final String SUB_KEY = ""; // <><>
+	private static Map<String, String> mapForeignKey = new HashMap<String, String>();
+
+	public final class Fields implements IDaoValue.Fields {
+
+		public long id;
+		public long user_id;
+		public int test_id;
+		public int progress;
+		public String created;
+		public String updated;
+
+		public Fields() {
+			id = 0;
+			user_id = 0;
+			test_id = 0;
+			progress = 0;
+			created = "";
+			updated = "";
+		}
+	}
+
+	private Fields fieldRead;
+
+	private Fields fieldWrite;
+
+	private static Field[] fields;
+
 	public TblNihongoProgressInfo() {
-		this.id = 0;
-		this.user_id = 0;
-		this.test_id = 0;
-		this.progress = 0;
-		this.created = new Date();
-		this.updated = this.created;
-		Sync();
-	}
-	
-	public long getId() {
-		return id;
+		fieldRead = new Fields();
+		fieldWrite = new Fields();
+
+		if (fields == null) {
+			fields = fieldRead.getClass().getFields();
+		}
 	}
 
-	public void setId(long id) {
-		this.id = id;
-	}
-
-	public long getUser_id() {
-		return user_id;
-	}
-
-	public void setUser_id(long user_id) {
-		this.user_id = user_id;
-	}
-
-	public int getTest_id() {
-		return test_id;
-	}
-
-	public void setTest_id(int test_id) {
-		this.test_id = test_id;
-	}
-
-	public int getProgress() {
-		return progress;
-	}
-
-	public void setProgress(int progress) {
-		this.progress = progress;
-	}
-
-	public Date getCreated() {
-		return created;
-	}
-
-	public void setCreated(Date created) {
-		this.created = created;
-	}
-
-	public Date getUpdated() {
-		return updated;
-	}
-
-	public void setUpdated(Date updated) {
-		this.updated = updated;
-	}
-
-	public List<String> getSubKey() {
-		return null;
+	public String getTblName() {
+		return TABLE_NAME;
 	}
 
 	public String getPrimaryKey() {
 		return PRIMARY_KEY;
 	}
 
-	public String getTableName() {
-		return TABLE_NAME;
+	public String getSubKey() {
+		return SUB_KEY;
+	}
+
+	public String getForeignKey(String strKey) {
+		return mapForeignKey.get(strKey);
+	}
+
+	public Field[] getClassField() {
+		return fields;
+	}
+
+	public Object getFieldRead() {
+		return (Object) fieldRead;
+	}
+
+	public Object getFieldWrite() {
+		return (Object) fieldWrite;
+	}
+
+	public Fields getInstance() {
+		return fieldWrite;
+	}
+
+	public void Sync() {
+		fieldRead.id = fieldWrite.id;
+		fieldRead.user_id = fieldWrite.user_id;
+		fieldRead.test_id = fieldWrite.test_id;
+		fieldRead.progress = fieldWrite.progress;
+		fieldRead.created = fieldWrite.created;
+		fieldRead.updated = fieldWrite.updated;
 	}
 }
+

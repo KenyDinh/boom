@@ -5,21 +5,18 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
 
-import dev.boom.common.CommonDefine;
 import dev.boom.common.CommonMethod;
 import dev.boom.common.milktea.MilkTeaCommonFunc;
-import dev.boom.connect.HibernateSessionFactory;
 import dev.boom.core.BoomSession;
 import dev.boom.core.GameLog;
-import dev.boom.services.CommonDaoService;
-import dev.boom.services.DishRatingInfo;
+import dev.boom.dao.CommonDaoFactory;
+import dev.boom.dao.FunctionTransaction;
+import dev.boom.services.DishRating;
 import dev.boom.services.DishRatingService;
-import dev.boom.services.OrderInfo;
+import dev.boom.services.Order;
 import dev.boom.services.OrderService;
-import dev.boom.services.UserInfo;
+import dev.boom.services.User;
 import dev.boom.services.UserService;
 
 public class MilkteaCommentLoader extends MilkTeaAjaxPageBase {
@@ -65,50 +62,37 @@ public class MilkteaCommentLoader extends MilkTeaAjaxPageBase {
 		String strAction = getContext().getRequestParameter("action");
 		if (StringUtils.isNotBlank(strAction)) {
 			if (strAction.equals("update_code")) {
-				List<OrderInfo> orderInfoList = OrderService.getOrderList("");
-				List<DishRatingInfo> dishRatingList = DishRatingService.getDishRatingList("");
+				List<Order> orderInfoList = OrderService.getOrderList("");
+				List<DishRating> dishRatingList = DishRatingService.getDishRatingList("");
 				
-				Session session = HibernateSessionFactory.openSession();
-				Transaction tx = null;
-				try {
-					GameLog.getInstance().info("Transaction Begin!");
-					tx = session.beginTransaction();
+				FunctionTransaction ft = (conn) -> {
 					if (orderInfoList != null && orderInfoList.size() > 0) {
-						for (OrderInfo orderInfo : orderInfoList) {
+						for (Order orderInfo : orderInfoList) {
 							int code = MilkTeaCommonFunc.getItemCodeName(orderInfo.getDishName());
 							if (code != orderInfo.getDishCode()) {
 								orderInfo.setDishCode(code);
-								if (!CommonDaoService.update(session, orderInfo.getTblInfo())) {
+								if (CommonDaoFactory.Update(conn, orderInfo.getOrderInfo()) < 0) {
 									GameLog.getInstance().error("[Update order code] update dish code failed!");
-									tx.rollback();
-									return;
+									return false;
 								}
 							}
 						}
 					}
 					if (dishRatingList != null && dishRatingList.size() > 0) {
-						for (DishRatingInfo dri : dishRatingList) {
+						for (DishRating dri : dishRatingList) {
 							int code = MilkTeaCommonFunc.getItemCodeName(dri.getName());
 							if (code != dri.getCode()) {
 								dri.setCode(code);
-								if (!CommonDaoService.update(session, dri.getTblInfo())) {
+								if (CommonDaoFactory.Update(conn, dri.getDishRatingInfo()) < 0) {
 									GameLog.getInstance().error("[Update rating code] update dish rating code failed!");
-									tx.rollback();
-									return;
+									return false;
 								}
 							}
 						}
 					}
-					tx.commit();
-					GameLog.getInstance().info("Transaction Commit!");
-				} catch (Exception e) {
-					e.printStackTrace();
-					if (tx != null) {
-						tx.rollback();
-					}
-				} finally {
-					HibernateSessionFactory.closeSession(session);
-				}
+					return true;
+				};
+				CommonDaoFactory.functionTransaction(ft);
 			}
 		}
 	}
@@ -121,25 +105,25 @@ public class MilkteaCommentLoader extends MilkTeaAjaxPageBase {
 			return;
 		}
 		
-		List<OrderInfo> orderList = OrderService.getOrderCommentList(Long.parseLong(strShopId), Integer.parseInt(strDishCode));
+		List<Order> orderList = OrderService.getOrderCommentList(Long.parseLong(strShopId), Integer.parseInt(strDishCode));
 		if (orderList == null || orderList.isEmpty()) {
 			return;
 		}
 		List<Long> ids = new ArrayList<>();
-		for (OrderInfo order : orderList) {
+		for (Order order : orderList) {
 			if (ids.contains(order.getUserId())) {
 				continue;
 			}
 			ids.add(order.getUserId());
 		}
-		Map<Long, UserInfo> mapUser = UserService.loadMapUsers(ids);
+		Map<Long, User> mapUser = UserService.loadMapUsers(ids);
 		if (mapUser == null) {
 			return;
 		}
 		StringBuilder sb = new StringBuilder();
 		int index = 0;
 		sb.append("<div class=\"item-comment item-code-").append(strDishCode).append("\">");
-		for (OrderInfo order : orderList) {
+		for (Order order : orderList) {
 			if (!mapUser.containsKey(order.getUserId())) {
 				continue;
 			}
@@ -156,13 +140,12 @@ public class MilkteaCommentLoader extends MilkTeaAjaxPageBase {
 			sb.append(MilkTeaCommonFunc.getOrderRating(order));
 			sb.append("</label>");
 			sb.append("<label class=\"font-italic\">");
-			sb.append(CommonMethod.getFormatDateString(order.getCreated(), CommonDefine.DATE_FORMAT_PATTERN));
+			sb.append(order.getCreated());
 			sb.append("</label>");
 			sb.append("</div>");
 			
 			sb.append("<div class=\"para-content\">");
 			sb.append("<p style=\"line-break:anywhere;\">");
-//			sb.append(StringEscapeUtils.escapeHtml(order.getComment()));
 			sb.append(order.getFormatComment());
 			sb.append("</p>");
 			sb.append("</div>");

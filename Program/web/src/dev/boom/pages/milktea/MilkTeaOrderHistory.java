@@ -7,7 +7,6 @@ import java.util.Map;
 
 import org.apache.click.element.JsScript;
 
-import dev.boom.common.CommonDefine;
 import dev.boom.common.CommonMethod;
 import dev.boom.common.enums.EventFlagEnum;
 import dev.boom.common.enums.FridayThemes;
@@ -15,9 +14,9 @@ import dev.boom.common.milktea.MilkTeaCommonFunc;
 import dev.boom.common.milktea.MilkTeaItemOptionType;
 import dev.boom.common.milktea.MilkTeaTabEnum;
 import dev.boom.pages.Home;
-import dev.boom.services.OrderInfo;
+import dev.boom.services.Order;
 import dev.boom.services.OrderService;
-import dev.boom.services.ShopInfo;
+import dev.boom.services.Shop;
 import dev.boom.services.ShopService;
 
 public class MilkTeaOrderHistory extends MilkTeaMainPage {
@@ -85,20 +84,20 @@ public class MilkTeaOrderHistory extends MilkTeaMainPage {
 	}
 
 	private void initTable() {
-		List<OrderInfo> list = OrderService.getCompletedOrderListByUserId(getUserInfo().getId());
-		Map<Long, ShopInfo> shopMap = new HashMap<>();
+		List<Order> list = OrderService.getCompletedOrderListByUserId(getUserInfo().getId());
+		Map<Long, Shop> shopMap = new HashMap<>();
 		List<Long> ids = new ArrayList<>();
 		if (list != null && !list.isEmpty()) {
-			for (OrderInfo order : list) {
+			for (Order order : list) {
 				if (!ids.contains(order.getShopId())) {
 					ids.add(order.getShopId());
 				}
 			}
 		}
 		if (ids.size() > 0) {
-			List<ShopInfo> shopList = ShopService.getShopListById(ids);
+			List<Shop> shopList = ShopService.getShopListById(ids);
 			if (shopList != null && shopList.size() > 0) {
-				for (ShopInfo shopInfo : shopList) {
+				for (Shop shopInfo : shopList) {
 					shopMap.put(shopInfo.getId(), shopInfo);
 				}
 			}
@@ -124,7 +123,7 @@ public class MilkTeaOrderHistory extends MilkTeaMainPage {
 			
 			sb.append("<tbody>");
 			if (list != null && !list.isEmpty()) {
-				for (OrderInfo order : list) {
+				for (Order order : list) {
 					sb.append("<tr role=\"row\">");
 						sb.append("<td class=\"overlay\">");
 							sb.append(order.getDishName());
@@ -152,7 +151,7 @@ public class MilkTeaOrderHistory extends MilkTeaMainPage {
 						sb.append("<td><span class=\"overlay\">").append(order.getOptionList()).append("</span></td>");
 						sb.append("<td><span class=\"overlay\">").append(order.getQuantity()).append("</span></td>");
 						sb.append("<td><span class=\"overlay\">").append(CommonMethod.getFormatNumberThousandComma(order.getFinalPrice())).append("</span></td>");
-						sb.append("<td><span class=\"overlay\">").append(CommonMethod.getFormatDateString(order.getCreated(), CommonDefine.DATE_FORMAT_PATTERN)).append("</span></td>");
+						sb.append("<td><span class=\"overlay\">").append(order.getCreated()).append("</span></td>");
 						if (worldInfo.isActiveEventFlag(EventFlagEnum.ORDER_VOTING)) {
 							sb.append("<td><span class=\"overlay\">");
 							sb.append(MilkTeaCommonFunc.getOrderRatingWithComment(order));

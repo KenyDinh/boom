@@ -10,8 +10,8 @@ import com.google.gson.Gson;
 import dev.boom.common.CommonMethod;
 import dev.boom.common.enums.FridayThemes;
 import dev.boom.common.enums.MainNavBarEnum;
+import dev.boom.services.DemoSession;
 import dev.boom.services.DemoSessionContent;
-import dev.boom.services.DemoSessionInfo;
 import dev.boom.services.DemoSessionService;
 import dev.boom.services.DemoSignupService;
 
@@ -59,16 +59,16 @@ public class GameDemo extends BoomMainPage {
 	public void onRender() {
 		super.onRender();
 		
-		List<DemoSessionInfo> allDemoSessionInfo = DemoSessionService.getDemoSessionList();
-		List<DemoSessionInfo> scheduledSessionInfo = new ArrayList<DemoSessionInfo>();
+		List<DemoSession> allDemoSessionInfo = DemoSessionService.getDemoSessionList();
+		List<DemoSession> scheduledSessionInfo = new ArrayList<DemoSession>();
 		List<DemoSessionContent> scheduledSessionContent = new ArrayList<DemoSessionContent>();
 		if (allDemoSessionInfo != null && allDemoSessionInfo.size() > 0) {
 			Date now = new Date();
-			DemoSessionInfo sessionToDisplay = null;
-			DemoSessionInfo upcomingSession = null;
+			DemoSession sessionToDisplay = null;
+			DemoSession upcomingSession = null;
 			Collections.sort(allDemoSessionInfo);
 			
-			for (DemoSessionInfo demoSessionInfo : allDemoSessionInfo) {
+			for (DemoSession demoSessionInfo : allDemoSessionInfo) {
 				if (demoSessionInfo.getDemoFinishTime().after(now)) {
 					if (sessionToDisplay == null) {
 						sessionToDisplay = demoSessionInfo;

@@ -5,7 +5,8 @@ import java.util.Date;
 import java.util.List;
 
 import dev.boom.common.CommonDefine;
-import dev.boom.dao.core.DaoValue;
+import dev.boom.dao.CommonDaoFactory;
+import dev.boom.dao.DaoValue;
 import dev.boom.tbl.info.TblDemoSessionInfo;
 
 public class DemoSessionService {
@@ -15,46 +16,71 @@ public class DemoSessionService {
 
 	private DemoSessionService() {
 	}
-	
-	public static List<DemoSessionInfo> getDemoSessionList() {
-		TblDemoSessionInfo info = new TblDemoSessionInfo();
-		List<DaoValue> list = CommonDaoService.select(info);
+
+	public static List<DemoSession> getDemoSessionListAll(String option) {
+		TblDemoSessionInfo tblInfo = new TblDemoSessionInfo();
+
+		if (option != null && !option.isEmpty()) {
+			tblInfo.SetSelectOption(option);
+		}
+
+		List<DaoValue> list = CommonDaoFactory.Select(tblInfo);
 		if (list == null || list.isEmpty()) {
 			return null;
 		}
-		List<DemoSessionInfo> ret = new ArrayList<DemoSessionInfo>();
+
+		List<DemoSession> ret = new ArrayList<>();
 		for (DaoValue dao : list) {
-			ret.add(new DemoSessionInfo((TblDemoSessionInfo)dao));
+			ret.add(new DemoSession((TblDemoSessionInfo) dao));
+		}
+
+		return ret;
+	}
+
+	public static List<DemoSession> getDemoSessionListAll() {
+		return getDemoSessionListAll(null);
+	}
+	
+	public static List<DemoSession> getDemoSessionList() {
+		TblDemoSessionInfo info = new TblDemoSessionInfo();
+		List<DaoValue> list = CommonDaoFactory.Select(info);
+		if (list == null || list.isEmpty()) {
+			return null;
+		}
+		List<DemoSession> ret = new ArrayList<DemoSession>();
+		for (DaoValue dao : list) {
+			ret.add(new DemoSession((TblDemoSessionInfo)dao));
 		}
 		
 		return ret;
 	}
 	
-	public static DemoSessionInfo getDemoSessionById(int id) {
+	public static DemoSession getDemoSessionById(int id) {
 		TblDemoSessionInfo info = new TblDemoSessionInfo();
-		info.setId(id);
-		List<DaoValue> daos = CommonDaoService.select(info);
+		info.Set("id", id);
+		List<DaoValue> daos = CommonDaoFactory.Select(info);
 		if (daos == null || daos.isEmpty() || daos.size() != 1) {
 			return null;
 		}
-		return new DemoSessionInfo((TblDemoSessionInfo) daos.get(0));
+		return new DemoSession((TblDemoSessionInfo) daos.get(0));
 	}
 	
-	public static boolean update(DemoSessionInfo demoSessionInfo) {
-		return CommonDaoService.update(demoSessionInfo.TblDemoSessionInfo());
+	public static boolean update(DemoSession DemoSession) {
+		return (CommonDaoFactory.Update(DemoSession.getDemoSessionInfo()) > 0);
 	}
 	
 	public static boolean createNewSession(String demoLocation, Date demoDate, String demoContent) {
-		TblDemoSessionInfo tblDemoSessionInfo = new TblDemoSessionInfo();
-		tblDemoSessionInfo.setDemo_location(demoLocation);
-		tblDemoSessionInfo.setDemo_time(demoDate);
-		tblDemoSessionInfo.setContent(demoContent);
+		TblDemoSessionInfo tblDemoSession = new TblDemoSessionInfo();
+		tblDemoSession.Set("demo_location", demoLocation);
+		tblDemoSession.Set("demo_time", demoDate);
+		tblDemoSession.Set("content", demoContent);
 		
-		Integer id = (Integer) CommonDaoService.insert(tblDemoSessionInfo);
+		Integer id = (Integer) CommonDaoFactory.Insert(tblDemoSession);
 		return (id != null && id > 0);
 	}
 	
-	public static boolean delete(DemoSessionInfo demoSessionInfo) {
-		return CommonDaoService.delete(demoSessionInfo.TblDemoSessionInfo());
+	public static boolean delete(DemoSession DemoSession) {
+		return (CommonDaoFactory.Delete(DemoSession.getDemoSessionInfo()) > 0);
 	}
 }
+

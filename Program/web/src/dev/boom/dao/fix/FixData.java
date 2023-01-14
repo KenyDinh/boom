@@ -16,7 +16,7 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import dev.boom.dao.core.DaoValue;
+import dev.boom.dao.DaoValue;
 
 public abstract class FixData extends FixDataBase {
 

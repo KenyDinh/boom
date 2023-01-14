@@ -6,8 +6,8 @@ import java.util.TimerTask;
 
 import dev.boom.common.CommonDefine;
 import dev.boom.core.GameLog;
-import dev.boom.services.CommonDaoService;
-import dev.boom.services.QuizInfo;
+import dev.boom.dao.CommonDaoFactory;
+import dev.boom.services.Quiz;
 import dev.boom.services.QuizService;
 
 public class QuizTimer extends Timer {
@@ -41,7 +41,7 @@ public class QuizTimer extends Timer {
 	
 	private void execute() {
 		GameLog.getInstance().info("(QuizTimer) execute!");
-		QuizInfo quizInfo = QuizService.getInsessionQuizById(quizId);
+		Quiz quizInfo = QuizService.getInsessionQuizById(quizId);
 		if (quizInfo == null) {
 			GameLog.getInstance().error("(QuizTimer) no quiz found! id: " + quizId);
 			return;
@@ -90,7 +90,7 @@ public class QuizTimer extends Timer {
 			break;
 		case STEP_BREAK_TIME:
 			quizInfo.setStatus(QuizStatus.BREAK_TIME.getStatus());
-			if (!CommonDaoService.update(quizInfo.getTblQuizInfo())) {
+			if (CommonDaoFactory.Update(quizInfo.getQuizInfo()) < 0) {
 				GameLog.getInstance().error("[QuizTimer] enter break time failed!");
 				return;
 			}

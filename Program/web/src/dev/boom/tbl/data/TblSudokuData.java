@@ -1,46 +1,83 @@
 package dev.boom.tbl.data;
 
-import dev.boom.dao.core.DaoValueData;
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
 
-public class TblSudokuData extends DaoValueData {
+import dev.boom.dao.DaoValueData;
+import dev.boom.dao.IDaoValue;
 
-	private static final long serialVersionUID = 1L;
+public class TblSudokuData extends DaoValueData implements IDaoValue {
+
 	private static final String TABLE_NAME = "sudoku_data";
 	private static final String PRIMARY_KEY = "id";
+	private static final String SUB_KEY = ""; // <><>
+	private static Map<String, String> mapForeignKey = new HashMap<String, String>();
 
-	public int id;
-	public byte level;
-	public String data;
+	public final class Fields implements IDaoValue.Fields {
+	
+		public int id;
+		public byte level;
+		public String data;
+	
+		public Fields() {
+			this.id = 0;
+			this.level = 0;
+			this.data = "";
+		}
+	}
+
+	private Fields fieldRead;
+
+	private Fields fieldWrite;
+
+	private static Field[] fields;
 
 	public TblSudokuData() {
-		this.id = 0;
-		this.level = 0;
-		this.data = "";
-		Sync();
+		fieldRead = new Fields();
+		fieldWrite = new Fields();
+
+		if (fields == null) {
+			fields = fieldRead.getClass().getFields();
+		}
 	}
 
-	public int getId() {
-		return id;
-	}
-
-	public byte getLevel() {
-		return level;
-	}
-	
-	public String getData() {
-		return data;
-	}
-
-	public String getLabel() {
-		return data;
-	}
-
-	public String getTableName() {
+	public String getTblName() {
 		return TABLE_NAME;
 	}
 
 	public String getPrimaryKey() {
 		return PRIMARY_KEY;
+	}
+
+	public String getSubKey() {
+		return SUB_KEY;
+	}
+
+	public String getForeignKey(String strKey) {
+		return mapForeignKey.get(strKey);
+	}
+
+	public Field[] getClassField() {
+		return fields;
+	}
+
+	public Object getFieldRead() {
+		return (Object) fieldRead;
+	}
+
+	public Object getFieldWrite() {
+		return (Object) fieldWrite;
+	}
+
+	public Fields getInstance() {
+		return fieldWrite;
+	}
+
+	public void Sync() {
+		fieldRead.id = fieldWrite.id;
+		fieldRead.level = fieldWrite.level;
+		fieldRead.data = fieldWrite.data;
 	}
 
 }

@@ -3,40 +3,44 @@ package dev.boom.services;
 import java.util.ArrayList;
 import java.util.List;
 
-import dev.boom.dao.core.DaoValue;
+import dev.boom.dao.CommonDaoFactory;
+import dev.boom.dao.DaoValue;
 import dev.boom.tbl.info.TblOrderInfo;
 
 public class OrderService {
-	
-	public static List<OrderInfo> getOrderList(String option) {
+
+	private OrderService() {
+	}
+
+	public static List<Order> getOrderList(String option) {
 		TblOrderInfo orderInfo = new TblOrderInfo();
-		orderInfo.setSelectOption("WHERE id > 0");
+		orderInfo.SetSelectOption("WHERE id > 0");
 		if (option != null && option.length() > 0) {
-			orderInfo.setSelectOption(option);
+			orderInfo.SetSelectOption(option);
 		}
-		List<DaoValue> list = CommonDaoService.select(orderInfo);
+		List<DaoValue> list = CommonDaoFactory.Select(orderInfo);
 		if (list == null || list.isEmpty()) {
 			return null;
 		}
-		List<OrderInfo> ret = new ArrayList<>();
+		List<Order> ret = new ArrayList<>();
 		for (DaoValue dao : list) {
-			ret.add(new OrderInfo((TblOrderInfo) dao));
+			ret.add(new Order((TblOrderInfo) dao));
 		}
 		return ret;
 	}
 	
-	public static OrderInfo getOrderInfoById(long id) {
+	public static Order getOrderInfoById(long id) {
 		TblOrderInfo orderInfo = new TblOrderInfo();
-		orderInfo.setId(id);
-		List<DaoValue> list = CommonDaoService.select(orderInfo);
+		orderInfo.Set("id", id);
+		List<DaoValue> list = CommonDaoFactory.Select(orderInfo);
 		if (list == null || list.size() != 1) {
 			return null;
 		}
 		
-		return new OrderInfo((TblOrderInfo) list.get(0));
+		return new Order((TblOrderInfo) list.get(0));
 	}
 	
-	public static List<OrderInfo> getOrderList(List<Long> ids) {
+	public static List<Order> getOrderList(List<Long> ids) {
 		if (ids == null || ids.isEmpty()) {
 			return null;
 		}
@@ -48,37 +52,37 @@ public class OrderService {
 			soption += id;
 		}
 		TblOrderInfo orderInfo = new TblOrderInfo();
-		orderInfo.setSelectOption("WHERE id IN (" + soption + ")");
-		List<DaoValue> list = CommonDaoService.select(orderInfo);
+		orderInfo.SetSelectOption("WHERE id IN (" + soption + ")");
+		List<DaoValue> list = CommonDaoFactory.Select(orderInfo);
 		if (list == null || list.isEmpty()) {
 			return null;
 		}
-		List<OrderInfo> ret = new ArrayList<>();
+		List<Order> ret = new ArrayList<>();
 		for (DaoValue dao : list) {
-			ret.add(new OrderInfo((TblOrderInfo) dao));
+			ret.add(new Order((TblOrderInfo) dao));
 		}
 		return ret;
 	}
 
-	public static List<OrderInfo> getOrderInfoListByMenuId(long menu_id) {
+	public static List<Order> getOrderInfoListByMenuId(long menu_id) {
 		return getOrderInfoListByMenuId(menu_id, null);
 	}
 	
-	public static List<OrderInfo> getOrderInfoListByMenuId(long menu_id, String option) {
+	public static List<Order> getOrderInfoListByMenuId(long menu_id, String option) {
 		TblOrderInfo orderInfo = new TblOrderInfo();
-		orderInfo.setMenu_id(menu_id);
+		orderInfo.Set("menu_id", menu_id);
 		if (option != null) {
-			orderInfo.setSelectOption(option);
+			orderInfo.SetSelectOption(option);
 		} else {
-			orderInfo.setSelectOption("ORDER BY created DESC");
+			orderInfo.SetSelectOption("ORDER BY created DESC");
 		}
-		List<DaoValue> list = CommonDaoService.select(orderInfo);
+		List<DaoValue> list = CommonDaoFactory.Select(orderInfo);
 		if (list == null || list.isEmpty()) {
 			return null;
 		}
-		List<OrderInfo> ret = new ArrayList<>();
+		List<Order> ret = new ArrayList<>();
 		for (DaoValue dao : list) {
-			ret.add(new OrderInfo((TblOrderInfo) dao));
+			ret.add(new Order((TblOrderInfo) dao));
 		}
 
 		return ret;
@@ -86,8 +90,8 @@ public class OrderService {
 
 	public static List<TblOrderInfo> getOrderInfoListByShopId(long shop_id) {
 		TblOrderInfo orderInfo = new TblOrderInfo();
-		orderInfo.setShop_id(shop_id);
-		List<DaoValue> list = CommonDaoService.select(orderInfo);
+		orderInfo.Set("shop_id", shop_id);
+		List<DaoValue> list = CommonDaoFactory.Select(orderInfo);
 		if (list == null || list.isEmpty()) {
 			return null;
 		}
@@ -99,34 +103,36 @@ public class OrderService {
 		return ret;
 	}
 	
-	public static List<OrderInfo> getCompletedOrderListByUserId(long user_id) {
+	public static List<Order> getCompletedOrderListByUserId(long user_id) {
 		TblOrderInfo orderInfo = new TblOrderInfo();
-		orderInfo.setUser_id(user_id);
-		orderInfo.setSelectOption("AND final_price > 0");
-		List<DaoValue> list = CommonDaoService.select(orderInfo);
+		orderInfo.Set("user_id", user_id);
+		orderInfo.SetSelectOption("AND final_price > 0");
+		List<DaoValue> list = CommonDaoFactory.Select(orderInfo);
 		if (list == null || list.isEmpty()) {
 			return null;
 		}
-		List<OrderInfo> ret = new ArrayList<>();
+		List<Order> ret = new ArrayList<>();
 		for (DaoValue dao : list) {
-			ret.add(new OrderInfo((TblOrderInfo) dao));
+			ret.add(new Order((TblOrderInfo) dao));
 		}
 		return ret;
 	}
 	
-	public static List<OrderInfo> getOrderCommentList(long shopId, int dishCode) {
+	public static List<Order> getOrderCommentList(long shopId, int dishCode) {
 		TblOrderInfo orderInfo = new TblOrderInfo();
 		orderInfo.Set("shop_id", shopId);
 		orderInfo.Set("dish_code", dishCode);
-		orderInfo.setSelectOption("AND voting_star > 0 ORDER BY id DESC");
-		List<DaoValue> list = CommonDaoService.select(orderInfo);
+		orderInfo.SetSelectOption("AND voting_star > 0 ORDER BY id DESC");
+		List<DaoValue> list = CommonDaoFactory.Select(orderInfo);
 		if (list == null || list.isEmpty()) {
 			return null;
 		}
-		List<OrderInfo> ret = new ArrayList<>();
+		List<Order> ret = new ArrayList<>();
 		for (DaoValue dao : list) {
-			ret.add(new OrderInfo((TblOrderInfo) dao));
+			ret.add(new Order((TblOrderInfo) dao));
 		}
 		return ret;
 	}
+	
 }
+

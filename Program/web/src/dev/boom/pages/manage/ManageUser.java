@@ -14,17 +14,17 @@ import dev.boom.common.enums.ManageLogType;
 import dev.boom.common.enums.UserFlagEnum;
 import dev.boom.common.enums.UserRole;
 import dev.boom.core.GameLog;
+import dev.boom.dao.CommonDaoFactory;
 import dev.boom.pages.Home;
-import dev.boom.services.CommonDaoService;
 import dev.boom.services.ManageLogService;
-import dev.boom.services.UserInfo;
+import dev.boom.services.User;
 import dev.boom.services.UserService;
 
 public class ManageUser extends ManagePageBase {
 
 	private static final long serialVersionUID = 1L;
 
-	private UserInfo selectUser = null;
+	private User selectUser = null;
 	private boolean update;
 
 	public ManageUser() {
@@ -180,7 +180,7 @@ public class ManageUser extends ManagePageBase {
 				if (StringUtils.isNotBlank(strPassword) && strPassword.equals(strConfirmPassword)) {
 					selectUser.setPassword(CommonMethod.getEncryptMD5(strPassword));
 				}
-				if (!CommonDaoService.update(selectUser.getTblUserInfo())) {
+				if (CommonDaoFactory.Update(selectUser.getUserInfo()) < 0) {
 					GameLog.getInstance().error("[ManageAccount] update user fail!");
 					return;
 				}
@@ -195,7 +195,7 @@ public class ManageUser extends ManagePageBase {
 		super.onRender();
 		addBackLink(Home.class, "MSG_MAIN_NAV_BAR_HOME");
 		if (!update) {
-			List<UserInfo> userList = null;
+			List<User> userList = null;
 			if (selectUser != null) {
 				userList = new ArrayList<>();
 				userList.add(selectUser);
@@ -210,13 +210,13 @@ public class ManageUser extends ManagePageBase {
 			initSearchForm();
 		} else {
 			if (selectUser == null) {
-				selectUser = new UserInfo();
+				selectUser = new User();
 			}
 			initUserForm();
 		}
 	}
 
-	private void initUserTable(List<UserInfo> userList) {
+	private void initUserTable(List<User> userList) {
 		StringBuilder table = new StringBuilder();
 		table.append("<table class=\"table table-hover\" id=\"user-table\">");
 		table.append("<thead>");
@@ -237,7 +237,7 @@ public class ManageUser extends ManagePageBase {
 		if (userList == null || userList.isEmpty()) {
 			table.append("<tr><td colspan=\"6\" id=\"no-data\">No user found!</td></tr>");
 		} else {
-			for (UserInfo user : userList) {
+			for (User user : userList) {
 				table.append("<tr>");
 				table.append("<td>").append(user.getId()).append("</td>");
 				table.append("<td>").append(user.getUsername()).append("</td>");

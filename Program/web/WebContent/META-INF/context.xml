@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context docBase="boom" path="/" reloadable="true">
+	<Resource auth="Container" driverClassName="com.mysql.cj.jdbc.Driver"
+		maxTotal="100" maxIdle="30" maxWaitMillis="10000" name="jdbc/boom"
+		password="Kenydinh1!" type="javax.sql.DataSource"
+		url="jdbc:mysql://localhost:3306/boom?useUnicode=yes&amp;characterEncoding=UTF-8&amp;autoReconnect=true&amp;useSSL=false"
+		username="root" />
+
+	<Resource auth="Container" driverClassName="com.mysql.cj.jdbc.Driver"
+		maxTotal="100" maxIdle="30" maxWaitMillis="10000" name="jdbc/boom_slave1"
+		password="Kenydinh1!" type="javax.sql.DataSource"
+		url="jdbc:mysql://localhost:3306/boom?useUnicode=yes&amp;characterEncoding=UTF-8&amp;autoReconnect=true&amp;useSSL=false"
+		username="root" />
+
+	<Resource auth="Container" driverClassName="com.mysql.cj.jdbc.Driver"
+		maxTotal="100" maxIdle="30" maxWaitMillis="10000" name="jdbc/boom_slave2"
+		password="Kenydinh1!" type="javax.sql.DataSource"
+		url="jdbc:mysql://localhost:3306/boom?useUnicode=yes&amp;characterEncoding=UTF-8&amp;autoReconnect=true&amp;useSSL=false"
+		username="root" />
+
+	<Resource auth="Container" driverClassName="com.mysql.cj.jdbc.Driver"
+		maxTotal="100" maxIdle="30" maxWaitMillis="10000" name="jdbc/boom_slave3"
+		password="Kenydinh1!" type="javax.sql.DataSource"
+		url="jdbc:mysql://localhost:3306/boom?useUnicode=yes&amp;characterEncoding=UTF-8&amp;autoReconnect=true&amp;useSSL=false"
+		username="root" />
+</Context>

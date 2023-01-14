@@ -15,10 +15,11 @@ import dev.boom.common.enums.FridayThemes;
 import dev.boom.common.milktea.MilkTeaItemOptionType;
 import dev.boom.common.milktea.MilkTeaOrderFlag;
 import dev.boom.common.milktea.MilkTeaTabEnum;
-import dev.boom.services.CommonDaoService;
-import dev.boom.services.MilkTeaUserInfo;
-import dev.boom.services.MilkTeaUserService;
-import dev.boom.services.OrderInfo;
+import dev.boom.dao.CommonDaoFactory;
+import dev.boom.dao.FunctionTransaction;
+import dev.boom.services.MilkteaUser;
+import dev.boom.services.MilkteaUserService;
+import dev.boom.services.Order;
 
 public class MilkTeaRanking extends MilkTeaMainPage {
 
@@ -190,22 +191,22 @@ public class MilkTeaRanking extends MilkTeaMainPage {
 				query = "SELECT username, COUNT(user_id), SUM(final_price), GROUP_CONCAT(ice SEPARATOR ',') AS total_ice, GROUP_CONCAT(sugar SEPARATOR ',') AS total_sugar, GROUP_CONCAT(option_list SEPARATOR ',') AS total_topping "
 						+ "FROM order_info WHERE final_price > 0 AND created >= '" + start + "' AND created <= '" + end + "' GROUP BY username;";
 			}
-			List<Object> listObject = CommonDaoService.executeNativeSQLQuery(query);
-			if (listObject != null && !listObject.isEmpty()) {
-				try {
-					for (Object obj : listObject) {
-						if (obj instanceof Object[]) {
-							Object[] arrObj = (Object[]) obj;
+			FunctionTransaction ft = (conn) -> {
+				List<List<Object>> listObject = CommonDaoFactory.executeQuery(conn, query);
+				if (listObject != null && !listObject.isEmpty()) {
+					try {
+						for (List<Object> list : listObject) {
+							int idx = 0;
 							Map<String, String> map = new HashMap<>();
-							map.put("username", arrObj[0].toString());
-							map.put("order_count", arrObj[1].toString());
-							map.put("total_money", arrObj[2].toString());
-							OrderInfo orderInfo = new OrderInfo();
+							map.put("username", list.get(idx++).toString());
+							map.put("order_count", list.get(idx++).toString());
+							map.put("total_money", list.get(idx++).toString());
+							Order orderInfo = new Order();
 							orderInfo.setLimitSplitOption(Integer.parseInt(map.get("order_count")));
-							orderInfo.setIce(arrObj[3].toString());
-							orderInfo.setSugar(arrObj[4].toString());
-							orderInfo.setOptionList(arrObj[5].toString());
-							MilkTeaUserInfo dumUser = new MilkTeaUserInfo();
+							orderInfo.setIce(list.get(idx++).toString());
+							orderInfo.setSugar(list.get(idx++).toString());
+							orderInfo.setOptionList(list.get(idx++).toString());
+							MilkteaUser dumUser = new MilkteaUser();
 							dumUser.setOrderCount(Long.parseLong(map.get("order_count")));
 							dumUser.setTotalIce(orderInfo.getTotalOption(MilkTeaItemOptionType.ICE));
 							dumUser.setTotalSugar(orderInfo.getTotalOption(MilkTeaItemOptionType.SUGAR));
@@ -214,19 +215,21 @@ public class MilkTeaRanking extends MilkTeaMainPage {
 							map.put("topping", String.valueOf(orderInfo.getTotalOption(MilkTeaItemOptionType.TOPPING)));
 							listData.add(map);
 						}
+					} catch (Exception e) {
+						e.printStackTrace();
 					}
-				} catch (Exception e) {
-					e.printStackTrace();
+					if (mode == MODE_KING_OF_CHASUA) {
+						sortKingOfChasua(listData);
+					}
 				}
-				if (mode == MODE_KING_OF_CHASUA) {
-					sortKingOfChasua(listData);
-				}
-			}
+				return true;
+			};
+			CommonDaoFactory.functionTransaction(ft);
 			break;
 		default:
-			List<MilkTeaUserInfo> list = MilkTeaUserService.getMilkteaUserInfo("WHERE order_count >= 10 ORDER BY total_money DESC");
+			List<MilkteaUser> list = MilkteaUserService.getMilkteaUserInfo("WHERE order_count >= 10 ORDER BY total_money DESC");
 			if (list != null && !list.isEmpty()) {
-				for (MilkTeaUserInfo mku : list) {
+				for (MilkteaUser mku : list) {
 					Map<String, String> map = new HashMap<>();
 					map.put("username", mku.getUsername());
 					map.put("order_count", String.valueOf(mku.getOrderCount()));

@@ -6,7 +6,7 @@ import dev.boom.core.BoomSession;
 import dev.boom.pages.JsonPageBase;
 import dev.boom.services.AuthToken;
 import dev.boom.services.AuthTokenService;
-import dev.boom.services.UserInfo;
+import dev.boom.services.User;
 import dev.boom.services.UserService;
 import dev.boom.socket.endpoint.FridayEndpoint;
 
@@ -51,7 +51,7 @@ public class Login extends JsonPageBase {
 			putJsonData("error", getMessage("MSG_ACCOUNT_INCORRECT_VALUE"));
 			return;
 		}
-		UserInfo info = UserService.getUser(username, password);
+		User info = UserService.getUser(username, password);
 		if (info == null) {
 			putJsonData("error", getMessage("MSG_ACCOUNT_LOGIN_INCORRECT"));
 			return;

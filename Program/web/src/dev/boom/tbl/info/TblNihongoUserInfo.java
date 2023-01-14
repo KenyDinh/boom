@@ -1,80 +1,89 @@
 package dev.boom.tbl.info;
 
-import java.util.Date;
-import java.util.List;
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
 
-import dev.boom.dao.core.DaoValueInfo;
+import dev.boom.dao.DaoValueInfo;
+import dev.boom.dao.IDaoValue;
 
-public class TblNihongoUserInfo extends DaoValueInfo {
+public class TblNihongoUserInfo extends DaoValueInfo implements IDaoValue {
 
-	private static final long serialVersionUID = 1L;
 	private static final String TABLE_NAME = "nihongo_user_info";
 	private static final String PRIMARY_KEY = "user_id";
-	
-	private long user_id;
-	private String username;
-	private int star;
-	private Date created;
-	private Date updated;
-	
+	private static final String SUB_KEY = ""; // <><>
+	private static Map<String, String> mapForeignKey = new HashMap<String, String>();
+
+	public final class Fields implements IDaoValue.Fields {
+
+		public long user_id;
+		public String username;
+		public int star;
+		public String created;
+		public String updated;
+
+		public Fields() {
+			user_id = 0;
+			username = "";
+			star = 0;
+			created = "";
+			updated = "";
+		}
+	}
+
+	private Fields fieldRead;
+
+	private Fields fieldWrite;
+
+	private static Field[] fields;
+
 	public TblNihongoUserInfo() {
-		this.user_id = 0;
-		this.username = "";
-		this.star = 0;
-		this.created = new Date();
-		this.updated = this.created;
-		Sync();
-	}
-	
-	public long getUser_id() {
-		return user_id;
+		fieldRead = new Fields();
+		fieldWrite = new Fields();
+
+		if (fields == null) {
+			fields = fieldRead.getClass().getFields();
+		}
 	}
 
-	public void setUser_id(long user_id) {
-		this.user_id = user_id;
-	}
-
-	public String getUsername() {
-		return username;
-	}
-
-	public void setUsername(String username) {
-		this.username = username;
-	}
-
-	public int getStar() {
-		return star;
-	}
-
-	public void setStar(int star) {
-		this.star = star;
-	}
-
-	public Date getCreated() {
-		return created;
-	}
-
-	public void setCreated(Date created) {
-		this.created = created;
-	}
-
-	public Date getUpdated() {
-		return updated;
-	}
-
-	public void setUpdated(Date updated) {
-		this.updated = updated;
-	}
-
-	public List<String> getSubKey() {
-		return null;
+	public String getTblName() {
+		return TABLE_NAME;
 	}
 
 	public String getPrimaryKey() {
 		return PRIMARY_KEY;
 	}
 
-	public String getTableName() {
-		return TABLE_NAME;
+	public String getSubKey() {
+		return SUB_KEY;
+	}
+
+	public String getForeignKey(String strKey) {
+		return mapForeignKey.get(strKey);
+	}
+
+	public Field[] getClassField() {
+		return fields;
+	}
+
+	public Object getFieldRead() {
+		return (Object) fieldRead;
+	}
+
+	public Object getFieldWrite() {
+		return (Object) fieldWrite;
+	}
+
+	public Fields getInstance() {
+		return fieldWrite;
+	}
+
+	public void Sync() {
+		fieldRead.user_id = fieldWrite.user_id;
+		fieldRead.username = fieldWrite.username;
+		fieldRead.star = fieldWrite.star;
+		fieldRead.created = fieldWrite.created;
+		fieldRead.updated = fieldWrite.updated;
 	}
 }
+

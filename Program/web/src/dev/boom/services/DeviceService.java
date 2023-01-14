@@ -17,38 +17,39 @@ import dev.boom.common.enums.DeviceStatus;
 import dev.boom.common.enums.DeviceType;
 import dev.boom.common.enums.ManageLogType;
 import dev.boom.core.GameLog;
-import dev.boom.dao.core.DaoValue;
+import dev.boom.dao.CommonDaoFactory;
+import dev.boom.dao.DaoValue;
 import dev.boom.socket.endpoint.DeviceEndPoint;
 import dev.boom.tbl.info.TblDeviceInfo;
 import dev.boom.tbl.info.TblDeviceRegisterInfo;
 
 public class DeviceService {
 	
-	private DeviceService() {
-	}
-	
 	public static final int DEVICE_IMAGE_WIDTH = 64;
 	public static final int DEVICE_IMAGE_HEIGHT = 64;
 	public static final String DATE_PATTERN = "[0-9]{4}-[0-9]{2}-[0-9]{2}";
-	
+
+	private DeviceService() {
+	}
+
 	public static List<Device> listAllDevice() {
 		return listAllDevice(null, -1, -1);
 	}
 	
 	public static List<Device> listAllDevice(String option, int limit, int offset) {
 		TblDeviceInfo info = new TblDeviceInfo();
-		info.setSelectOption("WHERE id > 0 AND available <> 0");
+		info.SetSelectOption("WHERE id > 0 AND available <> 0");
 		if (option != null && !option.isEmpty()) {
-			info.setSelectOption(option);
+			info.SetSelectOption(option);
 		}
-		info.setSelectOption("ORDER BY id ASC");
+		info.SetSelectOption("ORDER BY id ASC");
 		if (limit > 0) {
-			info.setLimit(limit);
+			info.SetLimit(limit);
 			if (offset >= 0) {
-				info.setOffset(offset);
+				info.SetOffset(offset);
 			}
 		}
-		List<DaoValue> list = CommonDaoService.select(info);
+		List<DaoValue> list = CommonDaoFactory.Select(info);
 		if (list == null || list.isEmpty()) {
 			return Collections.emptyList();
 		}
@@ -62,9 +63,9 @@ public class DeviceService {
 
 	public static Device getDeviceById(int id) {
 		TblDeviceInfo info = new TblDeviceInfo();
-		info.setId(id);
-		info.setAvailable((byte)1);
-		List<DaoValue> list = CommonDaoService.select(info);
+		info.Set("id", id);
+		info.Set("available", (byte)1);
+		List<DaoValue> list = CommonDaoFactory.Select(info);
 		if (list == null || list.size() != 1) {
 			return null;
 		}
@@ -82,15 +83,15 @@ public class DeviceService {
 		deviceInfo.Set("dep", dep);
 		deviceInfo.Set("flag", flag);
 		deviceInfo.Set("available", (byte) 1);
-		return (CommonDaoService.insert(deviceInfo) != null);
+		return (CommonDaoFactory.Insert(deviceInfo) > 0);
 	}
 	
-	public static String doBorrowDevice(UserInfo user, Device device, String strStartDate, String strEndDate) {
+	public static String doBorrowDevice(User user, Device device, String strStartDate, String strEndDate) {
 		Map<String, String> returnData = doBorrowDevice(user, device, strStartDate, strEndDate, new HashMap<>());
 		return returnData.get("msg");
 	}
 	
-	public static Map<String, String> doBorrowDevice(UserInfo user, Device device, String strStartDate, String strEndDate, Map<String, String> returnData) {
+	public static Map<String, String> doBorrowDevice(User user, Device device, String strStartDate, String strEndDate, Map<String, String> returnData) {
 		if (device == null) {
 			returnData.put("error", "1");
 			returnData.put("msg", "Error! No game selected!");
@@ -163,7 +164,7 @@ public class DeviceService {
 		return returnData;
 	}
 
-	public static boolean borrowDevice(UserInfo user, Device device, Date startDate, Date endDate) {
+	public static boolean borrowDevice(User user, Device device, Date startDate, Date endDate) {
 		if (user == null) {
 			GameLog.getInstance().error("[DeviceService][Borrow] user not found");
 			return false;
@@ -174,11 +175,11 @@ public class DeviceService {
 		}
 		if (device.isEditable(user)) {
 			device.setStatus(DeviceStatus.UNAVAILABLE.getStatus());
-			device.setHoldDate(startDate);
-			device.setReleaseDate(endDate);
+			device.setHoldDate(CommonMethod.getFormatDateString(startDate));
+			device.setReleaseDate(CommonMethod.getFormatDateString(endDate));
 			device.setUserId(user.getId());
 			device.setUsername(user.getUsername());
-			return CommonDaoService.update(device.getDeviceInfo());
+			return (CommonDaoFactory.Update(device.getDeviceInfo()) > 0);
 		} else {
 			List<DaoValue> updateList = new ArrayList<>();
 			device.setStatus(DeviceStatus.PENDING.getStatus());
@@ -203,7 +204,7 @@ public class DeviceService {
 			registerInfo.Set("expired", (byte)0);
 			registerInfo.Set("updated", new Date());
 			updateList.add(registerInfo);
-			return CommonDaoService.update(updateList);
+			return (CommonDaoFactory.Update(updateList) > 0);
 		}
 	}
 	
@@ -233,7 +234,7 @@ public class DeviceService {
 	}
 	
 	@SuppressWarnings("rawtypes")
-	public static String getRenderTableDeviceList(UserInfo userInfo, List<Device> deviceList, Map messages, String contextPath) {
+	public static String getRenderTableDeviceList(User userInfo, List<Device> deviceList, Map messages, String contextPath) {
 		List<Integer> deviceIds = new ArrayList<>();
 		for (Device device : deviceList) {
 			deviceIds.add(device.getId());
@@ -298,13 +299,13 @@ public class DeviceService {
 								List<DeviceRegister> registerList = deviceRegisterMap.get(device.getId());
 								registCount = registerList.size();
 								for (DeviceRegister dr : registerList) {
-									if (dr.getUser_id() == userInfo.getId()) {
+									if (dr.getUserId() == userInfo.getId()) {
 										hasBorrow = true;
 									}
 									sbModal.append("<tr role='row' class=''>");
 									sbModal.append("<td>").append(dr.getUsername()).append("</td>");
-									sbModal.append("<td>").append(CommonMethod.getFormatDateWithoutTimeString(dr.getStartDate())).append("</td>");
-									sbModal.append("<td>").append(CommonMethod.getFormatDateWithoutTimeString(dr.getEndDate())).append("</td>");
+									sbModal.append("<td>").append(CommonMethod.getFormatDateWithoutTimeString(dr.getStartDateDate())).append("</td>");
+									sbModal.append("<td>").append(CommonMethod.getFormatDateWithoutTimeString(dr.getEndDateDate())).append("</td>");
 									sbModal.append("<td>").append(String.format("<button class='btn btn-danger dv-action device-respond' data-id='%d' data-rgid='%d' data-dname='%s' type='button'>Response</button>", device.getId(), dr.getId(), device.getName())).append("</td>");
 									sbModal.append("</tr>");
 								}
@@ -345,26 +346,26 @@ public class DeviceService {
 			sb.append(String.format("<div>%s</div>", device.getFormatNote()));
 			sb.append("</td>");
 			sb.append("<td>").append((String)messages.get(DeviceType.valueOf(deviceType).getLabel())).append("</td>");
-			sb.append("<td>").append(CommonMethod.getFormatDateWithoutTimeString(device.getBuyDate())).append("</td>");
+			sb.append("<td>").append(CommonMethod.getFormatDateWithoutTimeString(device.getBuyDateDate())).append("</td>");
 			sb.append("<td>").append((String)messages.get(DeviceStatus.valueOf(device.getStatus()).getLabel())).append("</td>");
 
-			if (!device.isShowDate() || device.getHoldDate().getTime() == CommonMethod.getDate(CommonDefine.DEFAULT_DATE_TIME).getTime()) {
+			if (!device.isShowDate() || device.getHoldDateDate().getTime() == CommonMethod.getDate(CommonDefine.DEFAULT_DATE_TIME).getTime()) {
 				sb.append("<td>").append("---").append("</td>");
 			} else {
-				sb.append("<td>").append(CommonMethod.getFormatDateWithoutTimeString(device.getHoldDate())).append("</td>");
+				sb.append("<td>").append(CommonMethod.getFormatDateWithoutTimeString(CommonMethod.getDate(device.getHoldDate()))).append("</td>");
 			}
-			if (!device.isShowDate() || device.getReleaseDate().getTime() == CommonMethod.getDate(CommonDefine.DEFAULT_DATE_TIME).getTime()) {
+			if (!device.isShowDate() || device.getReleaseDateDate().getTime() == CommonMethod.getDate(CommonDefine.DEFAULT_DATE_TIME).getTime()) {
 				sb.append("<td>").append("---").append("</td>");
 			} else {
 				sb.append("<td>");
 				if (device.getStatus() == DeviceStatus.CHANGE_PENDING.getStatus()) {
-					sb.append(String.format("<div class=\"%s\" style=\"text-decoration:line-through;font-style:italic;\">%s</div>", (device.getReleaseDate().before(now) ? "text-danger font-weight-bold" : ""), CommonMethod.getFormatDateWithoutTimeString(device.getReleaseDate())));
-					sb.append(String.format("<div class=\"%s\">%s</div>", (device.getExtendDate().before(now) ? "text-danger font-weight-bold" : ""), CommonMethod.getFormatDateWithoutTimeString(device.getExtendDate())));
+					sb.append(String.format("<div class=\"%s\" style=\"text-decoration:line-through;font-style:italic;\">%s</div>", (device.getReleaseDateDate().before(now) ? "text-danger font-weight-bold" : ""), CommonMethod.getFormatDateWithoutTimeString(device.getReleaseDateDate())));
+					sb.append(String.format("<div class=\"%s\">%s</div>", (device.getExtendDateDate().before(now) ? "text-danger font-weight-bold" : ""), CommonMethod.getFormatDateWithoutTimeString(device.getExtendDateDate())));
 				} else {
 					if (device.getUserId() == userInfo.getId() || userInfo.isDeviceAdmin()) {
-						sb.append(String.format("<div class=\"%s\" style=\"position:relative;\"><span class=\"dv-update none-select\" style=\"cursor:pointer;\" data-id=\"%d\">%s</span><i class=\"fas fa-question-circle\" style=\"position: absolute;top: 0;margin-left: 2px;color: #dee2e6;\" data-toggle=\"popover\" data-trigger=\"hover\" data-pop=\"Double click on the date to change it\"></i></div>", (device.getReleaseDate().before(now) ? "text-danger font-weight-bold" : ""), device.getId(), CommonMethod.getFormatDateWithoutTimeString(device.getReleaseDate())));
+						sb.append(String.format("<div class=\"%s\" style=\"position:relative;\"><span class=\"dv-update none-select\" style=\"cursor:pointer;\" data-id=\"%d\">%s</span><i class=\"fas fa-question-circle\" style=\"position: absolute;top: 0;margin-left: 2px;color: #dee2e6;\" data-toggle=\"popover\" data-trigger=\"hover\" data-pop=\"Double click on the date to change it\"></i></div>", (device.getReleaseDateDate().before(now) ? "text-danger font-weight-bold" : ""), device.getId(), CommonMethod.getFormatDateWithoutTimeString(device.getReleaseDateDate())));
 					} else {
-						sb.append(String.format("<div class=\"%s\">%s</div>", (device.getReleaseDate().before(now) ? "text-danger font-weight-bold" : ""), CommonMethod.getFormatDateWithoutTimeString(device.getReleaseDate())));
+						sb.append(String.format("<div class=\"%s\">%s</div>", (device.getReleaseDateDate().before(now) ? "text-danger font-weight-bold" : ""), CommonMethod.getFormatDateWithoutTimeString(device.getReleaseDateDate())));
 					}
 				}
 				sb.append("</td>");
@@ -458,12 +459,12 @@ public class DeviceService {
 				sb.append(device.getUsername());
 			}
 			sb.append("|").append(DeviceStatus.valueOf(device.getStatus()).getMsg()).append("|");
-			if (device.isShowDate() && device.getReleaseDate().getTime() != CommonMethod.getDate(CommonDefine.DEFAULT_DATE_TIME).getTime()) {
-				sb.append(CommonMethod.getFormatDateWithoutTimeString(device.getHoldDate())).append("|");
+			if (device.isShowDate() && device.getReleaseDateDate().getTime() != CommonMethod.getDate(CommonDefine.DEFAULT_DATE_TIME).getTime()) {
+				sb.append(CommonMethod.getFormatDateWithoutTimeString(device.getHoldDateDate())).append("|");
 				if (device.getStatus() == DeviceStatus.CHANGE_PENDING.getStatus()) {
-					sb.append(CommonMethod.getFormatDateWithoutTimeString(device.getExtendDate())).append("|");
+					sb.append(CommonMethod.getFormatDateWithoutTimeString(device.getExtendDateDate())).append("|");
 				} else {
-					sb.append(CommonMethod.getFormatDateWithoutTimeString(device.getReleaseDate())).append("|");
+					sb.append(CommonMethod.getFormatDateWithoutTimeString(device.getReleaseDateDate())).append("|");
 				}
 			} else {
 				sb.append("---").append("|");
@@ -485,9 +486,10 @@ public class DeviceService {
 		sb.append("|:---:|:---:|:---:|");
 		sb.append("\n");
 		for (DeviceRegister dr : registerList) {
-			sb.append("|").append(dr.getUsername()).append("|").append(CommonMethod.getFormatDateWithoutTimeString(dr.getStartDate())).append("|").append(CommonMethod.getFormatDateWithoutTimeString(dr.getEndDate())).append("|");
+			sb.append("|").append(dr.getUsername()).append("|").append(CommonMethod.getFormatDateWithoutTimeString(dr.getStartDateDate())).append("|").append(CommonMethod.getFormatDateWithoutTimeString(dr.getEndDateDate())).append("|");
 		}
 		
 		return sb.toString();
 	}
 }
+

@@ -2,18 +2,18 @@ package dev.boom.services;
 
 import java.util.Date;
 
+import dev.boom.common.CommonDefine;
+import dev.boom.common.CommonMethod;
 import dev.boom.tbl.info.TblAuthTokenInfo;
 
 public class AuthToken {
-
 	private TblAuthTokenInfo authTokenInfo;
 
 	public AuthToken() {
-		super();
+		authTokenInfo = new TblAuthTokenInfo();
 	}
 
 	public AuthToken(TblAuthTokenInfo authTokenInfo) {
-		super();
 		this.authTokenInfo = authTokenInfo;
 	}
 
@@ -22,47 +22,52 @@ public class AuthToken {
 	}
 
 	public long getId() {
-		return this.authTokenInfo.getId();
+		return (Long) authTokenInfo.Get("id");
 	}
 
 	public void setId(long id) {
-		this.authTokenInfo.setId(id);
+		authTokenInfo.Set("id", id);
 	}
 
 	public String getToken() {
-		return this.authTokenInfo.getToken();
+		return (String) authTokenInfo.Get("token");
 	}
 
 	public void setToken(String token) {
-		this.authTokenInfo.setToken(token);
+		authTokenInfo.Set("token", token);
 	}
 
 	public String getValidator() {
-		return this.authTokenInfo.getValidator();
+		return (String) authTokenInfo.Get("validator");
 	}
 
 	public void setValidator(String validator) {
-		this.authTokenInfo.setValidator(validator);
+		authTokenInfo.Set("validator", validator);
 	}
 
 	public long getUserId() {
-		return this.authTokenInfo.getUser_id();
+		return (Long) authTokenInfo.Get("user_id");
 	}
 
 	public void setUserId(long userId) {
-		this.authTokenInfo.setUser_id(userId);
+		authTokenInfo.Set("user_id", userId);
 	}
 
-	public Date getExpired() {
-		return this.authTokenInfo.getExpired();
+	public String getExpired() {
+		return (String) authTokenInfo.Get("expired");
 	}
 
-	public void setExpired(Date expired) {
-		this.authTokenInfo.setExpired(expired);
+	public void setExpired(String expired) {
+		authTokenInfo.Set("expired", expired);
 	}
 
-	public boolean isExpired() {
-		return getExpired().before(new Date());
+	public Date getExpiredDate() {
+		String strExpired = getExpired();
+		if (strExpired == null) {
+			return null;
+		}
+		return CommonMethod.getDate(strExpired, CommonDefine.DATE_FORMAT_PATTERN);
 	}
-	
+
 }
+

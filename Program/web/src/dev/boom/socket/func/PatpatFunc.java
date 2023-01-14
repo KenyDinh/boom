@@ -4,7 +4,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -36,21 +35,21 @@ import dev.boom.common.game.QuizStatus;
 import dev.boom.common.game.QuizSubject;
 import dev.boom.common.game.QuizTimer;
 import dev.boom.core.GameLog;
-import dev.boom.dao.core.DaoValue;
-import dev.boom.services.CommonDaoService;
+import dev.boom.dao.CommonDaoFactory;
+import dev.boom.dao.DaoValue;
 import dev.boom.services.Device;
 import dev.boom.services.DeviceRegister;
 import dev.boom.services.DeviceRegisterService;
 import dev.boom.services.DeviceService;
+import dev.boom.services.Quiz;
 import dev.boom.services.QuizData;
 import dev.boom.services.QuizDataService;
-import dev.boom.services.QuizInfo;
-import dev.boom.services.QuizPlayerInfo;
+import dev.boom.services.QuizLog;
+import dev.boom.services.QuizPlayer;
 import dev.boom.services.QuizPlayerService;
 import dev.boom.services.QuizService;
-import dev.boom.services.UserInfo;
+import dev.boom.services.User;
 import dev.boom.services.UserService;
-import dev.boom.tbl.info.TblQuizLogInfo;
 import net.arnx.jsonic.JSON;
 import net.arnx.jsonic.JSONException;
 
@@ -98,14 +97,14 @@ public class PatpatFunc {
 		String username = message.getUsername();
 		String channel = message.getChannel();
 		String text = message.getMessage();
-		UserInfo userInfo = UserService.getUserByName(username);
+		User userInfo = UserService.getUserByName(username);
 		if (userInfo == null) {
 			log.error("[processQuizMessage] User is null!");
 			return null;
 		}
 		PatpatOutgoingMessage returnMessage = new PatpatOutgoingMessage();
-		QuizInfo existingQuizInfo = QuizService.getNotFinishQuizByName(channel);
-		QuizPlayerInfo quizPlayerInfo = QuizPlayerService.getQuizPlayerById(userInfo.getId());
+		Quiz existingQuizInfo = QuizService.getNotFinishQuizByName(channel);
+		QuizPlayer quizPlayerInfo = QuizPlayerService.getQuizPlayerById(userInfo.getId());
 		List<DaoValue> updateList;
 		QuizTimer quizTimer;
 		String msg;
@@ -156,7 +155,7 @@ public class PatpatFunc {
 			default:
 				break;
 			}
-			existingQuizInfo = new QuizInfo();
+			existingQuizInfo = new Quiz();
 			String strQNum = quizSubject.getParameter(QuizDefine.PARAM_Q_NUM, arr);
 			if (strQNum != null) {
 				if (!CommonMethod.isValidNumeric(strQNum, QuizDefine.MIN_QUESTION, QuizDefine.MAX_QUESTION)) {
@@ -223,7 +222,7 @@ public class PatpatFunc {
 				return null;
 			}
 			if (quizPlayerInfo == null) {
-				quizPlayerInfo = new QuizPlayerInfo();
+				quizPlayerInfo = new QuizPlayer();
 				quizPlayerInfo.setUserId(userInfo.getId());
 				quizPlayerInfo.setUsername(userInfo.getUsername());
 			} 
@@ -245,7 +244,7 @@ public class PatpatFunc {
 				return null;
 			}
 			if (quizPlayerInfo == null) {
-				quizPlayerInfo = new QuizPlayerInfo();
+				quizPlayerInfo = new QuizPlayer();
 				quizPlayerInfo.setUserId(userInfo.getId());
 				quizPlayerInfo.setUsername(userInfo.getUsername());
 			} else {
@@ -259,9 +258,9 @@ public class PatpatFunc {
 			quizPlayerInfo.initNewQuiz(existingQuizInfo);
 			existingQuizInfo.setPlayerNum((byte) (existingQuizInfo.getPlayerNum() + 1));
 			updateList = new ArrayList<>();
-			updateList.add(existingQuizInfo.getTblQuizInfo());
-			updateList.add(quizPlayerInfo.getTblQuizPlayerInfo());
-			if (!CommonDaoService.update(updateList)) {
+			updateList.add(existingQuizInfo.getQuizInfo());
+			updateList.add(quizPlayerInfo.getQuizPlayerInfo());
+			if (CommonDaoFactory.Update(updateList) < 0) {
 				log.error("[processQuizMessage] Join quiz fail!");
 				sendMessageToChannel(channel, "@" + username + " Join quiz fail!");
 				return null;
@@ -289,23 +288,23 @@ public class PatpatFunc {
 			existingQuizInfo.setPlayerNum((byte)(existingQuizInfo.getPlayerNum() - 1));
 			if (existingQuizInfo.getPlayerNum() <= 0) {
 				existingQuizInfo.setStatus(QuizStatus.FINISHED.getStatus());
-				existingQuizInfo.setExpired(new Date());
+				existingQuizInfo.setExpired(CommonMethod.getFormatStringNow());
 			} else if (existingQuizInfo.getHost() == quizPlayerInfo.getUserId() && existingQuizInfo.isPreparing()) {
-				QuizPlayerInfo newHost = QuizPlayerService.getQuizPlayerByQuizId(existingQuizInfo.getId(), "AND user_id <> " + quizPlayerInfo.getUserId() + " ORDER BY updated ASC");
+				QuizPlayer newHost = QuizPlayerService.getQuizPlayerByQuizId(existingQuizInfo.getId(), "AND user_id <> " + quizPlayerInfo.getUserId() + " ORDER BY updated ASC");
 				if (newHost == null) {
 					log.warn("[processQuizMessage] Can not find a new host for this quiz!");
 					sendMessageToChannel(channel, "Can not find a new host for this quiz! -> Ended");
 					existingQuizInfo.setStatus(QuizStatus.FINISHED.getStatus());
-					existingQuizInfo.setExpired(new Date());
+					existingQuizInfo.setExpired(CommonMethod.getFormatStringNow());
 				} else {
 					existingQuizInfo.setHost(newHost.getUserId());
 					// change host TODO
 				}
 			}
 			updateList = new ArrayList<>();
-			updateList.add(existingQuizInfo.getTblQuizInfo());
-			updateList.add(quizPlayerInfo.getTblQuizPlayerInfo());
-			if (!CommonDaoService.update(updateList)) {
+			updateList.add(existingQuizInfo.getQuizInfo());
+			updateList.add(quizPlayerInfo.getQuizPlayerInfo());
+			if (CommonDaoFactory.Update(updateList) < 0) {
 				log.error("[processQuizMessage] quit quiz fail!");
 				sendMessageToChannel(channel, "An unexpected error occurred!");
 				return null;
@@ -345,7 +344,7 @@ public class PatpatFunc {
 				sendMessageToChannel(channel, "An unexpected error occurred!");
 				return null;
 			}
-			existingQuizInfo.getTblQuizInfo().Sync();
+			existingQuizInfo.getQuizInfo().Sync();
 			quizTimer = new QuizTimer(existingQuizInfo.getId());
 			QuizStaticData.addQuizTimer(quizTimer);
 			quizTimer.start();
@@ -437,16 +436,16 @@ public class PatpatFunc {
 				quizPlayerInfo.incCorrectPoint();
 			} else {
 			}
-			updateList.add(quizPlayerInfo.getTblQuizPlayerInfo());
-			TblQuizLogInfo quizLogInfo = new TblQuizLogInfo();
-			quizLogInfo.setQuiz_id(existingQuizInfo.getId());
-			quizLogInfo.setQuestion_index(existingQuizInfo.getCurrentQuestion());
-			quizLogInfo.setUser_id(quizPlayerInfo.getUserId());
+			updateList.add(quizPlayerInfo.getQuizPlayerInfo());
+			QuizLog quizLogInfo = new QuizLog();
+			quizLogInfo.setQuizId(existingQuizInfo.getId());
+			quizLogInfo.setQuestionIndex(existingQuizInfo.getCurrentQuestion());
+			quizLogInfo.setUserId(quizPlayerInfo.getUserId());
 			quizLogInfo.setUsername(quizPlayerInfo.getUsername());
-			quizLogInfo.setPlayer_answer(command.getCommand());
-			quizLogInfo.setCorrect_answer(correctAnswer);
-			updateList.add(quizLogInfo);
-			if (!CommonDaoService.update(updateList)) {
+			quizLogInfo.setPlayerAnswer(command.getCommand());
+			quizLogInfo.setCorrectAnswer(correctAnswer);
+			updateList.add(quizLogInfo.getQuizLogInfo());
+			if (CommonDaoFactory.Update(updateList) < 0) {
 				log.error("[processQuizMessage] Update quiz player answer failed!");
 				sendMessageToChannel(channel, "An unexpected error occurred!");
 				return null;
@@ -531,7 +530,7 @@ public class PatpatFunc {
 		String channel = message.getChannel();
 		String text = message.getMessage();
 		String username = message.getUsername();
-		UserInfo userInfo = UserService.getUserByName(username);
+		User userInfo = UserService.getUserByName(username);
 		switch (command) {
 		case DEVICE:
 			String arr[] = toArrayOptions(command.formatMessage(text));
@@ -558,7 +557,7 @@ public class PatpatFunc {
 		return null;
 	}
 	
-	private static String doDeviceAction(UserInfo user, DeviceAction deviceAction, String[] arr) {
+	private static String doDeviceAction(User user, DeviceAction deviceAction, String[] arr) {
 		List<Device> deviceList = null;
 		StringBuilder option = new StringBuilder();
 		switch (deviceAction) {

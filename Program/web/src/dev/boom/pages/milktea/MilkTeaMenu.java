@@ -10,9 +10,9 @@ import dev.boom.common.milktea.MilkTeaSocketMessage;
 import dev.boom.common.milktea.MilkTeaSocketType;
 import dev.boom.common.milktea.MilkTeaTabEnum;
 import dev.boom.milktea.object.MenuItem;
-import dev.boom.services.MenuInfo;
+import dev.boom.services.Menu;
 import dev.boom.services.MenuService;
-import dev.boom.services.OrderInfo;
+import dev.boom.services.Order;
 import dev.boom.services.OrderService;
 import dev.boom.socket.SocketSessionPool;
 import dev.boom.socket.endpoint.MilkTeaEndPoint;
@@ -21,7 +21,7 @@ public class MilkTeaMenu extends MilkTeaMainPage {
 
 	private static final long serialVersionUID = 1L;
 	
-	private MenuInfo menuInfo;
+	private Menu menuInfo;
 	private int page = 1;
 
 	public MilkTeaMenu() {
@@ -72,7 +72,7 @@ public class MilkTeaMenu extends MilkTeaMainPage {
 				addModel("dish_list", MilkTeaCommonFunc.getHtmlListMenuItem(menuInfo, listMenuItem, contextPath, getUserInfo(), getMessages()));
 				addModel("dish_type", MilkTeaCommonFunc.getHtmlListMenuItemType(listMenuItem, contextPath));
 			}
-			List<OrderInfo> listOrder = OrderService.getOrderInfoListByMenuId(menuInfo.getId());
+			List<Order> listOrder = OrderService.getOrderInfoListByMenuId(menuInfo.getId());
 			addModel("order_list", MilkTeaCommonFunc.getHtmlListOrder(listOrder, menuInfo, getUserInfo(), contextPath, getMessages(), getWorldInfo()));
 			addModel("menuInfo", menuInfo);
 		} else {

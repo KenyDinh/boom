@@ -11,17 +11,18 @@ import dev.boom.common.VoteFuncs;
 import dev.boom.common.enums.SurveyQuestionType;
 import dev.boom.common.enums.SurveyStatus;
 import dev.boom.core.GameLog;
-import dev.boom.dao.core.DaoValue;
+import dev.boom.dao.CommonDaoFactory;
+import dev.boom.dao.DaoValue;
 import dev.boom.pages.JsonPageBase;
-import dev.boom.services.CommonDaoService;
+import dev.boom.services.Survey;
+import dev.boom.services.SurveyQuestion;
+import dev.boom.services.SurveyResult;
 import dev.boom.services.SurveyService;
-import dev.boom.services.UserInfo;
+import dev.boom.services.SurveyUserAccess;
+import dev.boom.services.User;
 import dev.boom.services.UserService;
 import dev.boom.services.json.SurveyAnswerWrapper;
-import dev.boom.tbl.info.TblSurveyInfo;
-import dev.boom.tbl.info.TblSurveyQuestionInfo;
 import dev.boom.tbl.info.TblSurveyResultInfo;
-import dev.boom.tbl.info.TblSurveyUserAccessInfo;
 
 public class VoteUpdate extends JsonPageBase {
 
@@ -44,29 +45,29 @@ public class VoteUpdate extends JsonPageBase {
 		if (!isLocal()) {
 			return;
 		}
-		List<TblSurveyInfo> surveyList = SurveyService.getSurveyInfoListForDisplay(false);
+		List<Survey> surveyList = SurveyService.getSurveyInfoListForDisplay(false);
 		if (surveyList == null || surveyList.isEmpty()) {
 			return;
 		}
-		Map<String, UserInfo> mapUserByCode = null;
+		Map<String, User> mapUserByCode = null;
 		Date now = new Date();
 		List<DaoValue> updateList = new ArrayList<>();
-		for (TblSurveyInfo surveyInfo : surveyList) {
+		for (Survey surveyInfo : surveyList) {
 			if (surveyInfo.getStatus() == SurveyStatus.FINISHED.ordinal()) {
 				continue;
 			}
-			if (surveyInfo.getExpired().getTime() > now.getTime()) {
+			if (surveyInfo.getExpiredDate().getTime() > now.getTime()) {
 				continue;
 			}
 			surveyInfo.setStatus((byte)SurveyStatus.FINISHED.ordinal());
-			updateList.add(surveyInfo);
+			updateList.add(surveyInfo.getSurveyInfo());
 			
-			List<TblSurveyQuestionInfo> questionList = SurveyService.getSurveyQuestionList(surveyInfo.getId(), "AND type = " + SurveyQuestionType.MYSTERY_GIFT_BOX.ordinal());
+			List<SurveyQuestion> questionList = SurveyService.getSurveyQuestionList(surveyInfo.getId(), "AND type = " + SurveyQuestionType.MYSTERY_GIFT_BOX.ordinal());
 			if (questionList == null || questionList.isEmpty()) {
 				continue;
 			}
-			Map<Byte, TblSurveyQuestionInfo> mapIdxQuestionInfo = new HashMap<>();
-			for (TblSurveyQuestionInfo questionInfo : questionList) {
+			Map<Byte, SurveyQuestion> mapIdxQuestionInfo = new HashMap<>();
+			for (SurveyQuestion questionInfo : questionList) {
 				if (questionInfo.getType() != SurveyQuestionType.MYSTERY_GIFT_BOX.ordinal()) {
 					continue;
 				}
@@ -76,17 +77,17 @@ public class VoteUpdate extends JsonPageBase {
 				continue;
 			}
 			//
-			List<TblSurveyUserAccessInfo> accessList = SurveyService.getSurveyUserAccessList(surveyInfo.getId());
+			List<SurveyUserAccess> accessList = SurveyService.getSurveyUserAccessList(surveyInfo.getId());
 			if (accessList == null || accessList.isEmpty()) {
 				continue;
 			}
 			if (mapUserByCode == null) {
-				List<UserInfo> userList = UserService.getUserList();
+				List<User> userList = UserService.getUserList();
 				if (userList == null || userList.isEmpty()) {
 					return; // stop process
 				}
 				mapUserByCode = new HashMap<>();
-				for (UserInfo userInfo : userList) {
+				for (User userInfo : userList) {
 					String strCode = userInfo.getEmpid();
 					if (strCode == null || strCode.isEmpty()) {
 						continue;
@@ -95,19 +96,19 @@ public class VoteUpdate extends JsonPageBase {
 					mapUserByCode.put(strCode, userInfo);
 				}
 			}
-			Map<String, TblSurveyUserAccessInfo> listAccessCode = new HashMap<>();
-			for (TblSurveyUserAccessInfo accessInfo : accessList) {
-				listAccessCode.put(accessInfo.getUser_code(), accessInfo);
+			Map<String, SurveyUserAccess> listAccessCode = new HashMap<>();
+			for (SurveyUserAccess accessInfo : accessList) {
+				listAccessCode.put(accessInfo.getUserCode(), accessInfo);
 			}
 			//
-			List<TblSurveyResultInfo> resultList = SurveyService.getSurveyResultList(surveyInfo.getId());
+			List<SurveyResult> resultList = SurveyService.getSurveyResultList(surveyInfo.getId());
 			if (resultList != null && !resultList.isEmpty()) {
-				for (TblSurveyResultInfo resultInfo : resultList) {
+				for (SurveyResult resultInfo : resultList) {
 					SurveyAnswerWrapper resultObject = SurveyAnswerWrapper.parse(resultInfo.getResult());
 					if (resultObject == null) {
 						continue;
 					}
-					String userCode = resultInfo.getUser_id();
+					String userCode = resultInfo.getUserId();
 					if (!listAccessCode.containsKey(userCode)) {
 						continue;
 					}
@@ -115,13 +116,13 @@ public class VoteUpdate extends JsonPageBase {
 					int myNum = listAccessCode.get(userCode).getFlag();
 					boolean update = false;
 					for (Byte questionIdx : mapIdxQuestionInfo.keySet()) {
-						TblSurveyQuestionInfo questionInfo = mapIdxQuestionInfo.get(questionIdx);
+						SurveyQuestion questionInfo = mapIdxQuestionInfo.get(questionIdx);
 						String answer = resultObject.getAnswer(questionIdx);
-						if (CommonMethod.isValidNumeric(answer, 1, questionInfo.getMax_choice())) {
+						if (CommonMethod.isValidNumeric(answer, 1, questionInfo.getMaxChoice())) {
 							continue;
 						}
 						maxIdx = CommonMethod.max(maxIdx, questionIdx);
-						int rewardID = VoteFuncs.getLuckyRewardId(surveyInfo.getId(), questionIdx, questionInfo.getMax_choice(), myNum);
+						int rewardID = VoteFuncs.getLuckyRewardId(surveyInfo.getId(), questionIdx, questionInfo.getMaxChoice(), myNum);
 						if (rewardID <= 0) {
 							continue;
 						}
@@ -129,9 +130,9 @@ public class VoteUpdate extends JsonPageBase {
 						update = true;
 					}
 					if (update) {
-						resultInfo.Set("progress", (byte) (maxIdx + 1));
-						resultInfo.Set("result", resultObject.toString());
-						updateList.add(resultInfo);
+						resultInfo.setProgress((byte) (maxIdx + 1));;
+						resultInfo.setResult(resultObject.toString());;
+						updateList.add(resultInfo.getSurveyResultInfo());
 					}
 					listAccessCode.remove(userCode);
 				}
@@ -142,7 +143,7 @@ public class VoteUpdate extends JsonPageBase {
 						continue;
 					}
 					int myNum = listAccessCode.get(key).getFlag();
-					UserInfo userInfo = mapUserByCode.get(key);
+					User userInfo = mapUserByCode.get(key);
 					TblSurveyResultInfo resultInfo = new TblSurveyResultInfo();
 					resultInfo.Set("survey_id", surveyInfo.getId());
 					resultInfo.Set("user_id", userInfo.getEmpid());
@@ -151,9 +152,9 @@ public class VoteUpdate extends JsonPageBase {
 					SurveyAnswerWrapper resultObject = new SurveyAnswerWrapper();
 					int maxIdx = 0;
 					for (Byte questionIdx : mapIdxQuestionInfo.keySet()) {
-						TblSurveyQuestionInfo questionInfo = mapIdxQuestionInfo.get(questionIdx);
+						SurveyQuestion questionInfo = mapIdxQuestionInfo.get(questionIdx);
 						maxIdx = CommonMethod.max(maxIdx, questionIdx);
-						int rewardID = VoteFuncs.getLuckyRewardId(surveyInfo.getId(), questionIdx, questionInfo.getMax_choice(), myNum);
+						int rewardID = VoteFuncs.getLuckyRewardId(surveyInfo.getId(), questionIdx, questionInfo.getMaxChoice(), myNum);
 						if (rewardID <= 0) {
 							continue;
 						}
@@ -168,7 +169,7 @@ public class VoteUpdate extends JsonPageBase {
 		if (updateList.isEmpty()) {
 			return;
 		}
-		if (!CommonDaoService.update(updateList)) {
+		if (CommonDaoFactory.Update(updateList) < 0) {
 			GameLog.getInstance().error("[VoteUpdate] Update servey failed!");
 		}
 	}

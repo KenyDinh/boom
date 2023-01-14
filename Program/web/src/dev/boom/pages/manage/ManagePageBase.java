@@ -5,14 +5,14 @@ import org.apache.click.Page;
 import dev.boom.core.BoomSession;
 import dev.boom.core.GameLog;
 import dev.boom.pages.Home;
-import dev.boom.services.UserInfo;
+import dev.boom.services.User;
 import dev.boom.services.UserService;
 
 public class ManagePageBase extends ManageTemplate {
 
 	private static final long serialVersionUID = 1L;
 
-	protected UserInfo userInfo = null;
+	protected User userInfo = null;
 	
 	@Override
 	public boolean onSecurityCheck() {

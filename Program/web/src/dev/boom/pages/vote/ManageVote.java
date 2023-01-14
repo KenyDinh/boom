@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -33,14 +32,16 @@ import dev.boom.common.enums.SurveyOptionType;
 import dev.boom.common.enums.SurveyQuestionType;
 import dev.boom.common.enums.SurveyStatus;
 import dev.boom.core.GameLog;
-import dev.boom.dao.core.DaoValue;
-import dev.boom.services.CommonDaoService;
+import dev.boom.dao.CommonDaoFactory;
+import dev.boom.dao.DaoValue;
+import dev.boom.dao.FunctionTransaction;
+import dev.boom.services.Survey;
+import dev.boom.services.SurveyOption;
+import dev.boom.services.SurveyQuestion;
 import dev.boom.services.SurveyService;
+import dev.boom.services.SurveyUserAccess;
 import dev.boom.services.json.SurveyOptionStatistics;
 import dev.boom.services.json.SurveyResultObject;
-import dev.boom.tbl.info.TblSurveyInfo;
-import dev.boom.tbl.info.TblSurveyOptionInfo;
-import dev.boom.tbl.info.TblSurveyQuestionInfo;
 import dev.boom.tbl.info.TblSurveyResultInfo;
 import dev.boom.tbl.info.TblSurveyUserAccessInfo;
 
@@ -56,7 +57,7 @@ public class ManageVote extends VotePageBase {
 	private static final int MODE_SHOW_RESULT = 7;
 	private static final int MODE_EXPORT_RESULT = 8;
 	
-	private TblSurveyInfo survey = null;
+	private Survey survey = null;
 	private int mode = 0;
 	private boolean error = false;
 
@@ -129,11 +130,11 @@ public class ManageVote extends VotePageBase {
 		case MODE_SURVEY_NEW:
 		case MODE_SURVEY_EDIT:
 		{
-			TblSurveyInfo surveyInfo = null;
+			Survey surveyInfo = null;
 			if (mode == MODE_SURVEY_EDIT) {
 				surveyInfo = survey;
 			} else {
-				surveyInfo = new TblSurveyInfo();
+				surveyInfo = new Survey();
 			}
 			if (surveyInfo == null) {
 				GameLog.getInstance().error("[ManageVote] Survey is null!");
@@ -141,18 +142,16 @@ public class ManageVote extends VotePageBase {
 				return;
 			}
 			if (mode == MODE_SURVEY_EDIT && getContext().getRequestParameter("delete") != null) {
-				List<String> command = Arrays.asList(new String[] {"DELETE FROM survey_result_info WHERE survey_id = " + surveyInfo.getId()});
-				List<Object> ret = CommonDaoService.executeNativeSQLQuery("SELECT * FROM survey_info WHERE id = " + surveyInfo.getId(), command);
-				if (ret == null || ret.isEmpty()) {
-					GameLog.getInstance().error("[ManageVote] Clear Survey failed!");
-					error = true;
-					return;
-				}
+				String sql = "DELETE FROM survey_result_info WHERE survey_id = " + surveyInfo.getId();
+				FunctionTransaction ft = (conn) -> {
+					CommonDaoFactory.executeUpdate(conn, sql);
+					return true;
+				};
+				CommonDaoFactory.functionTransaction(ft);
 				VoteFuncs.reInitAllRewardId();
 			} else {
 				String strName = getContext().getRequestParameter("name");
 				if (strName != null && strName.length() > 0 && !surveyInfo.getName().equals(strName)) {
-//					strName = StringEscapeUtils.escapeHtml(strName);
 					surveyInfo.setName(strName);
 					update = true;
 				}
@@ -167,7 +166,6 @@ public class ManageVote extends VotePageBase {
 				}
 				String strDescription = getContext().getRequestParameter("desc");
 				if (strDescription != null && strDescription.length() > 0) {
-//					strDescription = StringEscapeUtils.escapeHtml(strDescription);
 					if (!surveyInfo.getDescription().equals(strDescription)) {
 						surveyInfo.setDescription(strDescription);
 						update = true;
@@ -176,8 +174,8 @@ public class ManageVote extends VotePageBase {
 				String strExpiration = getContext().getRequestParameter("expired");
 				if (strExpiration != null && strExpiration.matches(CommonDefine.DATE_REGEX_PATTERN)) {
 					Date expired = CommonMethod.getDate(strExpiration.replace("/", "-"));
-					if (expired != null && expired.getTime() != surveyInfo.getExpired().getTime()) {
-						surveyInfo.setExpired(expired);
+					if (expired != null && expired.getTime() != surveyInfo.getExpiredDate().getTime()) {
+						surveyInfo.setExpired(CommonMethod.getFormatDateString(expired));
 						update = true;
 					}
 				}
@@ -194,23 +192,23 @@ public class ManageVote extends VotePageBase {
 						update = true;
 					}
 				}
-				Long surveyID = new Long(surveyInfo.getId());
+				long surveyID = surveyInfo.getId();
 				if (mode == MODE_SURVEY_NEW) {
 					surveyInfo.setPathname(UUID.randomUUID().toString().replace("-", ""));
-					surveyID = (Long) CommonDaoService.insert(surveyInfo);
-					if (surveyID == null || surveyID <= 0) {
+					surveyID = (Integer) CommonDaoFactory.Insert(surveyInfo.getSurveyInfo());
+					if (surveyID <= 0) {
 						GameLog.getInstance().error("[ManageVote] insert survey fail!");
 						error = true;
 						return;
 					}
 				} else if (update) {
-					if (!CommonDaoService.update(surveyInfo)) {
+					if (CommonDaoFactory.Update(surveyInfo.getSurveyInfo()) < 0) {
 						GameLog.getInstance().error("[ManageVote] update survey fail!");
 						error = true;
 						return;
 					}
 				}
-				updateSurveyAccessList(surveyID.longValue(), listUserAccess);
+				updateSurveyAccessList(surveyID, listUserAccess);
 			}
 		}
 			break;
@@ -222,7 +220,7 @@ public class ManageVote extends VotePageBase {
 				error = true;
 				return;
 			}
-			TblSurveyQuestionInfo questionInfo = null;
+			SurveyQuestion questionInfo = null;
 			if (mode == MODE_QUESTION_EDIT) {
 				String strQuestionId = getContext().getRequestParameter("question_id");
 				if (!CommonMethod.isValidNumeric(strQuestionId, 1, Long.MAX_VALUE)) {
@@ -232,17 +230,17 @@ public class ManageVote extends VotePageBase {
 				}
 				questionInfo = SurveyService.getSurveyQuestionById(Long.parseLong(strQuestionId));
 			} else {
-				questionInfo = new TblSurveyQuestionInfo();
-				questionInfo.setSurvey_id(survey.getId());
+				questionInfo = new SurveyQuestion();
+				questionInfo.setSurveyId(survey.getId());
 			}
-			if (questionInfo == null || questionInfo.getSurvey_id() != survey.getId()) {
+			if (questionInfo == null || questionInfo.getSurveyId() != survey.getId()) {
 				GameLog.getInstance().error("[ManageVote] Question is null!");
 				error = true;
 				return;
 			}
 			if (mode == MODE_QUESTION_EDIT && getContext().getRequestParameter("delete") != null) {
-				if (!CommonDaoService.delete(questionInfo)) {
-					GameLog.getInstance().error("[ManageVote] delete question fail!");
+				if (CommonDaoFactory.Delete(questionInfo.getSurveyQuestionInfo()) < 0) {
+					GameLog.getInstance().error("[ManageVote] delete question failed!");
 					error = true;
 					return;
 				}
@@ -258,35 +256,27 @@ public class ManageVote extends VotePageBase {
 				}
 				String strTitle = getContext().getRequestParameter("title");
 				if (strTitle != null && strTitle.length() > 0 && !questionInfo.getTitle().equals(strTitle)) {
-//					strTitle = StringEscapeUtils.escapeHtml(strTitle);
 					questionInfo.setTitle(strTitle);
 					update = true;
 				}
 				String strContent = getContext().getRequestParameter("content");
 				if (strContent != null && !questionInfo.getContent().equals(strContent)) {
-//					strContent = StringEscapeUtils.escapeHtml(strContent);
 					questionInfo.setContent(strContent);
 					update = true;
 				}
-//				String strDesc = getContext().getRequestParameter("desc");
-//				if (strDesc != null && !questionInfo.getDescription().equals(strDesc)) {
-//					strDesc = StringEscapeUtils.escapeHtml(strDesc);
-//					questionInfo.setDescription(strDesc);
-//					update = true;
-//				}
 				String strMin = getContext().getRequestParameter("min");
 				if (CommonMethod.isValidNumeric(strMin, 0, Integer.MAX_VALUE)) {
 					int min = Integer.parseInt(strMin);
-					if (questionInfo.getMin_choice() != min) {
-						questionInfo.setMin_choice(min);
+					if (questionInfo.getMinChoice() != min) {
+						questionInfo.setMinChoice(min);
 						update = true;
 					}
 				}
 				String strMax = getContext().getRequestParameter("max");
 				if (CommonMethod.isValidNumeric(strMax, 0, Integer.MAX_VALUE)) {
 					int max = Integer.parseInt(strMax);
-					if (questionInfo.getMax_choice() != max) {
-						questionInfo.setMax_choice(max);
+					if (questionInfo.getMaxChoice() != max) {
+						questionInfo.setMaxChoice(max);
 						update = true;
 					}
 				}
@@ -300,13 +290,13 @@ public class ManageVote extends VotePageBase {
 					long nCount = SurveyService.getCountSurveyQuestion(survey.getId());
 					byte nIndex = (byte) (nCount + 1);
 					questionInfo.setIdx(nIndex);
-					if (CommonDaoService.insert(questionInfo) == null) {
+					if (CommonDaoFactory.Insert(questionInfo.getSurveyQuestionInfo()) <= 0) {
 						GameLog.getInstance().error("[ManageVote] insert question fail!");
 						error = true;
 						return;
 					}
 				} else if (update){
-					if (!CommonDaoService.update(questionInfo)) {
+					if (CommonDaoFactory.Update(questionInfo.getSurveyQuestionInfo()) < 0) {
 						GameLog.getInstance().error("[ManageVote] update question fail!");
 						error = true;
 						return;
@@ -330,13 +320,13 @@ public class ManageVote extends VotePageBase {
 				error = true;
 				return;
 			}
-			TblSurveyQuestionInfo questionInfo = SurveyService.getSurveyQuestionById(Long.parseLong(strQuestionId));
+			SurveyQuestion questionInfo = SurveyService.getSurveyQuestionById(Long.parseLong(strQuestionId));
 			if (questionInfo == null) {
 				GameLog.getInstance().error("[ManageVote] no question selected!");
 				error = true;
 				return;
 			}
-			TblSurveyOptionInfo surveyOption = null;
+			SurveyOption surveyOption = null;
 			if (mode == MODE_OPTION_EDIT) {
 				String strOptionId = getContext().getRequestParameter("option_id");
 				if (!CommonMethod.isValidNumeric(strOptionId, 1, Long.MAX_VALUE)) {
@@ -346,16 +336,16 @@ public class ManageVote extends VotePageBase {
 				}
 				surveyOption = SurveyService.getSurveyOptionById(Long.parseLong(strOptionId));
 			} else {
-				surveyOption = new TblSurveyOptionInfo();
-				surveyOption.setQuestion_id(questionInfo.getId());
+				surveyOption = new SurveyOption();
+				surveyOption.setQuestionId(questionInfo.getId());
 			}
-			if (surveyOption == null || surveyOption.getQuestion_id() != questionInfo.getId()) {
+			if (surveyOption == null || surveyOption.getQuestionId() != questionInfo.getId()) {
 				GameLog.getInstance().error("[ManageVote] Option is null!");
 				error = true;
 				return;
 			}
 			if (mode == MODE_OPTION_EDIT && getContext().getRequestParameter("delete") != null) {
-				if (!CommonDaoService.delete(surveyOption)) {
+				if (CommonDaoFactory.Delete(surveyOption.getSurveyOptionInfo()) < 0) {
 					GameLog.getInstance().error("[ManageVote] delete option fail!");
 					error = true;
 					return;
@@ -372,13 +362,11 @@ public class ManageVote extends VotePageBase {
 				}
 				String strOptName = getContext().getRequestParameter("title");
 				if (strOptName != null && strOptName.length() > 0 && !surveyOption.getTitle().equals(strOptName)) {
-//					strOptName = StringEscapeUtils.escapeHtml(strOptName);
 					surveyOption.setTitle(strOptName);
 					update = true;
 				}
 				String strDesc = getContext().getRequestParameter("desc");
 				if (strDesc != null && !surveyOption.getDescription().equals(strDesc)) {
-//					strDesc = StringEscapeUtils.escapeHtml(strDesc);
 					surveyOption.setDescription(strDesc);
 					update = true;
 				}
@@ -408,19 +396,18 @@ public class ManageVote extends VotePageBase {
 				} else if (surveyOption.getType() == SurveyOptionType.TEXT.ordinal()){
 					String strContent = getContext().getRequestParameter("content");
 					if (strContent != null && !surveyOption.getContent().equals(strContent)) {
-//						strContent = StringEscapeUtils.escapeHtml(strContent);
 						surveyOption.setContent(strContent);
 						update = true;
 					}
 				}
 				if (mode == MODE_OPTION_NEW) {
-					if (CommonDaoService.insert(surveyOption) == null) {
+					if (CommonDaoFactory.Insert(surveyOption.getSurveyOptionInfo()) <= 0) {
 						GameLog.getInstance().error("[ManageVote] insert option fail!");
 						error = true;
 						return;
 					}
 				} else if (update){
-					if (!CommonDaoService.update(surveyOption)) {
+					if (CommonDaoFactory.Update(surveyOption.getSurveyOptionInfo()) < 0) {
 						GameLog.getInstance().error("[ManageVote] update option fail!");
 						error = true;
 						return;
@@ -447,13 +434,13 @@ public class ManageVote extends VotePageBase {
 					TblSurveyResultInfo info = new TblSurveyResultInfo();
 					info.Set("id", Long.parseLong(strID));
 					info.Set("survey_id", survey.getId());
-					List<DaoValue> listRet = CommonDaoService.select(info);
+					List<DaoValue> listRet = CommonDaoFactory.Select(info);
 					if (listRet == null || listRet.size() != 1) {
 						GameLog.getInstance().error("[ManageVote] More than one result record to delete!");
 						error = true;
 						return;
 					} else {
-						if (!CommonDaoService.delete(listRet.get(0))) {
+						if (CommonDaoFactory.Delete(listRet.get(0)) < 0) {
 							GameLog.getInstance().error("[ManageVote] Failed to delete result record!");
 							error = true;
 							return;
@@ -502,7 +489,7 @@ public class ManageVote extends VotePageBase {
 		case MODE_SURVEY_NEW:
 		case MODE_SURVEY_EDIT:
 		{
-			TblSurveyInfo surveyInfo = null;
+			Survey surveyInfo = null;
 			String strSurveyId = getContext().getRequestParameter("survey_id");
 			if (mode == MODE_SURVEY_EDIT) {
 				if (!CommonMethod.isValidNumeric(strSurveyId, 1, Long.MAX_VALUE)) {
@@ -513,7 +500,7 @@ public class ManageVote extends VotePageBase {
 				surveyInfo = SurveyService.getSurveyInfoById(Long.parseLong(strSurveyId));
 				addModel("title", "Edit Survey");
 			} else {
-				surveyInfo = new TblSurveyInfo();
+				surveyInfo = new Survey();
 				addModel("title", "New Survey");
 			}
 			if (surveyInfo == null) {
@@ -529,7 +516,7 @@ public class ManageVote extends VotePageBase {
 			}
 			optionSelects.append("</select>");
 			addModel("status_list", optionSelects.toString());
-			addModel("expired", CommonMethod.getFormatDateString(surveyInfo.getExpired()));
+			addModel("expired", (surveyInfo.getExpired()));
 			addModel("survey_form", surveyInfo);
 		}
 			break;
@@ -541,13 +528,7 @@ public class ManageVote extends VotePageBase {
 				error = true;
 				return;
 			}
-//			List<TblSurveyInfo> listSurvey = SurveyService.getSurveyInfoList();
-//			if (listSurvey != null && listSurvey.isEmpty()) {
-//				GameLog.getInstance().error("[ManageVote] no survey info!");
-//				error = true;
-//				return;
-//			}
-			TblSurveyQuestionInfo questionInfo = null;
+			SurveyQuestion questionInfo = null;
 			if (mode == MODE_QUESTION_EDIT) {
 				String strQuestionId = getContext().getRequestParameter("question_id");
 				if (!CommonMethod.isValidNumeric(strQuestionId, 1, Long.MAX_VALUE)) {
@@ -558,8 +539,8 @@ public class ManageVote extends VotePageBase {
 				questionInfo = SurveyService.getSurveyQuestionById(Long.parseLong(strQuestionId));
 				addModel("title", "Edit Survey Question");
 			} else {
-				questionInfo = new TblSurveyQuestionInfo();
-				questionInfo.setSurvey_id(survey.getId());
+				questionInfo = new SurveyQuestion();
+				questionInfo.setSurveyId(survey.getId());
 				addModel("title", "New Survey Question");
 			}
 			if (questionInfo == null) {
@@ -592,13 +573,13 @@ public class ManageVote extends VotePageBase {
 				error = true;
 				return;
 			}
-			TblSurveyQuestionInfo questionInfo = SurveyService.getSurveyQuestionById(Long.parseLong(strQuestionId));
+			SurveyQuestion questionInfo = SurveyService.getSurveyQuestionById(Long.parseLong(strQuestionId));
 			if (questionInfo == null) {
 				GameLog.getInstance().error("[ManageVote] no question selected!");
 				error = true;
 				return;
 			}
-			TblSurveyOptionInfo surveyOption = null;
+			SurveyOption surveyOption = null;
 			if (mode == MODE_OPTION_EDIT) {
 				String strOptionId = getContext().getRequestParameter("option_id");
 				if (!CommonMethod.isValidNumeric(strOptionId, 1, Long.MAX_VALUE)) {
@@ -609,8 +590,8 @@ public class ManageVote extends VotePageBase {
 				surveyOption = SurveyService.getSurveyOptionById(Long.parseLong(strOptionId));
 				addModel("title", "Edit Survey Option");
 			} else {
-				surveyOption = new TblSurveyOptionInfo();
-				surveyOption.setQuestion_id(questionInfo.getId());
+				surveyOption = new SurveyOption();
+				surveyOption.setQuestionId(questionInfo.getId());
 				addModel("title", "New Survey Option");
 			}
 			if (surveyOption == null) {
@@ -648,15 +629,15 @@ public class ManageVote extends VotePageBase {
 		if (survey == null) {
 			return false;
 		}
-		List<TblSurveyQuestionInfo> questionList = SurveyService.getSurveyQuestionList(survey.getId());
+		List<SurveyQuestion> questionList = SurveyService.getSurveyQuestionList(survey.getId());
 		if (questionList == null || questionList.isEmpty()) {
 			return false;
 		}
-		TblSurveyQuestionInfo targetQuestion = null;
+		SurveyQuestion targetQuestion = null;
 		String strQuestionId = getContext().getRequestParameter("question_id");
 		if (CommonMethod.isValidNumeric(strQuestionId, 1, Long.MAX_VALUE)) {
 			long questionId = Long.parseLong(strQuestionId);
-			for (TblSurveyQuestionInfo questionInfo : questionList) {
+			for (SurveyQuestion questionInfo : questionList) {
 				if (questionInfo.getId() == questionId) {
 					targetQuestion = questionInfo;
 					break;
@@ -692,7 +673,7 @@ public class ManageVote extends VotePageBase {
 		return ret;
 	}
 	
-	private HSSFWorkbook getExcelFile(List<TblSurveyQuestionInfo> questionList, TblSurveyQuestionInfo targetQuestion) {
+	private HSSFWorkbook getExcelFile(List<SurveyQuestion> questionList, SurveyQuestion targetQuestion) {
 		
 		HSSFWorkbook workbook = new HSSFWorkbook();
 		HSSFSheet sheet = workbook.createSheet("Survey Results");
@@ -726,7 +707,7 @@ public class ManageVote extends VotePageBase {
 			cell.setCellStyle(headerStyle);
 			cell.setCellValue("Dep");
 			//
-			for (TblSurveyQuestionInfo question : questionList) {
+			for (SurveyQuestion question : questionList) {
 				//
 				cell = excelRow.createCell(column++);
 				cell.setCellStyle(headerStyle);
@@ -745,18 +726,18 @@ public class ManageVote extends VotePageBase {
 					//
 					cell = excelRow.createCell(column++);
 					cell.setCellStyle(cellStyle);
-					cell.setCellValue(data.get("username").toString());
+					cell.setCellValue(StringEscapeUtils.unescapeHtml(data.get("username").toString()));
 					//
 					cell = excelRow.createCell(column++);
 					cell.setCellStyle(cellStyle);
-					cell.setCellValue(data.get("dep").toString());
+					cell.setCellValue(StringEscapeUtils.unescapeHtml(data.get("dep").toString()));
 					//
-					for (TblSurveyQuestionInfo question : questionList) {
+					for (SurveyQuestion question : questionList) {
 						String key = String.format("question_%d", question.getIdx());
 						cell = excelRow.createCell(column++);
 						cell.setCellStyle(cellStyle);
 						if (data.containsKey(key)) {
-							cell.setCellValue(data.get(key).toString());
+							cell.setCellValue(StringEscapeUtils.unescapeHtml(data.get(key).toString()));
 						}
 					}
 				}
@@ -792,15 +773,15 @@ public class ManageVote extends VotePageBase {
 					//
 					cell = excelRow.createCell(column++);
 					cell.setCellStyle(cellStyle);
-					cell.setCellValue(surveyResultObject.getUsername());
+					cell.setCellValue(StringEscapeUtils.unescapeHtml(surveyResultObject.getUsername()));
 					//
 					cell = excelRow.createCell(column++);
 					cell.setCellStyle(cellStyle);
-					cell.setCellValue(surveyResultObject.getDeparment());
+					cell.setCellValue(StringEscapeUtils.unescapeHtml(surveyResultObject.getDeparment()));
 					//
 					cell = excelRow.createCell(column++);
 					cell.setCellStyle(cellStyle);
-					cell.setCellValue(surveyResultObject.getResult());
+					cell.setCellValue(StringEscapeUtils.unescapeHtml(surveyResultObject.getResult()));
 				}
 			}
 		}
@@ -826,7 +807,7 @@ public class ManageVote extends VotePageBase {
 			targetQuestionId = Long.parseLong(strQuestionId);
 		}
 		StringBuilder sb = new StringBuilder();
-		List<TblSurveyQuestionInfo> questionList = SurveyService.getSurveyQuestionList(survey.getId());
+		List<SurveyQuestion> questionList = SurveyService.getSurveyQuestionList(survey.getId());
 		sb.append("<div style=\"text-align:center;font-size:1.5rem;margin-top:2rem;\">");
 		sb.append("<label class=\"font-weight-bold text-info\">Question List</label>");
 		sb.append("</div>");
@@ -856,13 +837,13 @@ public class ManageVote extends VotePageBase {
 				sb.append("</td>");
 			sb.append("</tr>");
 		} else {
-			for (TblSurveyQuestionInfo question : questionList) {
+			for (SurveyQuestion question : questionList) {
 				sb.append(String.format("<tr style=\"%s\">", (targetQuestionId == question.getId() ? "background-color:#903b76;" : "")));
 					sb.append("<td class=\"index\">");
 						sb.append(String.format("<a href=\"%s?mode=%d&survey_id=%d&question_id=%d\" >%d</a>", getPagePath(this.getClass()), MODE_SHOW_RESULT, survey.getId(), question.getId(), question.getIdx()));
 					sb.append("</td>");
 					sb.append("<td class=\"title\">");
-						sb.append(StringEscapeUtils.escapeHtml(question.getTitle()));
+						sb.append(question.getTitle());
 					sb.append("</td>");
 					sb.append("<td class=\"content\">");
 						sb.append(CommonMethod.getFormatContentHtmlForDisplaying(question.getContent()));
@@ -875,9 +856,9 @@ public class ManageVote extends VotePageBase {
 		sb.append("</div>");
 		///
 		if (questionList != null && questionList.size() > 0) {
-			TblSurveyQuestionInfo targetQuestion = null;
+			SurveyQuestion targetQuestion = null;
 			if (targetQuestionId > 0) {
-				for (TblSurveyQuestionInfo questionInfo : questionList) {
+				for (SurveyQuestion questionInfo : questionList) {
 					if (questionInfo.getId() == targetQuestionId) {
 						targetQuestion = questionInfo;
 						break;
@@ -896,7 +877,7 @@ public class ManageVote extends VotePageBase {
 		addModel("result", sb.toString());
 	}
 	
-	private String getQuestionResult(List<TblSurveyQuestionInfo> questionList, TblSurveyQuestionInfo targetQuestion) {
+	private String getQuestionResult(List<SurveyQuestion> questionList, SurveyQuestion targetQuestion) {
 		if (survey == null || questionList == null || questionList.isEmpty() || targetQuestion == null) {
 			return "";
 		}
@@ -952,7 +933,7 @@ public class ManageVote extends VotePageBase {
 					sb.append(index++);
 					sb.append("</td>");
 					sb.append("<td class=\"title\">");
-					sb.append(StringEscapeUtils.escapeHtml(sos.getTitle()));
+					sb.append(sos.getTitle());
 					sb.append("</td>");
 					sb.append("<td class=\"count\">");
 					sb.append(sos.getCount());
@@ -1003,7 +984,7 @@ public class ManageVote extends VotePageBase {
 						sb.append(surveyResultObject.getUser_id());
 					sb.append("</td>");
 					sb.append("<td class=\"username\">");
-						sb.append(StringEscapeUtils.escapeHtml(surveyResultObject.getUsername()));
+						sb.append(surveyResultObject.getUsername());
 					sb.append("</td>");
 					sb.append("<td class=\"username\">");
 						sb.append(CommonMethod.getFormatContentHtmlForDisplaying(surveyResultObject.getResult()));
@@ -1018,7 +999,7 @@ public class ManageVote extends VotePageBase {
 		return sb.toString();
 	}
 	
-	private String getOverralResult(List<TblSurveyQuestionInfo> questionList) {
+	private String getOverralResult(List<SurveyQuestion> questionList) {
 		if (survey == null || questionList == null || questionList.isEmpty()) {
 			return "";
 		}
@@ -1037,7 +1018,7 @@ public class ManageVote extends VotePageBase {
 				sb.append("<th style=\"width:13%;\">");
 					sb.append("Username");
 				sb.append("</th>");
-				for (TblSurveyQuestionInfo questionInfo : questionList) {
+				for (SurveyQuestion questionInfo : questionList) {
 					sb.append(String.format("<th style=\"width:%d%%;\">", (int)(75 / questionList.size())));
 						sb.append(String.format("Question %d", questionInfo.getIdx()));
 					sb.append("</th>");
@@ -1061,9 +1042,9 @@ public class ManageVote extends VotePageBase {
 						sb.append(data.get("user_id"));
 					sb.append("</td>");
 					sb.append("<td class=\"username\">");
-						sb.append(StringEscapeUtils.escapeHtml(data.get("username").toString()));
+						sb.append(data.get("username").toString());
 					sb.append("</td>");
-					for (TblSurveyQuestionInfo questionInfo : questionList) {
+					for (SurveyQuestion questionInfo : questionList) {
 						String key = String.format("question_%d", questionInfo.getIdx());
 						sb.append("<td class=\"question\">");
 						if (data.containsKey(key)) {
@@ -1086,7 +1067,7 @@ public class ManageVote extends VotePageBase {
 		return sb.toString();
 	}
 	
-	private String getExcelExportForm(TblSurveyQuestionInfo targetQuestion) {
+	private String getExcelExportForm(SurveyQuestion targetQuestion) {
 		if (survey == null) {
 			return "";
 		}
@@ -1104,7 +1085,7 @@ public class ManageVote extends VotePageBase {
 		StringBuilder sb = new StringBuilder();
 		sb.append(getSurveyListTable());
 		if (survey != null) {
-			List<TblSurveyQuestionInfo> questionList = SurveyService.getSurveyQuestionList(survey.getId());
+			List<SurveyQuestion> questionList = SurveyService.getSurveyQuestionList(survey.getId());
 			sb.append("<div style=\"text-align:center;font-size:1.5rem;margin-top:2rem;\">");
 			sb.append("<label class=\"font-weight-bold text-info\">Question List</label>");
 			sb.append("</div>");
@@ -1151,7 +1132,7 @@ public class ManageVote extends VotePageBase {
 					sb.append("</td>");
 				sb.append("</tr>");
 			} else {
-				for (TblSurveyQuestionInfo question : questionList) {
+				for (SurveyQuestion question : questionList) {
 					sb.append("<tr>");
 						sb.append("<td class=\"index\">");
 						if (question.getType() != SurveyQuestionType.OPTION_SELECT.ordinal() && question.getType() != SurveyQuestionType.OPTION_LIST.ordinal()) {
@@ -1161,22 +1142,22 @@ public class ManageVote extends VotePageBase {
 						}
 						sb.append("</td>");
 						sb.append("<td class=\"title\">");
-							sb.append(StringEscapeUtils.escapeHtml(question.getTitle()));
+							sb.append(question.getTitle());
 						sb.append("</td>");
 						sb.append("<td class=\"content\">");
 							sb.append(CommonMethod.getFormatContentHtmlForDisplaying(question.getContent()));
 						sb.append("</td>");
 						sb.append("<td class=\"max-choice\">");
-							sb.append(question.getMax_choice());
+							sb.append(question.getMaxChoice());
 						sb.append("</td>");
 						sb.append("<td class=\"min-choice\">");
-							sb.append(question.getMin_choice());
+							sb.append(question.getMinChoice());
 						sb.append("</td>");
 						sb.append("<td class=\"optional\">");
 							sb.append((question.isRequired() ? "Mandatory" : "Optional"));
 						sb.append("</td>");
 						sb.append("<td class=\"edit\">");
-							sb.append(String.format("<a href=\"%s\">Edit</a>", getPagePath(this.getClass()) + "?mode=" + MODE_QUESTION_EDIT + "&survey_id=" + question.getSurvey_id() + "&question_id=" + question.getId()));
+							sb.append(String.format("<a href=\"%s\">Edit</a>", getPagePath(this.getClass()) + "?mode=" + MODE_QUESTION_EDIT + "&survey_id=" + question.getSurveyId() + "&question_id=" + question.getId()));
 						sb.append("</td>");
 					sb.append("</tr>");
 				}
@@ -1185,7 +1166,7 @@ public class ManageVote extends VotePageBase {
 			sb.append("</table>");
 			sb.append("</div>");
 			if (questionList != null && !questionList.isEmpty()) {
-				for (TblSurveyQuestionInfo question : questionList) {
+				for (SurveyQuestion question : questionList) {
 					String strOptionTable = getQuestionListTable(question);
 					if (strOptionTable != null) {
 						sb.append(strOptionTable);
@@ -1196,11 +1177,11 @@ public class ManageVote extends VotePageBase {
 		addModel("detail", sb.toString());
 	}
 	
-	private String getQuestionListTable(TblSurveyQuestionInfo questionInfo) {
+	private String getQuestionListTable(SurveyQuestion questionInfo) {
 		if (questionInfo == null || (questionInfo.getType() != SurveyQuestionType.OPTION_SELECT.ordinal() && questionInfo.getType() != SurveyQuestionType.OPTION_LIST.ordinal())) {
 			return null;
 		}
-		List<TblSurveyOptionInfo> optionList = SurveyService.getSurveyOptionList(questionInfo.getId());
+		List<SurveyOption> optionList = SurveyService.getSurveyOptionList(questionInfo.getId());
 		StringBuilder sb = new StringBuilder();
 		
 		sb.append("<div class=\"question-option-list collapse\" data-id=\"" + questionInfo.getId() + "\">");
@@ -1230,10 +1211,10 @@ public class ManageVote extends VotePageBase {
 		sb.append("</thead>");
 		sb.append("<tbody>");
 		if (optionList != null && optionList.size() > 0) {
-			for (TblSurveyOptionInfo option : optionList) {
+			for (SurveyOption option : optionList) {
 				sb.append("<tr>");
 				sb.append("<td class=\"title\">");
-				sb.append(StringEscapeUtils.escapeHtml(option.getTitle()));
+				sb.append(option.getTitle());
 				sb.append("</td>");
 				sb.append("<td class=\"content\">");
 				if (option.getType() == SurveyOptionType.IMAGE.ordinal()) {
@@ -1264,7 +1245,7 @@ public class ManageVote extends VotePageBase {
 		if (StringUtils.isNotBlank(strShowCompleted)) {
 			isCompleted = true;
 		}
-		List<TblSurveyInfo> listSurvey = SurveyService.getSurveyInfoListForDisplay(isCompleted);
+		List<Survey> listSurvey = SurveyService.getSurveyInfoListForDisplay(isCompleted);
 		StringBuilder sb = new StringBuilder();
 		sb.append("<div style=\"text-align:center;font-size:1.5rem;margin-top:2rem;\">");
 		sb.append("<label class=\"font-weight-bold text-info\">Survey List</label>");
@@ -1304,7 +1285,7 @@ public class ManageVote extends VotePageBase {
 		sb.append("</thead>");
 		sb.append("<tbody>");
 		if (listSurvey != null && !listSurvey.isEmpty()) {
-			for (TblSurveyInfo survey : listSurvey) {
+			for (Survey survey : listSurvey) {
 				String highlight = ((this.survey != null && this.survey.getId() == survey.getId()) ? "style=\"background-color:#903b76;\"" : "");
 				sb.append(String.format("<tr %s>", highlight));
 					sb.append("<td>");
@@ -1317,10 +1298,10 @@ public class ManageVote extends VotePageBase {
 						sb.append(CommonMethod.getFormatContentHtmlForDisplaying(survey.getDescription()));
 					sb.append("</td>");
 					sb.append("<td>");
-						sb.append(CommonMethod.getFormatDateString(survey.getCreated()));
+						sb.append((survey.getCreated()));
 					sb.append("</td>");
 					sb.append("<td>");
-						sb.append(CommonMethod.getFormatDateString(survey.getExpired()));
+						sb.append((survey.getExpired()));
 					sb.append("</td>");
 					sb.append("<td>");
 						sb.append(String.format("<a href=\"%s\">Edit</a>", getPagePath(this.getClass()) + "?mode=" + MODE_SURVEY_EDIT + "&survey_id=" + survey.getId()));
@@ -1362,10 +1343,10 @@ public class ManageVote extends VotePageBase {
 				if (arr.length != 2) {
 					continue;
 				}
-				TblSurveyUserAccessInfo sas = new TblSurveyUserAccessInfo();
-				sas.setUser_code(arr[0].trim());
+				SurveyUserAccess sas = new SurveyUserAccess();
+				sas.setUserCode(arr[0].trim());
 				sas.setFlag(Integer.parseInt(arr[1].trim()));
-				listUpdate.add(sas);
+				listUpdate.add(sas.getSurveyUserAccessInfo());
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -1388,12 +1369,11 @@ public class ManageVote extends VotePageBase {
 			return;
 		}
 		TblSurveyUserAccessInfo deleteInfo = new TblSurveyUserAccessInfo();
-		deleteInfo.Set("survey_id", surveyID);
-		CommonDaoService.delete(deleteInfo);
+		CommonDaoFactory.executeUpdate(String.format("DELETE FROM %s WHERE survey_id = %d", deleteInfo.getTblName(), surveyID));
 		for (DaoValue dao : listUpdate) {
 			dao.Set("survey_id", surveyID);
-		}
-		CommonDaoService.update(listUpdate);
+		}	
+		CommonDaoFactory.Update(listUpdate);
 	}
 	
 }

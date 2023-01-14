@@ -4,33 +4,35 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import dev.boom.common.CommonMethod;
 import dev.boom.common.enums.ManageLogType;
-import dev.boom.dao.core.DaoValue;
+import dev.boom.dao.CommonDaoFactory;
+import dev.boom.dao.DaoValue;
 import dev.boom.tbl.info.TblManageLogInfo;
 
 public class ManageLogService {
 
 	private ManageLogService() {
 	}
-	
+
 	public static boolean createManageLog(TblManageLogInfo manageLogInfo) {
-		Long id = (Long)CommonDaoService.insert(manageLogInfo);
-		return (id != null && id > 0);
+		return (CommonDaoFactory.Insert(manageLogInfo) > 0);
 	}
-	public static boolean createManageLog(UserInfo userInfo, ManageLogType manageLogType) {
+	public static boolean createManageLog(User userInfo, ManageLogType manageLogType) {
 		return createManageLog(userInfo, manageLogType, "");
 	}
 	
-	public static boolean createManageLog(UserInfo userInfo, ManageLogType manageLogType, String param) {
+	public static boolean createManageLog(User userInfo, ManageLogType manageLogType, String param) {
 		return createManageLog(userInfo, manageLogType.getType(), param);
 	}
 	
-	public static boolean createManageLog(UserInfo userInfo, byte type, String param) {
+	public static boolean createManageLog(User userInfo, byte type, String param) {
 		TblManageLogInfo manageLogInfo = new TblManageLogInfo();
-		manageLogInfo.setUser_id(userInfo.getId());
-		manageLogInfo.setUsername(userInfo.getUsername());
-		manageLogInfo.setType(type);
-		manageLogInfo.setParam(param);
+		manageLogInfo.Set("user_id", userInfo.getId());
+		manageLogInfo.Set("username", userInfo.getUsername());
+		manageLogInfo.Set("type", type);
+		manageLogInfo.Set("param", param);
+		manageLogInfo.Set("created", CommonMethod.getFormatStringNow());
 		return createManageLog(manageLogInfo);
 	}
 	
@@ -41,15 +43,15 @@ public class ManageLogService {
 	public static List<ManageLog> getManageLogList(String option, int limit, int offset) {
 		TblManageLogInfo info = new TblManageLogInfo();
 		if (option != null && option.length() > 0) {
-			info.setSelectOption(option);
+			info.SetSelectOption(option);
 		}
 		if (limit > 0) {
-			info.setLimit(limit);
+			info.SetLimit(limit);
 			if (offset >= 0) {
-				info.setOffset(offset);
+				info.SetOffset(offset);
 			}
 		}
-		List<DaoValue> list = CommonDaoService.select(info);
+		List<DaoValue> list = CommonDaoFactory.Select(info);
 		if (list == null || list.isEmpty()) {
 			return Collections.emptyList();
 		}
@@ -60,4 +62,6 @@ public class ManageLogService {
 		
 		return ret;
 	}
+	
 }
+

@@ -1,72 +1,89 @@
 package dev.boom.tbl.info;
 
-import dev.boom.dao.core.DaoValueInfo;
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
 
-public class TblDemoSignupInfo extends DaoValueInfo {
+import dev.boom.dao.DaoValueInfo;
+import dev.boom.dao.IDaoValue;
 
-	private static final long serialVersionUID = 1L;
+public class TblDemoSignupInfo extends DaoValueInfo implements IDaoValue {
+
 	private static final String TABLE_NAME = "demo_signup_info";
 	private static final String PRIMARY_KEY = "id";
+	private static final String SUB_KEY = ""; // <><>
+	private static Map<String, String> mapForeignKey = new HashMap<String, String>();
 
-	private int id;
-	private String game_name;
-	private String speaker_name;
-	private String description;
-	private int flag;
+	public final class Fields implements IDaoValue.Fields {
+
+		public int id;
+		public String game_name;
+		public String speaker_name;
+		public String description;
+		public int flag;
+
+		public Fields() {
+			id = 0;
+			game_name = "";
+			speaker_name = "";
+			description = "";
+			flag = 0;
+		}
+	}
+
+	private Fields fieldRead;
+
+	private Fields fieldWrite;
+
+	private static Field[] fields;
 
 	public TblDemoSignupInfo() {
-		this.id = 0;
-		this.game_name = "";
-		this.speaker_name = "";
-		this.flag = 0;
-		Sync();
+		fieldRead = new Fields();
+		fieldWrite = new Fields();
+
+		if (fields == null) {
+			fields = fieldRead.getClass().getFields();
+		}
 	}
 
-	public int getId() {
-		return id;
-	}
-
-	public void setId(int id) {
-		this.id = id;
-	}
-
-	public String getGame_name() {
-		return game_name;
-	}
-
-	public void setGame_name(String game_name) {
-		this.game_name = game_name;
-	}
-
-	public String getSpeaker_name() {
-		return speaker_name;
-	}
-
-	public void setSpeaker_name(String speaker_name) {
-		this.speaker_name = speaker_name;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
-	public int getFlag() {
-		return flag;
-	}
-
-	public void setFlag(int flag) {
-		this.flag = flag;
+	public String getTblName() {
+		return TABLE_NAME;
 	}
 
 	public String getPrimaryKey() {
 		return PRIMARY_KEY;
 	}
 
-	public String getTableName() {
-		return TABLE_NAME;
+	public String getSubKey() {
+		return SUB_KEY;
+	}
+
+	public String getForeignKey(String strKey) {
+		return mapForeignKey.get(strKey);
+	}
+
+	public Field[] getClassField() {
+		return fields;
+	}
+
+	public Object getFieldRead() {
+		return (Object) fieldRead;
+	}
+
+	public Object getFieldWrite() {
+		return (Object) fieldWrite;
+	}
+
+	public Fields getInstance() {
+		return fieldWrite;
+	}
+
+	public void Sync() {
+		fieldRead.id = fieldWrite.id;
+		fieldRead.game_name = fieldWrite.game_name;
+		fieldRead.speaker_name = fieldWrite.speaker_name;
+		fieldRead.description = fieldWrite.description;
+		fieldRead.flag = fieldWrite.flag;
 	}
 }
+

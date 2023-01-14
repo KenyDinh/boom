@@ -5,7 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import dev.boom.dao.core.DaoValue;
+import dev.boom.dao.CommonDaoFactory;
+import dev.boom.dao.DaoValue;
 import dev.boom.tbl.data.TblBoomGameItemData;
 
 public class BoomGameItemService {
@@ -13,7 +14,7 @@ public class BoomGameItemService {
 	public static BoomGameItem getItemById(int id) {
 		TblBoomGameItemData data = new TblBoomGameItemData();
 		data.Set("id", id);
-		List<DaoValue> list = CommonDaoService.select(data);
+		List<DaoValue> list = CommonDaoFactory.Select(data);
 		if (list == null || list.isEmpty()) {
 			return null;
 		}
@@ -22,7 +23,7 @@ public class BoomGameItemService {
 	
 	public static List<BoomGameItem> getItemsList() {
 		TblBoomGameItemData data = new TblBoomGameItemData();
-		List<DaoValue> list = CommonDaoService.select(data);
+		List<DaoValue> list = CommonDaoFactory.Select(data);
 		if (list == null || list.isEmpty()) {
 			return null;
 		}
@@ -35,7 +36,7 @@ public class BoomGameItemService {
 	
 	public static Map<Integer, BoomGameItem> getItemsMap() {
 		TblBoomGameItemData data = new TblBoomGameItemData();
-		List<DaoValue> list = CommonDaoService.select(data);
+		List<DaoValue> list = CommonDaoFactory.Select(data);
 		if (list == null || list.isEmpty()) {
 			return null;
 		}

@@ -8,7 +8,8 @@ import java.util.List;
 import dev.boom.common.CommonMethod;
 import dev.boom.common.game.QuizSubject;
 import dev.boom.core.GameLog;
-import dev.boom.dao.core.DaoValue;
+import dev.boom.dao.CommonDaoFactory;
+import dev.boom.dao.DaoValue;
 import dev.boom.tbl.data.TblQuizJapaneseData;
 import dev.boom.tbl.data.TblQuizOptionJapaneseData;
 import dev.boom.tbl.data.TblQuizOptionProgrammingData;
@@ -34,7 +35,7 @@ public class QuizDataService {
 			selectDao.Set("level", level);
 		}
 		GameLog.getInstance().info(String.format("[QuizDataService] (getRandomQuizDataList) generate quiz data => subject : %s,  type : %d, level : %d, num : %d", subject.getName(), type, level, num));
-		List<DaoValue> list = CommonDaoService.select(selectDao);
+		List<DaoValue> list = CommonDaoFactory.Select(selectDao);
 		if (list == null || list.isEmpty()) {
 			return null;
 		}
@@ -63,7 +64,7 @@ public class QuizDataService {
 			return null;
 		}
 		selectDao.Set("id", id);
-		List<DaoValue> list = CommonDaoService.select(selectDao);
+		List<DaoValue> list = CommonDaoFactory.Select(selectDao);
 		if (list == null || list.isEmpty()) {
 			return null;
 		}
@@ -73,7 +74,7 @@ public class QuizDataService {
 	public static List<QuizOptionData> getQuizOptionDataByQId(QuizSubject subject, int quizDataId) {
 		DaoValue selectDao = getTblQuizOptionDataBySubject(subject);
 		selectDao.Set("quiz_data_id", quizDataId);
-		List<DaoValue> list = CommonDaoService.select(selectDao);
+		List<DaoValue> list = CommonDaoFactory.Select(selectDao);
 		if (list == null || list.isEmpty()) {
 			return null;
 		}

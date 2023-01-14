@@ -1,212 +1,128 @@
 package dev.boom.tbl.info;
 
-import java.util.Date;
-import java.util.List;
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
 
-import dev.boom.common.CommonDefine;
-import dev.boom.common.game.QuizDefine;
-import dev.boom.dao.core.DaoValueInfo;
+import dev.boom.dao.DaoValueInfo;
+import dev.boom.dao.IDaoValue;
 
-public class TblQuizInfo extends DaoValueInfo {
+public class TblQuizInfo extends DaoValueInfo implements IDaoValue {
 
-	private static final long serialVersionUID = 1L;
 	private static final String TABLE_NAME = "quiz_info";
 	private static final String PRIMARY_KEY = "id";
+	private static final String SUB_KEY = ""; // <><>
+	private static Map<String, String> mapForeignKey = new HashMap<String, String>();
 
-	private long id;
-	private long host;
-	private String name;
-	private byte subject;
-	private byte level;
-	private byte max_player;
-	private byte question_num;
-	private long time_per_question;
-	private byte status;
-	private byte retry;
-	private byte flag;
-	private byte player_num;
-	private byte current_question;
-	private String current_option_order;
-	private String question_data;
-	private Date created;
-	private Date expired;
-	private Date updated;
+	public final class Fields implements IDaoValue.Fields {
+
+		public long id;
+		public long host;
+		public String name;
+		public byte subject;
+		public byte level;
+		public byte max_player;
+		public byte question_num;
+		public long time_per_question;
+		public byte status;
+		public byte retry;
+		public byte flag;
+		public byte player_num;
+		public byte current_question;
+		public String current_option_order;
+		public String question_data;
+		public String created;
+		public String expired;
+		public String updated;
+
+		public Fields() {
+			id = 0;
+			host = 0;
+			name = "";
+			subject = 0;
+			level = 0;
+			max_player = 0;
+			question_num = 0;
+			time_per_question = 0;
+			status = 0;
+			retry = 0;
+			flag = 0;
+			player_num = 0;
+			current_question = 0;
+			current_option_order = "";
+			question_data = "";
+			created = "";
+			expired = "";
+			updated = "";
+		}
+	}
+
+	private Fields fieldRead;
+
+	private Fields fieldWrite;
+
+	private static Field[] fields;
 
 	public TblQuizInfo() {
-		this.id = 0;
-		this.host = 0;
-		this.name = "";
-		this.subject = 0;
-		this.level = 0;
-		this.max_player = QuizDefine.DEFAULT_PLAYER_NUM;
-		this.question_num = QuizDefine.DEFAULT_QUESTION_NUM;
-		this.time_per_question = QuizDefine.DEFAULT_TIME_PER_QUESTION;
-		this.status = 0;
-		this.retry = 1;
-		this.flag = 0;
-		this.player_num = 0;
-		this.current_question = 0;
-		this.current_option_order = "";
-		this.question_data = "";
-		this.created = new Date();
-		this.expired = new Date(this.created.getTime() + 15 * CommonDefine.MILLION_SECOND_MINUTE);
-		this.updated = this.created;
-		Sync();
+		fieldRead = new Fields();
+		fieldWrite = new Fields();
+
+		if (fields == null) {
+			fields = fieldRead.getClass().getFields();
+		}
 	}
 
-	public long getId() {
-		return id;
-	}
-
-	public void setId(long id) {
-		this.id = id;
-	}
-
-	public long getHost() {
-		return host;
-	}
-
-	public void setHost(long host) {
-		this.host = host;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public byte getLevel() {
-		return level;
-	}
-
-	public void setLevel(byte level) {
-		this.level = level;
-	}
-
-	public byte getQuestion_num() {
-		return question_num;
-	}
-
-	public void setQuestion_num(byte question_num) {
-		this.question_num = question_num;
-	}
-
-	public long getTime_per_question() {
-		return time_per_question;
-	}
-
-	public void setTime_per_question(long time_per_question) {
-		this.time_per_question = time_per_question;
-	}
-
-	public byte getStatus() {
-		return status;
-	}
-
-	public void setStatus(byte status) {
-		this.status = status;
-	}
-
-	public byte getRetry() {
-		return retry;
-	}
-
-	public void setRetry(byte retry) {
-		this.retry = retry;
-	}
-
-	public byte getFlag() {
-		return flag;
-	}
-
-	public void setFlag(byte flag) {
-		this.flag = flag;
-	}
-
-	public byte getMax_player() {
-		return max_player;
-	}
-
-	public void setMax_player(byte max_player) {
-		this.max_player = max_player;
-	}
-
-	public byte getPlayer_num() {
-		return player_num;
-	}
-
-	public void setPlayer_num(byte player_num) {
-		this.player_num = player_num;
-	}
-
-	public byte getCurrent_question() {
-		return current_question;
-	}
-
-	public void setCurrent_question(byte current_question) {
-		this.current_question = current_question;
-	}
-
-	public byte getSubject() {
-		return subject;
-	}
-
-	public void setSubject(byte subject) {
-		this.subject = subject;
-	}
-
-	public String getCurrent_option_order() {
-		return current_option_order;
-	}
-
-	public void setCurrent_option_order(String current_option_order) {
-		this.current_option_order = current_option_order;
-	}
-
-	public String getQuestion_data() {
-		return question_data;
-	}
-
-	public void setQuestion_data(String question_data) {
-		this.question_data = question_data;
-	}
-
-	public Date getCreated() {
-		return created;
-	}
-
-	public void setCreated(Date created) {
-		this.created = created;
-	}
-
-	public Date getExpired() {
-		return expired;
-	}
-
-	public void setExpired(Date expired) {
-		this.expired = expired;
-	}
-
-	public Date getUpdated() {
-		return updated;
-	}
-
-	public void setUpdated(Date updated) {
-		this.updated = updated;
-	}
-
-	public List<String> getSubKey() {
-		return null;
+	public String getTblName() {
+		return TABLE_NAME;
 	}
 
 	public String getPrimaryKey() {
 		return PRIMARY_KEY;
 	}
 
-	public String getTableName() {
-		return TABLE_NAME;
+	public String getSubKey() {
+		return SUB_KEY;
+	}
+
+	public String getForeignKey(String strKey) {
+		return mapForeignKey.get(strKey);
+	}
+
+	public Field[] getClassField() {
+		return fields;
+	}
+
+	public Object getFieldRead() {
+		return (Object) fieldRead;
+	}
+
+	public Object getFieldWrite() {
+		return (Object) fieldWrite;
+	}
+
+	public Fields getInstance() {
+		return fieldWrite;
+	}
+
+	public void Sync() {
+		fieldRead.id = fieldWrite.id;
+		fieldRead.host = fieldWrite.host;
+		fieldRead.name = fieldWrite.name;
+		fieldRead.subject = fieldWrite.subject;
+		fieldRead.level = fieldWrite.level;
+		fieldRead.max_player = fieldWrite.max_player;
+		fieldRead.question_num = fieldWrite.question_num;
+		fieldRead.time_per_question = fieldWrite.time_per_question;
+		fieldRead.status = fieldWrite.status;
+		fieldRead.retry = fieldWrite.retry;
+		fieldRead.flag = fieldWrite.flag;
+		fieldRead.player_num = fieldWrite.player_num;
+		fieldRead.current_question = fieldWrite.current_question;
+		fieldRead.current_option_order = fieldWrite.current_option_order;
+		fieldRead.question_data = fieldWrite.question_data;
+		fieldRead.created = fieldWrite.created;
+		fieldRead.expired = fieldWrite.expired;
+		fieldRead.updated = fieldWrite.updated;
 	}
 }
+

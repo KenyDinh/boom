@@ -4,8 +4,9 @@ public enum PokerActionType {
 	NONE(),
 	BET(),
 	RAISE(),
+	CHECK(),
 	CALL(),
-	ALL_IN(),
+	ALLIN(),
 	FOLD(),
 	;
 	

@@ -1,12 +1,12 @@
 package dev.boom.common.game;
 
-import dev.boom.services.QuizInfo;
-import dev.boom.services.QuizPlayerInfo;
+import dev.boom.services.Quiz;
+import dev.boom.services.QuizPlayer;
 import dev.boom.services.QuizService;
 
 public class QuizFunc {
 	
-	public static String canJoinQuiz(QuizPlayerInfo quizPlayer, QuizInfo quiz) {
+	public static String canJoinQuiz(QuizPlayer quizPlayer, Quiz quiz) {
 		if (quizPlayer == null || quiz == null) {
 			return "Null parameters!";
 		}
@@ -24,7 +24,7 @@ public class QuizFunc {
 		return null;
 	}
 	
-	public static String canQuitQuiz(QuizPlayerInfo quizPlayer, QuizInfo quiz) {
+	public static String canQuitQuiz(QuizPlayer quizPlayer, Quiz quiz) {
 		if (quizPlayer == null || quiz == null) {
 			return "Null parameters!";
 		}

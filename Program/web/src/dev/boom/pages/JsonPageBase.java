@@ -8,7 +8,7 @@ import java.util.Map;
 
 import dev.boom.core.BoomSession;
 import dev.boom.core.GameLog;
-import dev.boom.services.UserInfo;
+import dev.boom.services.User;
 import dev.boom.services.UserService;
 import net.arnx.jsonic.JSON;
 
@@ -18,7 +18,7 @@ public class JsonPageBase extends PageBase {
 
 	private Map<String, Object> jsondata = new HashMap<String, Object>();
 	private boolean prettyPrint = false;
-	protected UserInfo userInfo = null;
+	protected User userInfo = null;
 	
 	@Override
 	public String getContentType() {
@@ -63,7 +63,7 @@ public class JsonPageBase extends PageBase {
 		return true;
 	}
 	
-	protected UserInfo getUserInfo() {
+	protected User getUserInfo() {
 		return userInfo;
 	}
 

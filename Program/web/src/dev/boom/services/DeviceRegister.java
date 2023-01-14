@@ -2,18 +2,19 @@ package dev.boom.services;
 
 import java.util.Date;
 
+import dev.boom.common.CommonDefine;
+import dev.boom.common.CommonMethod;
 import dev.boom.tbl.info.TblDeviceRegisterInfo;
 
 public class DeviceRegister {
-
 	private TblDeviceRegisterInfo deviceRegisterInfo;
 
-	public DeviceRegister(TblDeviceRegisterInfo deviceLogInfo) {
-		this.deviceRegisterInfo = deviceLogInfo;
+	public DeviceRegister() {
+		deviceRegisterInfo = new TblDeviceRegisterInfo();
 	}
 
-	public DeviceRegister() {
-		this.deviceRegisterInfo = new TblDeviceRegisterInfo();
+	public DeviceRegister(TblDeviceRegisterInfo deviceRegisterInfo) {
+		this.deviceRegisterInfo = deviceRegisterInfo;
 	}
 
 	public TblDeviceRegisterInfo getDeviceRegisterInfo() {
@@ -21,58 +22,108 @@ public class DeviceRegister {
 	}
 
 	public long getId() {
-		return this.deviceRegisterInfo.getId();
+		return (Long) deviceRegisterInfo.Get("id");
 	}
 
 	public void setId(long id) {
-		this.deviceRegisterInfo.setId(id);
+		deviceRegisterInfo.Set("id", id);
 	}
 
-	public int getDevice_id() {
-		return this.deviceRegisterInfo.getDevice_id();
+	public int getDeviceId() {
+		return (Integer) deviceRegisterInfo.Get("device_id");
 	}
 
-	public void setDevice_id(int device_id) {
-		this.deviceRegisterInfo.setDevice_id(device_id);
+	public void setDeviceId(int deviceId) {
+		deviceRegisterInfo.Set("device_id", deviceId);
 	}
 
-	public long getUser_id() {
-		return this.deviceRegisterInfo.getUser_id();
+	public String getDeviceName() {
+		return (String) deviceRegisterInfo.Get("device_name");
 	}
 
-	public void setUser_id(long user_id) {
-		this.deviceRegisterInfo.setUser_id(user_id);
+	public void setDeviceName(String deviceName) {
+		deviceRegisterInfo.Set("device_name", deviceName);
+	}
+
+	public long getUserId() {
+		return (Long) deviceRegisterInfo.Get("user_id");
+	}
+
+	public void setUserId(long userId) {
+		deviceRegisterInfo.Set("user_id", userId);
 	}
 
 	public String getUsername() {
-		return this.deviceRegisterInfo.getUsername();
+		return (String) deviceRegisterInfo.Get("username");
 	}
 
 	public void setUsername(String username) {
-		this.deviceRegisterInfo.setUsername(username);
+		deviceRegisterInfo.Set("username", username);
 	}
 
-	public Date getStartDate() {
-		return this.deviceRegisterInfo.getStart_date();
-	}
-	
-	public Date getEndDate() {
-		return this.deviceRegisterInfo.getEnd_date();
-	}
-	
-	public Date getUpdated() {
-		return this.deviceRegisterInfo.getUpdated();
+	public byte getExpired() {
+		return (Byte) deviceRegisterInfo.Get("expired");
 	}
 
-	public void setUpdated(Date updated) {
-		this.deviceRegisterInfo.setUpdated(updated);
+	public void setExpired(byte expired) {
+		deviceRegisterInfo.Set("expired", expired);
+	}
+
+	public String getStartDate() {
+		return (String) deviceRegisterInfo.Get("start_date");
+	}
+
+	public void setStartDate(String startDate) {
+		deviceRegisterInfo.Set("start_date", startDate);
+	}
+
+	public Date getStartDateDate() {
+		String strStartDate = getStartDate();
+		if (strStartDate == null) {
+			return null;
+		}
+		return CommonMethod.getDate(strStartDate, CommonDefine.DATE_FORMAT_PATTERN);
+	}
+
+	public String getEndDate() {
+		return (String) deviceRegisterInfo.Get("end_date");
+	}
+
+	public void setEndDate(String endDate) {
+		deviceRegisterInfo.Set("end_date", endDate);
+	}
+
+	public Date getEndDateDate() {
+		String strEndDate = getEndDate();
+		if (strEndDate == null) {
+			return null;
+		}
+		return CommonMethod.getDate(strEndDate, CommonDefine.DATE_FORMAT_PATTERN);
+	}
+
+	public String getUpdated() {
+		return (String) deviceRegisterInfo.Get("updated");
+	}
+
+	public void setUpdated(String updated) {
+		deviceRegisterInfo.Set("updated", updated);
+	}
+
+	public Date getUpdatedDate() {
+		String strUpdated = getUpdated();
+		if (strUpdated == null) {
+			return null;
+		}
+		return CommonMethod.getDate(strUpdated, CommonDefine.DATE_FORMAT_PATTERN);
 	}
 	
 	public void setExpired() {
-		this.deviceRegisterInfo.setExpired((byte) 1);
+		setExpired((byte) 1);
 	}
 	
 	public boolean isExpired() {
-		return (this.deviceRegisterInfo.getExpired() > 0);
+		return (getExpired() > 0);
 	}
+
 }
+

@@ -6,8 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang.StringEscapeUtils;
-
 import dev.boom.common.CommonDefine;
 import dev.boom.common.CommonMethod;
 import dev.boom.common.enums.Department;
@@ -20,20 +18,20 @@ import dev.boom.common.milktea.MilkTeaSocketMessage;
 import dev.boom.common.milktea.MilkTeaSocketType;
 import dev.boom.common.milktea.MilkteaMenuFlag;
 import dev.boom.core.GameLog;
-import dev.boom.dao.core.DaoValue;
+import dev.boom.dao.CommonDaoFactory;
+import dev.boom.dao.DaoValue;
 import dev.boom.pages.manage.ManagePageBase;
 import dev.boom.pages.milktea.MilkTeaMenu;
-import dev.boom.services.CommonDaoService;
 import dev.boom.services.ManageLogService;
-import dev.boom.services.MenuInfo;
+import dev.boom.services.Menu;
 import dev.boom.services.MenuService;
-import dev.boom.services.MilkTeaUserInfo;
-import dev.boom.services.MilkTeaUserService;
-import dev.boom.services.OrderInfo;
+import dev.boom.services.MilkteaUser;
+import dev.boom.services.MilkteaUserService;
+import dev.boom.services.Order;
 import dev.boom.services.OrderService;
-import dev.boom.services.ShopInfo;
+import dev.boom.services.Shop;
 import dev.boom.services.ShopService;
-import dev.boom.services.UserInfo;
+import dev.boom.services.User;
 import dev.boom.services.UserService;
 import dev.boom.socket.SocketSessionPool;
 import dev.boom.socket.endpoint.ManageMilkTeaEndPoint;
@@ -72,7 +70,7 @@ public class MilkTeaManageMenu extends ManagePageBase {
 		case MODE_EDIT:
 			String strMenuId = getContext().getRequestParameter("menu_id");
 			if (CommonMethod.isValidNumeric(strMenuId, 1, Long.MAX_VALUE)) {
-				MenuInfo menuInfo = MenuService.getMenuById(Long.parseLong(strMenuId));
+				Menu menuInfo = MenuService.getMenuById(Long.parseLong(strMenuId));
 				if (menuInfo == null) {
 					addModel("error", "menu is null");
 					return;
@@ -124,10 +122,10 @@ public class MilkTeaManageMenu extends ManagePageBase {
 					}
 				}
 				String strExpiration = getContext().getRequestParameter("expired");
-				if (strExpiration != null && strExpiration.matches(CommonDefine.DATE_REGEX_PATTERN)) {
+				if (CommonMethod.isValidDateTimeFormat(strExpiration)) {
 					Date expired = CommonMethod.getDate(strExpiration, CommonDefine.DATE_FORMAT_PATTERN);
-					if (expired != null && expired.getTime() != menuInfo.getExpired().getTime()) {
-						menuInfo.setExpired(expired);
+					if (expired != null && expired.getTime() != menuInfo.getExpiredDate().getTime()) {
+						menuInfo.setExpired(CommonMethod.getFormatDateString(expired));
 						update = true;
 					}
 				}
@@ -189,7 +187,7 @@ public class MilkTeaManageMenu extends ManagePageBase {
 		case MODE_EDIT:
 			String strMenuId = getContext().getRequestParameter("menu_id");
 			if (CommonMethod.isValidNumeric(strMenuId, 1, Long.MAX_VALUE)) {
-				MenuInfo menuInfo = MenuService.getMenuById(Long.parseLong(strMenuId));
+				Menu menuInfo = MenuService.getMenuById(Long.parseLong(strMenuId));
 				if (menuInfo == null) {
 					addModel("error", "menu is null");
 					return;
@@ -236,7 +234,7 @@ public class MilkTeaManageMenu extends ManagePageBase {
 			break;
 		default:
 			byte[] status = new byte[] {MilkTeaMenuStatus.INIT.getStatus(), MilkTeaMenuStatus.OPENING.getStatus(), MilkTeaMenuStatus.DELIVERING.getStatus()};
-			List<MenuInfo> menuList = MenuService.getMenuListByStatusList(status);
+			List<Menu> menuList = MenuService.getMenuListByStatusList(status);
 			initTableMenuList(menuList);
 			String token = SocketSessionPool.generateValidToken(ManageMilkTeaEndPoint.ENDPOINT_NAME, userInfo);
 			String params = "?" + ManageMilkTeaEndPoint.VALIDATION_KEY + "=" + token;
@@ -245,7 +243,7 @@ public class MilkTeaManageMenu extends ManagePageBase {
 		}
 	}
 
-	private void initTableMenuList(List<MenuInfo> menuList) {
+	private void initTableMenuList(List<Menu> menuList) {
 		StringBuilder table = new StringBuilder();
 		table.append("<table class=\"table table-hover\">");
 		table.append("<thead>");
@@ -266,7 +264,7 @@ public class MilkTeaManageMenu extends ManagePageBase {
 		if (menuList == null || menuList.isEmpty()) {
 			table.append("<tr><td colspan=\"12\">No menu found!</td></tr>");
 		} else {
-			for (MenuInfo menu : menuList) {
+			for (Menu menu : menuList) {
 				table.append("<tr>");
 				table.append("<td>").append(String.format("<a href=\"%s\">%d</a>", getHostURL() + getContextPath() + "/manage/milktea/milk_tea_manage_order.htm?menu_id=" + menu.getId(), menu.getId())).append("</td>");
 				table.append("<td>").append(menu.getName()).append("</td>");
@@ -278,7 +276,7 @@ public class MilkTeaManageMenu extends ManagePageBase {
 					table.append("<td>-</td>");
 				}
 				table.append("<td>").append(MilkTeaCommonFunc.getShowPriceWithUnit(menu.getShippingFee(), getMessages())).append("</td>");
-				String desc = StringEscapeUtils.escapeHtml(menu.getDescription());
+				String desc = menu.getDescription();
 				table.append("<td><div data-toggle=\"tooltip\" data-placement=\"bottom\" style=\"width:200px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;\" title=\"").append(desc).append("\">").append(desc).append("</div></td>");
 				table.append("<td>").append(MilkTeaMenuStatus.valueOf(menu.getStatus()).name()).append("</td>");
 				table.append("<td>");
@@ -298,8 +296,8 @@ public class MilkTeaManageMenu extends ManagePageBase {
 					show = (show.length() > 0) ? show : "---";
 					table.append(show);
 				table.append("</td>");
-				table.append("<td>").append(CommonMethod.getFormatDateString(menu.getCreated())).append("</td>");
-				table.append("<td>").append(CommonMethod.getFormatDateString(menu.getExpired())).append("</td>");
+				table.append("<td>").append((menu.getCreated())).append("</td>");
+				table.append("<td>").append((menu.getExpired())).append("</td>");
 				table.append("<td>");
 				if (menu.getStatus() < MilkTeaMenuStatus.COMPLETED.ordinal()) {
 					table.append(String.format("<a href=\"%s\">Edit</a>", getPagePath(this.getClass()) + "?mode=" + MODE_EDIT + "&menu_id=" + menu.getId()));
@@ -314,33 +312,32 @@ public class MilkTeaManageMenu extends ManagePageBase {
 		addBackLink(MilkTeaMenu.class, "MSG_MAIN_NAV_BAR_MILKTEA");
 	}
 
-	private void doUpdateMenu(MenuInfo menuInfo) {
-		menuInfo.setUpdated(new Date());
+	private void doUpdateMenu(Menu menuInfo) {
+		menuInfo.setUpdated(CommonMethod.getFormatStringNow());
 		List<DaoValue> updates = new ArrayList<>();
-		updates.add(menuInfo.getTblInfo());
+		updates.add(menuInfo.getMenuInfo());
 		if (menuInfo.getStatus() == MilkTeaMenuStatus.COMPLETED.ordinal() || menuInfo.getStatus() == MilkTeaMenuStatus.CANCELED.ordinal()) {
-			Date now = new Date();
-			ShopInfo shopInfo = ShopService.getShopById(menuInfo.getShopId());
-			List<OrderInfo> orderList = OrderService.getOrderInfoListByMenuId(menuInfo.getId());
+			Shop shopInfo = ShopService.getShopById(menuInfo.getShopId());
+			List<Order> orderList = OrderService.getOrderInfoListByMenuId(menuInfo.getId());
 			if (orderList != null && !orderList.isEmpty()) {
 				if (menuInfo.getStatus() == MilkTeaMenuStatus.COMPLETED.ordinal()) {
 					long totalMoney = MilkTeaCommonFunc.getTotalMoney(orderList);
-					Map<Long, MilkTeaUserInfo> listUser = new HashMap<>();
-					for (OrderInfo order : orderList) {
+					Map<Long, MilkteaUser> listUser = new HashMap<>();
+					for (Order order : orderList) {
 						long userId = order.getUserId();
-						MilkTeaUserInfo mtUser = null;
+						MilkteaUser mtUser = null;
 						if (listUser.containsKey(userId)) {
 							mtUser = listUser.get(userId);
 						} else {
-							mtUser = MilkTeaUserService.getMilkTeaUserInfoById(userId);
+							mtUser = MilkteaUserService.getMilkTeaUserInfoById(userId);
 						}
 						if (mtUser == null) {
-							UserInfo userInfo = UserService.getUserById(userId);
+							User userInfo = UserService.getUserById(userId);
 							if (userInfo == null) {
 								GameLog.getInstance().error("user is null, user_id: " + userId + " in order_id: " + order.getId());
 								return;
 							}
-							mtUser = new MilkTeaUserInfo();
+							mtUser = new MilkteaUser();
 							mtUser.setUserId(userInfo.getId());
 							mtUser.setUsername(userInfo.getUsername());
 						}
@@ -354,16 +351,16 @@ public class MilkTeaManageMenu extends ManagePageBase {
 						mtUser.setTotalTopping(mtUser.getTotalTopping() + order.getTotalOption(MilkTeaItemOptionType.TOPPING) * order.getQuantity());
 						listUser.put(userId, mtUser);
 						order.setFinalPrice(finalCost);
-						order.setUpdated(now);
-						updates.add(order.getTblInfo());
+						order.setUpdated(CommonMethod.getFormatStringNow());
+						updates.add(order.getOrderInfo());
 					}
 					for (Long userId : listUser.keySet()) {
-						updates.add(listUser.get(userId).getTblInfo());
+						updates.add(listUser.get(userId).getMilkteaUserInfo());
 					}
 				} else {
-					for (OrderInfo order : orderList) {
+					for (Order order : orderList) {
 						order.setFlag(MilkTeaOrderFlag.CANCELED.getValidFlag(order.getFlag()));
-						updates.add(order.getTblInfo());
+						updates.add(order.getOrderInfo());
 					}
 				}
 			}
@@ -372,18 +369,18 @@ public class MilkTeaManageMenu extends ManagePageBase {
 					shopInfo.setOpeningCount(shopInfo.getOpeningCount() + 1);
 					if (orderList != null && !orderList.isEmpty()) {
 						long c = 0;
-						for (OrderInfo order : orderList) {
+						for (Order order : orderList) {
 							c += Math.max(1, order.getQuantity());
 						}
 						shopInfo.setOrderedDishCount(shopInfo.getOrderedDishCount() + c);
 					}
-					updates.add(shopInfo.getTblInfo());
+					updates.add(shopInfo.getShopInfo());
 				}
 			} else {
 				GameLog.getInstance().error("shop is null, shop_id:" + menuInfo.getShopId());
 			}
 		}
-		if (!CommonDaoService.update(updates)) {
+		if (CommonDaoFactory.Update(updates) < 0) {
 			GameLog.getInstance().error("[MilkteaManageMenu] update menu failed!");
 		} else {
 			ManageLogService.createManageLog(userInfo, ManageLogType.UPDATE_MENU, menuInfo.getName());

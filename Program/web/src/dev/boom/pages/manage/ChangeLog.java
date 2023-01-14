@@ -4,8 +4,8 @@ import java.util.List;
 
 import dev.boom.common.CommonHtmlFunc;
 import dev.boom.common.CommonMethod;
+import dev.boom.dao.CommonDaoFactory;
 import dev.boom.pages.Home;
-import dev.boom.services.CommonDaoService;
 import dev.boom.services.ManageLog;
 import dev.boom.services.ManageLogService;
 import dev.boom.tbl.info.TblManageLogInfo;
@@ -24,7 +24,7 @@ public class ChangeLog extends ManagePageBase {
 		if (CommonMethod.isValidNumeric(strPage, 1, Integer.MAX_VALUE)) {
 			page = Integer.parseInt(strPage);
 		}
-		long total = CommonDaoService.count(new TblManageLogInfo());
+		long total = CommonDaoFactory.Count(new TblManageLogInfo());
 		int maxPage = (int)((total - 1) / MAX_VIEW + 1);
 		page = Math.min(page, maxPage);
 		int offset = (page - 1) * MAX_VIEW;

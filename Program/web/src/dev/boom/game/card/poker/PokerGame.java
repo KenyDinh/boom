@@ -157,7 +157,7 @@ public class PokerGame {
 			}
 			PokerActionType lastActionType = ps.getPlayer().getLastAction();
 			if (lastActionType != null) {
-				if (lastActionType == PokerActionType.FOLD || lastActionType == PokerActionType.ALL_IN) {
+				if (lastActionType == PokerActionType.FOLD || lastActionType == PokerActionType.ALLIN) {
 					continue;
 				}
 			}
@@ -416,7 +416,7 @@ public class PokerGame {
 				continue;
 			}
 			int playerCoinBet = getCurrentCoinBet(ps.getPlayer().getPayerId());
-			if (playerCoinBet < maxCoinBet && ps.getPlayer().getLastAction() != PokerActionType.ALL_IN) {
+			if (playerCoinBet < maxCoinBet && ps.getPlayer().getLastAction() != PokerActionType.ALLIN) {
 				return false;
 			}
 		}
@@ -437,7 +437,7 @@ public class PokerGame {
 			ps.getPlayer().setTurn(false);
 			ps.getPlayer().resetActionList();
 			if (ps.getPlayer().getLastAction() == PokerActionType.BET
-					|| ps.getPlayer().getLastAction() == PokerActionType.ALL_IN) {
+					|| ps.getPlayer().getLastAction() == PokerActionType.ALLIN) {
 				hasPlayerBet = true;
 			}
 			maxCoinBet = CommonMethod.max(maxCoinBet, getCurrentCoinBet(ps.getPlayer().getPayerId()));
@@ -446,7 +446,7 @@ public class PokerGame {
 		PokerPlayer player = psPlayer.getPlayer();
 		player.setTurn(true);
 		
-		player.setAction(PokerActionType.ALL_IN, player.getCoin(), player.getCoin(), "");
+		player.setAction(PokerActionType.ALLIN, player.getCoin(), player.getCoin(), "");
 		player.setAction(PokerActionType.FOLD, 0, 0, "");
 		if (maxCoinBet <= player.getCoin()) {
 			if (!hasPlayerBet) {

@@ -25,15 +25,15 @@ import dev.boom.common.enums.DeviceStatus;
 import dev.boom.common.enums.DeviceType;
 import dev.boom.common.enums.ManageLogType;
 import dev.boom.core.GameLog;
-import dev.boom.dao.core.DaoValue;
+import dev.boom.dao.CommonDaoFactory;
+import dev.boom.dao.DaoValue;
 import dev.boom.pages.JsonPageBase;
-import dev.boom.services.CommonDaoService;
 import dev.boom.services.Device;
 import dev.boom.services.DeviceRegister;
 import dev.boom.services.DeviceRegisterService;
 import dev.boom.services.DeviceService;
 import dev.boom.services.ManageLogService;
-import dev.boom.services.UserInfo;
+import dev.boom.services.User;
 import dev.boom.services.UserService;
 import dev.boom.socket.endpoint.DeviceEndPoint;
 import dev.boom.tbl.info.TblDeviceInfo;
@@ -279,7 +279,7 @@ public class DeviceConfirm extends JsonPageBase {
 			responseMsg = "Error! Invalid item buy date!";
 			return;
 		}
-		update = !update ? !(device.getBuyDate().getTime() == buyDate.getTime()) : update;
+		update = !update ? !(device.getBuyDateDate().getTime() == buyDate.getTime()) : update;
 		if (!CommonMethod.isValidNumeric(strType, DeviceType.NONE.getType(), DeviceType.XBOX.getType())) {
 			error = true;
 			responseMsg = "Error! Invalid item type!";
@@ -334,7 +334,7 @@ public class DeviceConfirm extends JsonPageBase {
 		if (update) {
 			device.setName(strName);
 			device.setSerial(strSerial);
-			device.setBuyDate(buyDate);
+			device.setBuyDate(CommonMethod.getFormatDateString(buyDate));
 			device.setNote(strNote);
 			device.setType(type.getType());
 			device.setDept(dept.getDep());
@@ -342,7 +342,7 @@ public class DeviceConfirm extends JsonPageBase {
 			if (oldImage != null) {
 				device.setImage(deviceImage);
 			}
-			if (!CommonDaoService.update(device.getDeviceInfo())) {
+			if (CommonDaoFactory.Update(device.getDeviceInfo()) < 0) {
 				error = true;
 				responseMsg = "Error! Edit item failed!";
 				return;
@@ -379,14 +379,14 @@ public class DeviceConfirm extends JsonPageBase {
 		String strStartDate = getContext().getRequestParameter("startdate");
 		String strEndDate = getContext().getRequestParameter("enddate");
 		String strUsername = getContext().getRequestParameter("username");
-		UserInfo cUser = getUserInfo();
+		User cUser = getUserInfo();
 		if (StringUtils.isNotBlank(strUsername)) {
 			if (!getUserInfo().isDeviceAdmin()) {
 				error = true;
 				responseMsg = "Error! No permission for setting username!";
 				return;
 			}
-			UserInfo userInfo = UserService.getUserByName(strUsername);
+			User userInfo = UserService.getUserByName(strUsername);
 			if (userInfo == null) {
 				error = true;
 				responseMsg = "Error! User not found :" + strUsername;
@@ -439,23 +439,23 @@ public class DeviceConfirm extends JsonPageBase {
 		cal.set(Calendar.SECOND, 0);
 		cal.set(Calendar.MILLISECOND, 0);
 		Date today = cal.getTime();
-		if (extendDate.before(today) || extendDate.before(device.getHoldDate())) {
+		if (extendDate.before(today) || extendDate.before(device.getHoldDateDate())) {
 			error = true;
 			responseMsg = "Error! Update date is invalid! must be a future date!";
 			return;
 		}
-		if (extendDate.getTime() == device.getReleaseDate().getTime()) {
+		if (extendDate.getTime() == device.getReleaseDateDate().getTime()) {
 			error = true;
 			responseMsg = "Error! Update date is invalid!";
 			return;
 		}
 		if (userInfo.isDeviceAdmin()) {
-			device.setReleaseDate(extendDate);
+			device.setReleaseDate(CommonMethod.getFormatDateString(extendDate));
 		} else {
-			device.setExtendDate(extendDate);
+			device.setExtendDate(CommonMethod.getFormatDateString(extendDate));
 			device.setStatus(DeviceStatus.CHANGE_PENDING.getStatus());
 		}
-		if (!CommonDaoService.update(device.getDeviceInfo())) {
+		if (CommonDaoFactory.Update(device.getDeviceInfo()) < 0) {
 			error = true;
 			responseMsg = "Error! Update item failed!";
 			return;
@@ -543,7 +543,7 @@ public class DeviceConfirm extends JsonPageBase {
 			List<DaoValue> updateList = new ArrayList<>();
 			if (mode.equals(MODE_ACCEPT)) {
 				if (device.getStatus() == DeviceStatus.PENDING.getStatus()) {
-					device.setUserId(deviceRegister.getUser_id());
+					device.setUserId(deviceRegister.getUserId());
 					device.setUsername(deviceRegister.getUsername());
 					device.setHoldDate(deviceRegister.getStartDate());
 					device.setReleaseDate(deviceRegister.getEndDate());
@@ -608,7 +608,7 @@ public class DeviceConfirm extends JsonPageBase {
 				device.setAvailable(false);
 			}
 			updateList.add(device.getDeviceInfo());
-			if (!CommonDaoService.update(updateList)) {
+			if (CommonDaoFactory.Update(updateList) < 0) {
 				error = true;
 				responseMsg = "Error! Update item failed!";
 				return;
@@ -732,7 +732,7 @@ public class DeviceConfirm extends JsonPageBase {
 		}
 		int size = updateList.size();
 		if (size > 0) {
-			if (!CommonDaoService.update(updateList)) {
+			if (CommonDaoFactory.Update(updateList) < 0) {
 				error = true;
 				responseMsg = "Import data error!";
 				return;

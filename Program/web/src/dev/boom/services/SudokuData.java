@@ -20,15 +20,15 @@ public class SudokuData {
 	}
 
 	public int getId() {
-		return sudokuData.getId();
+		return (Integer) sudokuData.Get("id");
 	}
 	
 	public byte getLevel() {
-		return sudokuData.getLevel();
+		return (Byte) sudokuData.Get("level");
 	}
 	
 	public String getData() {
-		return sudokuData.getData();
+		return (String) sudokuData.Get("data");
 	}
 	
 }

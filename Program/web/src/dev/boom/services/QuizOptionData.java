@@ -1,6 +1,6 @@
 package dev.boom.services;
 
-import dev.boom.dao.core.DaoValue;
+import dev.boom.dao.DaoValue;
 
 public class QuizOptionData {
 

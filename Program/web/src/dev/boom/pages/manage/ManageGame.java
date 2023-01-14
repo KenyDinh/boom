@@ -6,8 +6,8 @@ import dev.boom.common.CommonMethod;
 import dev.boom.common.enums.ManageLogType;
 import dev.boom.common.game.GameTypeEnum;
 import dev.boom.core.GameLog;
+import dev.boom.dao.CommonDaoFactory;
 import dev.boom.pages.Home;
-import dev.boom.services.CommonDaoService;
 import dev.boom.services.ManageLogService;
 
 public class ManageGame extends ManagePageBase{
@@ -58,7 +58,7 @@ public class ManageGame extends ManagePageBase{
 				}
 			}
 		}
-		if (!CommonDaoService.update(worldInfo.getTblInfo())) {
+		if (CommonDaoFactory.Update(worldInfo.getWorldInfo()) < 0) {
 			GameLog.getInstance().error("[ManageGame] update failed!");
 			return;
 		}

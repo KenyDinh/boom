@@ -3,30 +3,57 @@ package dev.boom.services;
 import java.util.ArrayList;
 import java.util.List;
 
-import dev.boom.dao.core.DaoValue;
+import dev.boom.dao.CommonDaoFactory;
+import dev.boom.dao.DaoValue;
 import dev.boom.tbl.info.TblCarouselInfo;
 
 public class CarouselService {
 
 	private CarouselService() {
 	}
-	
-	public static List<CarouselInfo> getCarouselList(int limit) {
-		TblCarouselInfo info = new TblCarouselInfo();
-		info.setSelectOption("WHERE id > 0 and available <> 0");
-		if (limit > 0) {
-			info.setSelectOption("ORDER BY RAND()");
-			info.setLimit(limit);
+
+	public static List<Carousel> getCarouselListAll(String option) {
+		TblCarouselInfo tblInfo = new TblCarouselInfo();
+
+		if (option != null && !option.isEmpty()) {
+			tblInfo.SetSelectOption(option);
 		}
-		List<DaoValue> list = CommonDaoService.select(info);
+
+		List<DaoValue> list = CommonDaoFactory.Select(tblInfo);
 		if (list == null || list.isEmpty()) {
 			return null;
 		}
-		List<CarouselInfo> ret = new ArrayList<CarouselInfo>();
+
+		List<Carousel> ret = new ArrayList<>();
 		for (DaoValue dao : list) {
-			ret.add(new CarouselInfo((TblCarouselInfo)dao));
+			ret.add(new Carousel((TblCarouselInfo) dao));
+		}
+
+		return ret;
+	}
+
+	public static List<Carousel> getCarouselListAll() {
+		return getCarouselListAll(null);
+	}
+	
+	public static List<Carousel> getCarouselList(int limit) {
+		TblCarouselInfo info = new TblCarouselInfo();
+		info.SetSelectOption("WHERE id > 0 and available <> 0");
+		if (limit > 0) {
+			info.SetSelectOption("ORDER BY RAND()");
+			info.SetLimit(limit);
+		}
+		List<DaoValue> list = CommonDaoFactory.Select(info);
+		if (list == null || list.isEmpty()) {
+			return null;
+		}
+		List<Carousel> ret = new ArrayList<Carousel>();
+		for (DaoValue dao : list) {
+			ret.add(new Carousel((TblCarouselInfo)dao));
 		}
 		
 		return ret;
 	}
+	
 }
+

@@ -1,174 +1,120 @@
 package dev.boom.tbl.data;
 
-import dev.boom.dao.core.DaoValueData;
+import dev.boom.dao.IDaoValue;
 
-public class TblBoomGameItemData extends DaoValueData {
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
 
-	private static final long serialVersionUID = 1L;
+import dev.boom.dao.DaoValueData;
+
+public class TblBoomGameItemData extends DaoValueData implements IDaoValue {
+
 	private static final String TABLE_NAME = "boom_game_item_data";
 	private static final String PRIMARY_KEY = "id";
+	private static final String SUB_KEY = ""; // <><>
+	private static Map<String, String> mapForeignKey = new HashMap<String, String>();
 
-	public int id;
-	public int type;
-	public int target_type;
-	public int effect_id_1;
-	public int effect_param_1;
-	public int effect_duration_1;
-	public int effect_id_2;
-	public int effect_param_2;
-	public int effect_duration_2;
-	public int effect_id_3;
-	public int effect_param_3;
-	public int effect_duration_3;
-	public int imageID;
-	public int prob_rate;
-	public String label_explain;
+	public final class Fields implements IDaoValue.Fields {
+	
+		public int id;
+		public int type;
+		public int target_type;
+		public int effect_id_1;
+		public int effect_param_1;
+		public int effect_duration_1;
+		public int effect_id_2;
+		public int effect_param_2;
+		public int effect_duration_2;
+		public int effect_id_3;
+		public int effect_param_3;
+		public int effect_duration_3;
+		public int imageID;
+		public int prob_rate;
+		public String label_explain;
+	
+		public Fields() {
+			this.id = 0;
+			this.type = 0;
+			this.target_type = 0;
+			this.effect_id_1 = 0;
+			this.effect_param_1 = 0;
+			this.effect_duration_1 = 0;
+			this.effect_id_2 = 0;
+			this.effect_param_2 = 0;
+			this.effect_duration_2 = 0;
+			this.effect_id_3 = 0;
+			this.effect_param_3 = 0;
+			this.effect_duration_3 = 0;
+			this.imageID = 0;
+			this.prob_rate = 0;
+			this.label_explain = "";
+		}
+	}
+	
+	private Fields fieldRead;
+
+	private Fields fieldWrite;
+
+	private static Field[] fields;
 
 	public TblBoomGameItemData() {
-		this.id = 0;
-		this.type = 0;
-		this.target_type = 0;
-		this.effect_id_1 = 0;
-		this.effect_param_1 = 0;
-		this.effect_duration_1 = 0;
-		this.effect_id_2 = 0;
-		this.effect_param_2 = 0;
-		this.effect_duration_2 = 0;
-		this.effect_id_3 = 0;
-		this.effect_param_3 = 0;
-		this.effect_duration_3 = 0;
-		this.imageID = 0;
-		this.prob_rate = 0;
-		this.label_explain = "";
-		Sync();
+		fieldRead = new Fields();
+		fieldWrite = new Fields();
+
+		if (fields == null) {
+			fields = fieldRead.getClass().getFields();
+		}
 	}
 
-	public int getId() {
-		return id;
-	}
-
-	public void setId(int id) {
-		this.id = id;
-	}
-
-	public int getType() {
-		return type;
-	}
-
-	public void setType(int type) {
-		this.type = type;
-	}
-
-	public int getTarget_type() {
-		return target_type;
-	}
-
-	public void setTarget_type(int target_type) {
-		this.target_type = target_type;
-	}
-
-	public int getEffect_id_1() {
-		return effect_id_1;
-	}
-
-	public void setEffect_id_1(int effect_id_1) {
-		this.effect_id_1 = effect_id_1;
-	}
-
-	public int getEffect_param_1() {
-		return effect_param_1;
-	}
-
-	public void setEffect_param_1(int effect_param_1) {
-		this.effect_param_1 = effect_param_1;
-	}
-
-	public int getEffect_duration_1() {
-		return effect_duration_1;
-	}
-
-	public void setEffect_duration_1(int effect_duration_1) {
-		this.effect_duration_1 = effect_duration_1;
-	}
-
-	public int getEffect_id_2() {
-		return effect_id_2;
-	}
-
-	public void setEffect_id_2(int effect_id_2) {
-		this.effect_id_2 = effect_id_2;
-	}
-
-	public int getEffect_param_2() {
-		return effect_param_2;
-	}
-
-	public void setEffect_param_2(int effect_param_2) {
-		this.effect_param_2 = effect_param_2;
-	}
-
-	public int getEffect_duration_2() {
-		return effect_duration_2;
-	}
-
-	public void setEffect_duration_2(int effect_duration_2) {
-		this.effect_duration_2 = effect_duration_2;
-	}
-
-	public int getEffect_id_3() {
-		return effect_id_3;
-	}
-
-	public void setEffect_id_3(int effect_id_3) {
-		this.effect_id_3 = effect_id_3;
-	}
-
-	public int getEffect_param_3() {
-		return effect_param_3;
-	}
-
-	public void setEffect_param_3(int effect_param_3) {
-		this.effect_param_3 = effect_param_3;
-	}
-
-	public int getEffect_duration_3() {
-		return effect_duration_3;
-	}
-
-	public void setEffect_duration_3(int effect_duration_3) {
-		this.effect_duration_3 = effect_duration_3;
-	}
-
-	public int getImageID() {
-		return imageID;
-	}
-
-	public void setImageID(int imageID) {
-		this.imageID = imageID;
-	}
-
-	public int getProb_rate() {
-		return prob_rate;
-	}
-
-	public void setProb_rate(int prob_rate) {
-		this.prob_rate = prob_rate;
-	}
-
-	public String getLabel_explain() {
-		return label_explain;
-	}
-
-	public void setLabel_explain(String label_explain) {
-		this.label_explain = label_explain;
-	}
-
-	public String getTableName() {
+	public String getTblName() {
 		return TABLE_NAME;
 	}
 
 	public String getPrimaryKey() {
 		return PRIMARY_KEY;
+	}
+
+	public String getSubKey() {
+		return SUB_KEY;
+	}
+
+	public String getForeignKey(String strKey) {
+		return mapForeignKey.get(strKey);
+	}
+
+	public Field[] getClassField() {
+		return fields;
+	}
+
+	public Object getFieldRead() {
+		return (Object) fieldRead;
+	}
+
+	public Object getFieldWrite() {
+		return (Object) fieldWrite;
+	}
+
+	public Fields getInstance() {
+		return fieldWrite;
+	}
+
+	public void Sync() {
+		fieldRead.id = fieldWrite.id;
+		fieldRead.type = fieldWrite.type;
+		fieldRead.target_type = fieldWrite.target_type;
+		fieldRead.effect_id_1 = fieldWrite.effect_id_1;
+		fieldRead.effect_param_1 = fieldWrite.effect_param_1;
+		fieldRead.effect_duration_1 = fieldWrite.effect_duration_1;
+		fieldRead.effect_id_2 = fieldWrite.effect_id_2;
+		fieldRead.effect_param_2 = fieldWrite.effect_param_2;
+		fieldRead.effect_duration_2 = fieldWrite.effect_duration_2;
+		fieldRead.effect_id_3 = fieldWrite.effect_id_3;
+		fieldRead.effect_param_3 = fieldWrite.effect_param_3;
+		fieldRead.effect_duration_3 = fieldWrite.effect_duration_3;
+		fieldRead.imageID = fieldWrite.imageID;
+		fieldRead.prob_rate = fieldWrite.prob_rate;
+		fieldRead.label_explain = fieldWrite.label_explain;
 	}
 
 }

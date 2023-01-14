@@ -7,8 +7,8 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 
+import dev.boom.dao.CommonDaoFactory;
 import dev.boom.pages.JsonPageBase;
-import dev.boom.services.CommonDaoService;
 import dev.boom.services.NihongoOwningService;
 import dev.boom.services.NihongoPetService;
 import dev.boom.services.NihongoProgressService;
@@ -37,9 +37,9 @@ public class NihongoJson extends JsonPageBase {
 		nihonUser = NihongoUserService.getNihongoUserInfo(userInfo.getId());
 		if (nihonUser == null) {
 			nihonUser = new TblNihongoUserInfo();
-			nihonUser.setUser_id(userInfo.getId());
-			nihonUser.setUsername(userInfo.getUsername());
-			if (CommonDaoService.insert(nihonUser) == null) {
+			nihonUser.Set("user_id", userInfo.getId());
+			nihonUser.Set("username", userInfo.getUsername());
+			if (CommonDaoFactory.Insert(nihonUser) <= 0) {
 				return false;
 			}
 		}
@@ -54,7 +54,7 @@ public class NihongoJson extends JsonPageBase {
 		if (allWordList != null) {
 			Map<Integer, List<Map<String, Object>>> wordMap = new HashMap<>();
 			for (TblNihongoWordInfo wordInfo : allWordList) {
-				int ref = wordInfo.getReference();
+				int ref = (Integer)wordInfo.Get("reference");
 				Map<String, Object> map = wordInfo.toMapObject();
 				if(!wordMap.containsKey(ref)){
 					wordMap.put(ref, new ArrayList<Map<String, Object>>());
@@ -68,7 +68,7 @@ public class NihongoJson extends JsonPageBase {
 		if (userProgressList != null) {
 			Map<Integer, Integer> userProgressMap = new HashMap<Integer, Integer>();
 			for (TblNihongoProgressInfo progressInfo : userProgressList) {
-				userProgressMap.put(progressInfo.getTest_id(), progressInfo.getProgress());
+				userProgressMap.put((Integer)progressInfo.Get("test_id"), (Integer)progressInfo.Get("progress"));
 			}
 			putJsonData("userProgress", userProgressMap);
 		}
@@ -78,14 +78,14 @@ public class NihongoJson extends JsonPageBase {
 			List<Map<String, Object>> listMapOwning = new ArrayList<>();
 			for (TblNihongoOwningInfo owningInfo : owningList) {
 				Map<String, Object> mapOwning = owningInfo.toMapObject();
-				mapOwning.put("imageUrl", getHostURL() + getContextPath() + "/img/game/nihongo/pet/" + owningInfo.getPet_id() + "_0" + owningInfo.getCurrent_level() + ".gif");
+				mapOwning.put("imageUrl", getHostURL() + getContextPath() + "/img/game/nihongo/pet/" + owningInfo.Get("pet_id").toString() + "_0" + owningInfo.Get("current_level").toString() + ".gif");
 				listMapOwning.add(mapOwning);
 			}
 			putJsonData("owningList", listMapOwning);
 		} else {
 			NihongoOwningService.insertOwning(defaultPetID, userInfo.getId());
 		}
-		putJsonData("userStar", nihonUser.getStar());
+		putJsonData("userStar", nihonUser.Get("star"));
 		putJsonData("petMap", NihongoPetService.getPetMapObject());
 	}
 
@@ -128,14 +128,14 @@ public class NihongoJson extends JsonPageBase {
 				List<Map<String, Object>> listMapOwning = new ArrayList<>();
 				for (TblNihongoOwningInfo owningInfo : owningList) {
 					Map<String, Object> mapOwning = owningInfo.toMapObject();
-					mapOwning.put("imageUrl", getHostURL() + getContextPath() + "/img/game/nihongo/pet/" + owningInfo.getPet_id() + "_0" + owningInfo.getCurrent_level() + ".gif");
+					mapOwning.put("imageUrl", getHostURL() + getContextPath() + "/img/game/nihongo/pet/" + owningInfo.Get("pet_id").toString() + "_0" + owningInfo.Get("current_level").toString() + ".gif");
 					listMapOwning.add(mapOwning);
 				}
 				putJsonData("owningList", listMapOwning);
 			}
 			nihonUser = NihongoUserService.getNihongoUserInfo(userInfo.getId());
 			if (nihonUser != null) {
-				putJsonData("userStar", nihonUser.getStar());
+				putJsonData("userStar", nihonUser.Get("star"));
 			}
 		}
 	}

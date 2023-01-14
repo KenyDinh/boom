@@ -21,18 +21,18 @@ import dev.boom.pages.account.ChangePassword;
 import dev.boom.pages.account.Login;
 import dev.boom.pages.account.Register;
 import dev.boom.pages.manage.ManageUser;
-import dev.boom.services.UserInfo;
-import dev.boom.services.WorldInfo;
+import dev.boom.services.User;
+import dev.boom.services.World;
 import dev.boom.services.WorldService;
 
 public class PageBase extends Page {
 
 	private static final long serialVersionUID = 1L;
-	protected WorldInfo worldInfo = null;
+	protected World worldInfo = null;
 	protected boolean isDataTableFormat = false;
 	protected String fileUploadDir = null;
 
-	protected void storeBoomSession(UserInfo info) {
+	protected void storeBoomSession(User info) {
 		BoomSession boomSession = new BoomSession(info.getId());
 		getContext().getSession().setAttribute("boom_session", boomSession);
 	}
@@ -82,7 +82,7 @@ public class PageBase extends Page {
 		return new JsImport(href);
 	}
 	
-	protected WorldInfo getWorldInfo() {
+	protected World getWorldInfo() {
 		if (worldInfo == null) {
 			worldInfo = WorldService.getWorldInfo();
 		}

@@ -10,19 +10,19 @@ import javax.websocket.Session;
 import dev.boom.common.CommonMethod;
 import dev.boom.common.milktea.MilkTeaItemOptionType;
 import dev.boom.common.milktea.MilkTeaOrderFlag;
-import dev.boom.dao.core.DaoValue;
+import dev.boom.dao.CommonDaoFactory;
+import dev.boom.dao.DaoValue;
 import dev.boom.milktea.object.MenuItem;
 import dev.boom.milktea.object.MenuItemOption;
 import dev.boom.milktea.object.MenuOrder;
 import dev.boom.milktea.object.MenuOrderItem;
 import dev.boom.milktea.object.MenuOrderOption;
 import dev.boom.milktea.object.MenuOrderOptionItem;
-import dev.boom.services.CommonDaoService;
-import dev.boom.services.MenuInfo;
+import dev.boom.services.Menu;
 import dev.boom.services.MenuService;
-import dev.boom.services.OrderInfo;
+import dev.boom.services.Order;
 import dev.boom.services.OrderService;
-import dev.boom.services.ShopInfo;
+import dev.boom.services.Shop;
 import dev.boom.services.ShopService;
 import dev.boom.socket.endpoint.FridayEndpoint;
 import dev.boom.socket.func.FridayStaticData;
@@ -65,7 +65,7 @@ public class ManageMilkTeaSocketSession extends SocketSessionBase {
 				}
 				ids.add(Long.parseLong(strOrderId));
 			}
-			List<OrderInfo> orderList = OrderService.getOrderList(ids);
+			List<Order> orderList = OrderService.getOrderList(ids);
 			if (orderList == null || orderList.isEmpty()) {
 				logError("[ManageMilkTeaSocketSession] (process) No order found: " + strIds);
 				putError("No order found!");
@@ -76,13 +76,13 @@ public class ManageMilkTeaSocketSession extends SocketSessionBase {
 			}
 			long menuId = orderList.get(0).getMenuId();
 			long shopId = orderList.get(0).getShopId();
-			MenuInfo menuInfo = MenuService.getMenuById(menuId);
+			Menu menuInfo = MenuService.getMenuById(menuId);
 			if (menuInfo == null) {
 				logError("[ManageMilkTeaSocketSession] menu not found, menu_id:" + menuId);
 				putError("No menu information!");
 				return;
 			}
-			ShopInfo shopInfo = ShopService.getShopById(shopId);
+			Shop shopInfo = ShopService.getShopById(shopId);
 			if (shopInfo == null) {
 				logError("[ManageMilkTeaSocketSession] shop not found, shop_id:" + shopId);
 				putError("No shop information!");
@@ -95,9 +95,9 @@ public class ManageMilkTeaSocketSession extends SocketSessionBase {
 				return;
 			}
 			List<MenuOrderItem> menuOrderItemList = new ArrayList<>();
-			List<OrderInfo> uniqueOrderList = new ArrayList<>();
+			List<Order> uniqueOrderList = new ArrayList<>();
 			List<Long> _ids = new ArrayList<>();
-			for (OrderInfo orderInfo : orderList) {
+			for (Order orderInfo : orderList) {
 				if (orderInfo.getMenuId() != menuId) {
 					logError("[ManageMilkTeaSocketSession] menu id is invalid, menu_id:" + menuId + ", order_id:" + orderInfo.getId());
 					putError("Menu item is invalid!");
@@ -110,7 +110,7 @@ public class ManageMilkTeaSocketSession extends SocketSessionBase {
 				}
 				_ids.add(orderInfo.getId());
 				boolean exist = false;
-				for (OrderInfo checkedOrder : uniqueOrderList) {
+				for (Order checkedOrder : uniqueOrderList) {
 					if (orderInfo.isRoughtlySimilar(checkedOrder)) {
 						checkedOrder.setQuantity(checkedOrder.getQuantity() + orderInfo.getQuantity());
 						exist = true;
@@ -123,7 +123,7 @@ public class ManageMilkTeaSocketSession extends SocketSessionBase {
 				uniqueOrderList.add(orderInfo);
 				
 			}
-			for (OrderInfo orderInfo : uniqueOrderList) {
+			for (Order orderInfo : uniqueOrderList) {
 				MenuOrderItem menuOrderItem = toMenuOrderItem(menuItemList, orderInfo);
 				if (menuOrderItem == null) {
 					logError("[ManageMilkTeaSocketSession] invalid order, menu_id:" + menuId + ", order_id:" + orderInfo.getId());
@@ -155,14 +155,14 @@ public class ManageMilkTeaSocketSession extends SocketSessionBase {
 			}
 			List<Long> ids = FridayStaticData.getIds();
 			if (ids != null && !ids.isEmpty()) {
-				List<OrderInfo> orderList = OrderService.getOrderList(ids);
+				List<Order> orderList = OrderService.getOrderList(ids);
 				if (orderList != null && !orderList.isEmpty()) {
 					List<DaoValue> updates = new ArrayList<>();
-					for (OrderInfo order : orderList) {
+					for (Order order : orderList) {
 						order.setFlag(order.getFlag() | MilkTeaOrderFlag.PLACED.getBitMask());
-						updates.add(order.getTblInfo());
+						updates.add(order.getOrderInfo());
 					}
-					if (!CommonDaoService.update(updates)) {
+					if (CommonDaoFactory.Update(updates) < 0) {
 						logError("[ManageMilkTeaSocketSession] (process) update order flag failed!");
 					}
 				}
@@ -206,7 +206,7 @@ public class ManageMilkTeaSocketSession extends SocketSessionBase {
 		}
 	}
 	
-	private MenuOrderItem toMenuOrderItem(List<MenuItem> menuItemList, OrderInfo orderInfo) {
+	private MenuOrderItem toMenuOrderItem(List<MenuItem> menuItemList, Order orderInfo) {
 		MenuItem itemOrder = null;
 		for (MenuItem menuItem : menuItemList) {
 			if (menuItem.getName().equals(orderInfo.getDishName()) && menuItem.getType().equals(orderInfo.getDishType())) {

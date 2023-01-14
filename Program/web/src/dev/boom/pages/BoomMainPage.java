@@ -10,7 +10,7 @@ import dev.boom.core.BoomSession;
 import dev.boom.pages.manage.Index;
 import dev.boom.services.AuthToken;
 import dev.boom.services.AuthTokenService;
-import dev.boom.services.UserInfo;
+import dev.boom.services.User;
 import dev.boom.services.UserService;
 import dev.boom.socket.SocketSessionPool;
 import dev.boom.socket.endpoint.FridayEndpoint;
@@ -18,7 +18,7 @@ import dev.boom.socket.endpoint.FridayEndpoint;
 public class BoomMainPage extends Template {
 
 	private static final long serialVersionUID = 1L;
-	protected UserInfo userInfo = null;
+	protected User userInfo = null;
 	
 	protected boolean hideMenubar = false;
 	
@@ -70,7 +70,7 @@ public class BoomMainPage extends Template {
 		}
 	}
 	
-	protected UserInfo getUserInfo() {
+	protected User getUserInfo() {
 		return userInfo;
 	}
 

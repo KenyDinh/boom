@@ -22,7 +22,5 @@ public class SurveyQuestionResult {
 	public TblSurveyQuestionInfo getQuestionInfo() {
 		return questionInfo;
 	}
-	
-	
-	
+
 }

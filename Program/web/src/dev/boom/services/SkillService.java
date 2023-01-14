@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import dev.boom.dao.core.DaoValue;
+import dev.boom.dao.DaoValue;
 import dev.boom.dao.fix.FixData;
 import dev.boom.dao.fix.FixDataBase;
 import dev.boom.tbl.data.TblSkillBaseData;

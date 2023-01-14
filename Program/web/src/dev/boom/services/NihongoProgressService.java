@@ -1,23 +1,27 @@
 package dev.boom.services;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
-import dev.boom.dao.core.DaoValue;
+import dev.boom.common.CommonMethod;
+import dev.boom.dao.CommonDaoFactory;
+import dev.boom.dao.DaoValue;
 import dev.boom.tbl.info.TblNihongoProgressInfo;
 import dev.boom.tbl.info.TblNihongoUserInfo;
 
 public class NihongoProgressService {
 
 	public static final int MAX_PROGRESS = 99;
+	
+	private NihongoProgressService() {
+	}
 
 	public static TblNihongoProgressInfo getProgress(int test_id, long user_id) {
 		TblNihongoProgressInfo info = new TblNihongoProgressInfo();
-		info.setUser_id(user_id);
-		info.setTest_id(test_id);
+		info.Set("user_id", user_id);
+		info.Set("test_id", test_id);
 
-		List<DaoValue> list = CommonDaoService.select(info);
+		List<DaoValue> list = CommonDaoFactory.Select(info);
 		if (list == null || list.size() != 1) {
 			return null;
 		}
@@ -27,9 +31,9 @@ public class NihongoProgressService {
 
 	public static List<TblNihongoProgressInfo> getUserProgressList(long user_id) {
 		TblNihongoProgressInfo info = new TblNihongoProgressInfo();
-		info.setUser_id(user_id);
+		info.Set("user_id", user_id);
 
-		List<DaoValue> list = CommonDaoService.select(info);
+		List<DaoValue> list = CommonDaoFactory.Select(info);
 		if (list == null || list.size() == 0) {
 			return null;
 		}
@@ -50,23 +54,23 @@ public class NihongoProgressService {
 		}
 		List<DaoValue> updates = new ArrayList<>();
 		if (info != null) {
-			if (info.getProgress() == MAX_PROGRESS || (info.getProgress() > progress && progress < MAX_PROGRESS)) {
+			if ((Integer)info.Get("progress") == MAX_PROGRESS || ((Integer)info.Get("progress") > progress && progress < MAX_PROGRESS)) {
 				return false;
 			}
-			info.setUpdated(new Date());
+			info.Set("updated", CommonMethod.getFormatStringNow());
 		} else {
 			info = new TblNihongoProgressInfo();
-			info.setUser_id(user_id);
-			info.setTest_id(test_id);
+			info.Set("user_id", user_id);
+			info.Set("test_id", test_id);
 		}
-		info.setProgress(progress);
+		info.Set("progress", progress);
 		updates.add(info);
 		if (progress == MAX_PROGRESS) {
-			nihonUser.setStar(nihonUser.getStar() + 1);
+			nihonUser.Set("star", (Integer)nihonUser.Get("star") + 1);
 			updates.add(nihonUser);
 		}
 
-		return CommonDaoService.update(updates);
+		return (CommonDaoFactory.Update(updates) > 0);
 	}
 
 	public static boolean insertProgress(long user_id, int test_id, int progress) {
@@ -76,14 +80,16 @@ public class NihongoProgressService {
 		}
 		List<DaoValue> updates = new ArrayList<>();
 		TblNihongoProgressInfo info = new TblNihongoProgressInfo();
-		info.setUser_id(user_id);
-		info.setTest_id(test_id);
-		info.setProgress(progress);
+		info.Set("user_id", user_id);
+		info.Set("test_id", test_id);
+		info.Set("progress", progress);
 		updates.add(info);
 		if (progress == MAX_PROGRESS) {
-			nihonUser.setStar(nihonUser.getStar() + 1);
+			nihonUser.Set("star", (Integer)nihonUser.Get("star") + 1);
 			updates.add(nihonUser);
 		}
-		return CommonDaoService.update(updates);
+		return (CommonDaoFactory.Update(updates) > 0);
 	}
+	
 }
+

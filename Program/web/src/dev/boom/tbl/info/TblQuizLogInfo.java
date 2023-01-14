@@ -1,99 +1,95 @@
 package dev.boom.tbl.info;
 
-import java.util.List;
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
 
-import dev.boom.dao.core.DaoValueInfo;
+import dev.boom.dao.DaoValueInfo;
+import dev.boom.dao.IDaoValue;
 
-public class TblQuizLogInfo extends DaoValueInfo {
+public class TblQuizLogInfo extends DaoValueInfo implements IDaoValue {
 
-	private static final long serialVersionUID = 1L;
 	private static final String TABLE_NAME = "quiz_log_info";
 	private static final String PRIMARY_KEY = "id";
+	private static final String SUB_KEY = ""; // <><>
+	private static Map<String, String> mapForeignKey = new HashMap<String, String>();
 
-	private long id;
-	private long quiz_id;
-	private byte question_index;
-	private long user_id;
-	private String username;
-	private String correct_answer;
-	private String player_answer;
+	public final class Fields implements IDaoValue.Fields {
+
+		public int id;
+		public long quiz_id;
+		public byte question_index;
+		public long user_id;
+		public String username;
+		public String correct_answer;
+		public String player_answer;
+
+		public Fields() {
+			id = 0;
+			quiz_id = 0;
+			question_index = 0;
+			user_id = 0;
+			username = "";
+			correct_answer = "";
+			player_answer = "";
+		}
+	}
+
+	private Fields fieldRead;
+
+	private Fields fieldWrite;
+
+	private static Field[] fields;
 
 	public TblQuizLogInfo() {
-		this.id = 0;
-		this.quiz_id = 0;
-		this.question_index = 0;
-		this.user_id = 0;
-		this.username = "";
-		this.correct_answer = "";
-		this.player_answer = "";
-		Sync();
+		fieldRead = new Fields();
+		fieldWrite = new Fields();
+
+		if (fields == null) {
+			fields = fieldRead.getClass().getFields();
+		}
 	}
 
-	public long getId() {
-		return id;
-	}
-
-	public void setId(long id) {
-		this.id = id;
-	}
-
-	public long getQuiz_id() {
-		return quiz_id;
-	}
-
-	public void setQuiz_id(long quiz_id) {
-		this.quiz_id = quiz_id;
-	}
-
-	public byte getQuestion_index() {
-		return question_index;
-	}
-
-	public void setQuestion_index(byte question_index) {
-		this.question_index = question_index;
-	}
-
-	public long getUser_id() {
-		return user_id;
-	}
-
-	public void setUser_id(long user_id) {
-		this.user_id = user_id;
-	}
-
-	public String getUsername() {
-		return username;
-	}
-
-	public void setUsername(String username) {
-		this.username = username;
-	}
-
-	public String getCorrect_answer() {
-		return correct_answer;
-	}
-
-	public void setCorrect_answer(String correct_answer) {
-		this.correct_answer = correct_answer;
-	}
-
-	public String getPlayer_answer() {
-		return player_answer;
-	}
-
-	public void setPlayer_answer(String player_answer) {
-		this.player_answer = player_answer;
-	}
-
-	public List<String> getSubKey() {
-		return null;
+	public String getTblName() {
+		return TABLE_NAME;
 	}
 
 	public String getPrimaryKey() {
 		return PRIMARY_KEY;
 	}
 
-	public String getTableName() {
-		return TABLE_NAME;
+	public String getSubKey() {
+		return SUB_KEY;
+	}
+
+	public String getForeignKey(String strKey) {
+		return mapForeignKey.get(strKey);
+	}
+
+	public Field[] getClassField() {
+		return fields;
+	}
+
+	public Object getFieldRead() {
+		return (Object) fieldRead;
+	}
+
+	public Object getFieldWrite() {
+		return (Object) fieldWrite;
+	}
+
+	public Fields getInstance() {
+		return fieldWrite;
+	}
+
+	public void Sync() {
+		fieldRead.id = fieldWrite.id;
+		fieldRead.quiz_id = fieldWrite.quiz_id;
+		fieldRead.question_index = fieldWrite.question_index;
+		fieldRead.user_id = fieldWrite.user_id;
+		fieldRead.username = fieldWrite.username;
+		fieldRead.correct_answer = fieldWrite.correct_answer;
+		fieldRead.player_answer = fieldWrite.player_answer;
 	}
 }
+

@@ -6,10 +6,10 @@ import org.apache.commons.lang.StringUtils;
 
 import dev.boom.common.CommonMethod;
 import dev.boom.core.GameLog;
+import dev.boom.dao.CommonDaoFactory;
 import dev.boom.pages.JsonPageBase;
 import dev.boom.services.AuthToken;
 import dev.boom.services.AuthTokenService;
-import dev.boom.services.CommonDaoService;
 
 public class ChangePassword extends JsonPageBase {
 
@@ -59,7 +59,7 @@ public class ChangePassword extends JsonPageBase {
 			return;
 		}
 		userInfo.setPassword(CommonMethod.getEncryptMD5(new_password));
-		if (!CommonDaoService.update(userInfo.getInfo())) {
+		if (CommonDaoFactory.Update(userInfo.getUserInfo()) < 0) {
 			GameLog.getInstance().error("[ChangePassword] update failed!");
 			putJsonData("error", getMessage("MSG_GENERAL_ERROR"));
 			return;

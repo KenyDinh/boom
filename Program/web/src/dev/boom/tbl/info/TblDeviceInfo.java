@@ -1,207 +1,128 @@
 package dev.boom.tbl.info;
 
-import java.util.Date;
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
 
-import dev.boom.common.CommonDefine;
-import dev.boom.common.CommonMethod;
-import dev.boom.dao.core.DaoValueInfo;
+import dev.boom.dao.DaoValueInfo;
+import dev.boom.dao.IDaoValue;
 
-public class TblDeviceInfo extends DaoValueInfo {
+public class TblDeviceInfo extends DaoValueInfo implements IDaoValue {
 
-	private static final long serialVersionUID = 1L;
 	private static final String TABLE_NAME = "device_info";
 	private static final String PRIMARY_KEY = "id";
+	private static final String SUB_KEY = ""; // <><>
+	private static Map<String, String> mapForeignKey = new HashMap<String, String>();
 
-	private int id;
-	private String name;
-	private String serial;
-	private String image;
-	private byte dept;
-	private byte type;
-	private byte status;
-	private Date buy_date;
-	private String note;
-	private Date hold_date;
-	private Date release_date;
-	private Date extend_date;
-	private long user_id;
-	private String username;
-	private byte available;
-	private int flag;
-	private int regist_count;
-	private Date updated;
+	public final class Fields implements IDaoValue.Fields {
+
+		public int id;
+		public String name;
+		public String serial;
+		public String image;
+		public byte dept;
+		public byte type;
+		public byte status;
+		public String buy_date;
+		public String note;
+		public String hold_date;
+		public String release_date;
+		public String extend_date;
+		public long user_id;
+		public String username;
+		public byte available;
+		public int flag;
+		public int regist_count;
+		public String updated;
+
+		public Fields() {
+			id = 0;
+			name = "";
+			serial = "";
+			image = "";
+			dept = 0;
+			type = 0;
+			status = 0;
+			buy_date = "";
+			note = "";
+			hold_date = "";
+			release_date = "";
+			extend_date = "";
+			user_id = 0;
+			username = "";
+			available = 0;
+			flag = 0;
+			regist_count = 0;
+			updated = "";
+		}
+	}
+
+	private Fields fieldRead;
+
+	private Fields fieldWrite;
+
+	private static Field[] fields;
 
 	public TblDeviceInfo() {
-		this.id = 0;
-		this.name = "";
-		this.serial = "";
-		this.image = "";
-		this.dept = 0;
-		this.type = 0;
-		this.status = 0;
-		this.buy_date = CommonMethod.getDate(CommonDefine.DEFAULT_DATE_TIME);
-		this.note = "";
-		this.hold_date = CommonMethod.getDate(CommonDefine.DEFAULT_DATE_TIME);
-		this.release_date = this.hold_date;
-		this.extend_date = this.hold_date;
-		this.user_id = 0;
-		this.username = "";
-		this.available = 0;
-		this.flag = 0;
-		this.regist_count = 0;
-		this.updated = new Date();
-		Sync();
+		fieldRead = new Fields();
+		fieldWrite = new Fields();
+
+		if (fields == null) {
+			fields = fieldRead.getClass().getFields();
+		}
 	}
 
-	public int getId() {
-		return id;
-	}
-
-	public void setId(int id) {
-		this.id = id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getSerial() {
-		return serial;
-	}
-
-	public void setSerial(String serial) {
-		this.serial = serial;
-	}
-
-	public String getImage() {
-		return image;
-	}
-
-	public void setImage(String image) {
-		this.image = image;
-	}
-
-	public byte getDept() {
-		return dept;
-	}
-
-	public void setDept(byte dept) {
-		this.dept = dept;
-	}
-
-	public byte getType() {
-		return type;
-	}
-
-	public void setType(byte type) {
-		this.type = type;
-	}
-
-	public byte getStatus() {
-		return status;
-	}
-
-	public void setStatus(byte status) {
-		this.status = status;
-	}
-
-	public Date getBuy_date() {
-		return buy_date;
-	}
-
-	public void setBuy_date(Date buy_date) {
-		this.buy_date = buy_date;
-	}
-
-	public String getNote() {
-		return note;
-	}
-
-	public void setNote(String note) {
-		this.note = note;
-	}
-
-	public Date getHold_date() {
-		return hold_date;
-	}
-
-	public void setHold_date(Date hold_date) {
-		this.hold_date = hold_date;
-	}
-
-	public Date getRelease_date() {
-		return release_date;
-	}
-
-	public void setRelease_date(Date release_date) {
-		this.release_date = release_date;
-	}
-
-	public Date getExtend_date() {
-		return extend_date;
-	}
-
-	public void setExtend_date(Date extend_date) {
-		this.extend_date = extend_date;
-	}
-
-	public long getUser_id() {
-		return user_id;
-	}
-
-	public void setUser_id(long user_id) {
-		this.user_id = user_id;
-	}
-
-	public String getUsername() {
-		return username;
-	}
-
-	public void setUsername(String username) {
-		this.username = username;
-	}
-
-	public byte getAvailable() {
-		return available;
-	}
-
-	public void setAvailable(byte available) {
-		this.available = available;
-	}
-
-	public int getFlag() {
-		return flag;
-	}
-
-	public void setFlag(int flag) {
-		this.flag = flag;
-	}
-
-	public int getRegist_count() {
-		return regist_count;
-	}
-
-	public void setRegist_count(int regist_count) {
-		this.regist_count = regist_count;
-	}
-
-	public Date getUpdated() {
-		return updated;
-	}
-
-	public void setUpdated(Date updated) {
-		this.updated = updated;
+	public String getTblName() {
+		return TABLE_NAME;
 	}
 
 	public String getPrimaryKey() {
 		return PRIMARY_KEY;
 	}
 
-	public String getTableName() {
-		return TABLE_NAME;
+	public String getSubKey() {
+		return SUB_KEY;
+	}
+
+	public String getForeignKey(String strKey) {
+		return mapForeignKey.get(strKey);
+	}
+
+	public Field[] getClassField() {
+		return fields;
+	}
+
+	public Object getFieldRead() {
+		return (Object) fieldRead;
+	}
+
+	public Object getFieldWrite() {
+		return (Object) fieldWrite;
+	}
+
+	public Fields getInstance() {
+		return fieldWrite;
+	}
+
+	public void Sync() {
+		fieldRead.id = fieldWrite.id;
+		fieldRead.name = fieldWrite.name;
+		fieldRead.serial = fieldWrite.serial;
+		fieldRead.image = fieldWrite.image;
+		fieldRead.dept = fieldWrite.dept;
+		fieldRead.type = fieldWrite.type;
+		fieldRead.status = fieldWrite.status;
+		fieldRead.buy_date = fieldWrite.buy_date;
+		fieldRead.note = fieldWrite.note;
+		fieldRead.hold_date = fieldWrite.hold_date;
+		fieldRead.release_date = fieldWrite.release_date;
+		fieldRead.extend_date = fieldWrite.extend_date;
+		fieldRead.user_id = fieldWrite.user_id;
+		fieldRead.username = fieldWrite.username;
+		fieldRead.available = fieldWrite.available;
+		fieldRead.flag = fieldWrite.flag;
+		fieldRead.regist_count = fieldWrite.regist_count;
+		fieldRead.updated = fieldWrite.updated;
 	}
 }
+

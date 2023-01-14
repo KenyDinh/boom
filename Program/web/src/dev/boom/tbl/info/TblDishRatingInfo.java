@@ -1,101 +1,95 @@
 package dev.boom.tbl.info;
 
-import java.util.Date;
-import java.util.List;
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
 
-import dev.boom.dao.core.DaoValueInfo;
+import dev.boom.dao.DaoValueInfo;
+import dev.boom.dao.IDaoValue;
 
-public class TblDishRatingInfo extends DaoValueInfo {
+public class TblDishRatingInfo extends DaoValueInfo implements IDaoValue {
 
-	private static final long serialVersionUID = 1L;
 	private static final String TABLE_NAME = "dish_rating_info";
 	private static final String PRIMARY_KEY = "id";
+	private static final String SUB_KEY = ""; // <><>
+	private static Map<String, String> mapForeignKey = new HashMap<String, String>();
 
-	private long id;
-	private long shop_id;
-	private String name;
-	private int code;
-	private long order_count;
-	private long star_count;
-	private Date updated;
+	public final class Fields implements IDaoValue.Fields {
+
+		public long id;
+		public long shop_id;
+		public String name;
+		public int code;
+		public long order_count;
+		public long star_count;
+		public String updated;
+
+		public Fields() {
+			id = 0;
+			shop_id = 0;
+			name = "";
+			code = 0;
+			order_count = 0;
+			star_count = 0;
+			updated = "";
+		}
+	}
+
+	private Fields fieldRead;
+
+	private Fields fieldWrite;
+
+	private static Field[] fields;
 
 	public TblDishRatingInfo() {
-		this.id = 0;
-		this.shop_id = 0;
-		this.name = "";
-		this.code = 0;
-		this.order_count = 0;
-		this.star_count = 0;
-		this.updated = new Date();
-		Sync();
+		fieldRead = new Fields();
+		fieldWrite = new Fields();
+
+		if (fields == null) {
+			fields = fieldRead.getClass().getFields();
+		}
 	}
 
-	public long getId() {
-		return id;
-	}
-
-	public void setId(long id) {
-		this.id = id;
-	}
-
-	public long getShop_id() {
-		return shop_id;
-	}
-
-	public void setShop_id(long shop_id) {
-		this.shop_id = shop_id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public int getCode() {
-		return code;
-	}
-
-	public void setCode(int code) {
-		this.code = code;
-	}
-
-	public long getOrder_count() {
-		return order_count;
-	}
-
-	public void setOrder_count(long order_count) {
-		this.order_count = order_count;
-	}
-
-	public long getStar_count() {
-		return star_count;
-	}
-
-	public void setStar_count(long star_count) {
-		this.star_count = star_count;
-	}
-
-	public Date getUpdated() {
-		return updated;
-	}
-
-	public void setUpdated(Date updated) {
-		this.updated = updated;
-	}
-
-	public List<String> getSubKey() {
-		return null;
+	public String getTblName() {
+		return TABLE_NAME;
 	}
 
 	public String getPrimaryKey() {
 		return PRIMARY_KEY;
 	}
 
-	public String getTableName() {
-		return TABLE_NAME;
+	public String getSubKey() {
+		return SUB_KEY;
 	}
 
+	public String getForeignKey(String strKey) {
+		return mapForeignKey.get(strKey);
+	}
+
+	public Field[] getClassField() {
+		return fields;
+	}
+
+	public Object getFieldRead() {
+		return (Object) fieldRead;
+	}
+
+	public Object getFieldWrite() {
+		return (Object) fieldWrite;
+	}
+
+	public Fields getInstance() {
+		return fieldWrite;
+	}
+
+	public void Sync() {
+		fieldRead.id = fieldWrite.id;
+		fieldRead.shop_id = fieldWrite.shop_id;
+		fieldRead.name = fieldWrite.name;
+		fieldRead.code = fieldWrite.code;
+		fieldRead.order_count = fieldWrite.order_count;
+		fieldRead.star_count = fieldWrite.star_count;
+		fieldRead.updated = fieldWrite.updated;
+	}
 }
+

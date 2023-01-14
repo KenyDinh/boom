@@ -9,16 +9,16 @@ import javax.websocket.Session;
 
 import dev.boom.common.CommonMethod;
 import dev.boom.common.enums.ManageLogType;
-import dev.boom.dao.core.DaoValue;
+import dev.boom.dao.CommonDaoFactory;
+import dev.boom.dao.DaoValue;
 import dev.boom.milktea.object.Menu;
 import dev.boom.milktea.object.MenuItem;
-import dev.boom.services.CommonDaoService;
+import dev.boom.services.Dish;
 import dev.boom.services.ManageLogService;
-import dev.boom.services.UserInfo;
+import dev.boom.services.Shop;
+import dev.boom.services.User;
 import dev.boom.socket.endpoint.ManageMilkTeaEndPoint;
 import dev.boom.socket.func.FridayStaticData;
-import dev.boom.tbl.info.TblDishInfo;
-import dev.boom.tbl.info.TblMenuInfo;
 import dev.boom.tbl.info.TblShopInfo;
 import net.arnx.jsonic.JSON;
 
@@ -106,51 +106,50 @@ public class FridaySocketSession extends SocketSessionBase {
 			logError("[FridaySocketSession] (update) No MenuItem found!");
 			return;
 		}
-		TblShopInfo shopInfo = new TblShopInfo();
+		Shop shopInfo = new Shop();
 		shopInfo.setUrl(menu.getUrl());
-		List<DaoValue> listShop = CommonDaoService.select(shopInfo);
+		List<DaoValue> listShop = CommonDaoFactory.Select(shopInfo.getShopInfo());
 		if (listShop == null || listShop.isEmpty()) {
 			shopInfo.setAddress(menu.getAddress());
 			shopInfo.setName(getShopName(menu.getMenu_name()));
-			shopInfo.setImage_url(menu.getImage_url());
-			shopInfo.setPre_image_url(menu.getPre_image_url());
-			long shop_id = (Long) CommonDaoService.insert(shopInfo);
+			shopInfo.setImageUrl(menu.getImage_url());
+			shopInfo.setPreImageUrl(menu.getPre_image_url());
+			long shop_id = CommonDaoFactory.Insert(shopInfo.getShopInfo());
 			if (shop_id <= 0) {
 				logError("[FridaySocketSession] (update) Insert shop info failed!");
 				return;
 			}
 			shopInfo.setId(shop_id);
 		} else {
-			shopInfo = (TblShopInfo) listShop.get(0);
-			TblDishInfo dishInfo = new TblDishInfo();
-			dishInfo.setShop_id(shopInfo.getId());
-			if (CommonDaoService.count(dishInfo) > 0) {
-				dishInfo.setDelete();
-				if (!CommonDaoService.delete(dishInfo)) {
+			shopInfo = new Shop((TblShopInfo) listShop.get(0));
+			Dish dishInfo = new Dish();
+			dishInfo.setShopId(shopInfo.getId());
+			//if (CommonDaoFactory.Count(dishInfo.getDishInfo()) > 0) {
+				if (CommonDaoFactory.executeUpdate(String.format("DELETE FROM %s WHERE shop_id = %d", dishInfo.getDishInfo().getTblName(), dishInfo.getShopId())) < 0) {
 					logError("[FridaySocketSession] (update) delete old dishs failed!");
 					return;
 				}
-			}
+			//}
 		}
 		List<DaoValue> updateList = new ArrayList<>();
-		TblMenuInfo menuInfo = new TblMenuInfo();
+		dev.boom.services.Menu menuInfo = new dev.boom.services.Menu();
 		menuInfo.setName(menu.getMenu_name());
-		menuInfo.setShop_id(shopInfo.getId());
+		menuInfo.setShopId(shopInfo.getId());
 		menuInfo.setSale((short) menu.getSale());
-		menuInfo.setMax_discount(menu.getMax_discount());
+		menuInfo.setMaxDiscount(menu.getMax_discount());
 		menuInfo.setCode(menu.getCode());
-		menuInfo.setShipping_fee(menu.getShipping_fee());
-		updateList.add(menuInfo);
+		menuInfo.setShippingFee(menu.getShipping_fee());
+		updateList.add(menuInfo.getMenuInfo());
 		for (MenuItem menuItem : listItems) {
-			TblDishInfo dishInfo = new TblDishInfo();
-			dishInfo.setShop_id(shopInfo.getId());
+			Dish dishInfo = new Dish();
+			dishInfo.setShopId(shopInfo.getId());
 			dishInfo.setDetail(menuItem.getDetail());
-			updateList.add(dishInfo);
+			updateList.add(dishInfo.getDishInfo());
 		}
-		if (!CommonDaoService.update(updateList)) {
+		if (CommonDaoFactory.Update(updateList) < 0) {
 			logError("[FridaySocketSession] (update) update failed!");
 		} else {
-			UserInfo userInfo = new UserInfo();
+			User userInfo = new User();
 			userInfo.setId(getUserId());
 			userInfo.setUsername(getUsername());
 			ManageLogService.createManageLog(userInfo, ManageLogType.ADD_MENU, menu.getMenu_name());

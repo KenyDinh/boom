@@ -20,21 +20,21 @@ import dev.boom.common.enums.BootStrapColorEnum;
 import dev.boom.common.enums.Department;
 import dev.boom.common.enums.EventFlagEnum;
 import dev.boom.core.GameLog;
+import dev.boom.dao.CommonDaoFactory;
 import dev.boom.milktea.object.MenuItem;
 import dev.boom.milktea.object.MenuItemOption;
 import dev.boom.milktea.object.MenuItemSelectionLimit;
-import dev.boom.services.CommonDaoService;
-import dev.boom.services.DishRatingInfo;
+import dev.boom.services.DishRating;
 import dev.boom.services.DishRatingService;
-import dev.boom.services.MenuInfo;
+import dev.boom.services.Menu;
 import dev.boom.services.MenuService;
-import dev.boom.services.MilkTeaUserInfo;
-import dev.boom.services.MilkTeaUserService;
-import dev.boom.services.OrderInfo;
-import dev.boom.services.ShopInfo;
+import dev.boom.services.MilkteaUser;
+import dev.boom.services.MilkteaUserService;
+import dev.boom.services.Order;
+import dev.boom.services.Shop;
 import dev.boom.services.ShopService;
-import dev.boom.services.UserInfo;
-import dev.boom.services.WorldInfo;
+import dev.boom.services.User;
+import dev.boom.services.World;
 import dev.boom.tbl.info.TblShopInfo;
 
 public class MilkTeaCommonFunc {
@@ -46,12 +46,12 @@ public class MilkTeaCommonFunc {
 	
 	// ========================================== //
 	@SuppressWarnings("rawtypes")
-	public static String getHtmlListMenuItem(MenuInfo menuInfo, List<MenuItem> listMenuItem, String contextPath, UserInfo userInfo, Map messages) {
+	public static String getHtmlListMenuItem(Menu menuInfo, List<MenuItem> listMenuItem, String contextPath, User userInfo, Map messages) {
 		if (listMenuItem == null || listMenuItem.isEmpty()) {
 			return "";
 		}
 		sortListMenuItemByType(listMenuItem);
-		Map<Integer, DishRatingInfo> dishRatingMap = null;
+		Map<Integer, DishRating> dishRatingMap = null;
 		if (menuInfo != null) {
 			dishRatingMap = DishRatingService.getDishRatingInfoMap(menuInfo.getShopId());
 		}
@@ -64,7 +64,7 @@ public class MilkTeaCommonFunc {
 			String strRating = null;
 			String ratingStyle = null;
 			if (dishRatingMap != null && dishRatingMap.containsKey(itemCode)) {
-				DishRatingInfo ratingInfo = dishRatingMap.get(itemCode);
+				DishRating ratingInfo = dishRatingMap.get(itemCode);
 				String rating = ratingInfo.getFormatRating();
 				if (rating != null) {
 					strRating = MessageFormat.format((String)messages.get("MSG_MILK_TEA_DISH_RATING"), rating, ratingInfo.getOrderCount());
@@ -132,7 +132,7 @@ public class MilkTeaCommonFunc {
 		// modal
 		if (menuInfo != null && (menuInfo.isOpening() || (isAdminAccess && !menuInfo.isCompleted()))) {
 			if (userInfo != null) {
-				MilkTeaUserInfo milkteaUser = MilkTeaUserService.getMilkTeaUserInfoById(userInfo.getId());
+				MilkteaUser milkteaUser = MilkteaUserService.getMilkTeaUserInfoById(userInfo.getId());
 				if (!userInfo.isActive()) {
 					sb.append(CommonHtmlFunc.getModalAlertWithMessage("account-not-active-modal", "warning", (String)messages.get("MSG_ACCOUNT_INACTIVE")));
 				} else if (userInfo.isMilkteaBanned()) {
@@ -151,7 +151,7 @@ public class MilkTeaCommonFunc {
 	}
 	
 	@SuppressWarnings("rawtypes")
-	private static String getItemPriceBlock(MenuItem item, MenuInfo menuInfo, UserInfo userInfo, Map messages) {
+	private static String getItemPriceBlock(MenuItem item, Menu menuInfo, User userInfo, Map messages) {
 		boolean isAdminAccess = (userInfo != null && userInfo.isMilkteaAdmin());
 		StringBuilder sb = new StringBuilder();
 		sb.append("<div class=\"row\"><div class=\"col-sm-12\" style=\"text-align:right;\">");
@@ -184,7 +184,7 @@ public class MilkTeaCommonFunc {
 	}
 	
 	@SuppressWarnings("rawtypes")
-	public static String getPlaceOrderModal(MilkTeaUserInfo milkteaUser, MenuInfo menuInfo, MenuItem item, Map messages, String contextPath) {
+	public static String getPlaceOrderModal(MilkteaUser milkteaUser, Menu menuInfo, MenuItem item, Map messages, String contextPath) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(String.format("<div class=\"modal fade\" id=\"place-order-modal-%d\">", item.getId()));
 			sb.append("<div class=\"modal-dialog modal-dialog-centered modal-lg\" >");
@@ -265,7 +265,7 @@ public class MilkTeaCommonFunc {
 	}
 	
 	@SuppressWarnings("rawtypes")
-	private static String getGroupInputFormItemOption(MenuInfo menuInfo, MenuItem item, MilkTeaItemOptionType optionType, MenuItemOption[] listItemOption, Map messages) {
+	private static String getGroupInputFormItemOption(Menu menuInfo, MenuItem item, MilkTeaItemOptionType optionType, MenuItemOption[] listItemOption, Map messages) {
 		if (listItemOption == null || listItemOption.length == 0) {
 			return "";
 		}
@@ -418,12 +418,12 @@ public class MilkTeaCommonFunc {
 	
 	// ========================================== //
 	@SuppressWarnings("rawtypes")
-	public static String getHtmlListOrder(List<OrderInfo> orderList, MenuInfo menuInfo, UserInfo userInfo, String contextPath, Map messages, WorldInfo worldInfo) {
+	public static String getHtmlListOrder(List<Order> orderList, Menu menuInfo, User userInfo, String contextPath, Map messages, World worldInfo) {
 		return getHtmlListOrder(orderList, menuInfo, userInfo, contextPath, messages, false, worldInfo);
 	}
 	
 	@SuppressWarnings("rawtypes")
-	public static String getHtmlListOrder(List<OrderInfo> orderList, MenuInfo menuInfo, UserInfo userInfo, String contextPath, Map messages, boolean isManagement, WorldInfo worldInfo) {
+	public static String getHtmlListOrder(List<Order> orderList, Menu menuInfo, User userInfo, String contextPath, Map messages, boolean isManagement, World worldInfo) {
 		long userId = (userInfo != null) ? userInfo.getId() : 0;
 		boolean isAdminAccess = (userInfo != null && userInfo.isMilkteaAdmin());
 		boolean isMenuOpening = menuInfo.isOpening();
@@ -489,7 +489,7 @@ public class MilkTeaCommonFunc {
 			long totalMoney = getTotalMoney(orderList);
 			long totalRealCost = 0;
 			long dishcount = 0;
-			for (OrderInfo order : orderList) {
+			for (Order order : orderList) {
 				String trHighlight = "style=\"color:#C5C5C5;\"";
 				if (userId == order.getUserId() && !isManagement) {
 					trHighlight = "class=\"bg-primary text-success\"";
@@ -647,7 +647,7 @@ public class MilkTeaCommonFunc {
 	
 	// ========================================== //
 	@SuppressWarnings("rawtypes")
-	private static String getHtmlMenuPreview(MenuInfo menuInfo, ShopInfo shopInfo, String contextPath, Map messages) {
+	private static String getHtmlMenuPreview(Menu menuInfo, Shop shopInfo, String contextPath, Map messages) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("<div style=\"background-color:white;\" class=\"border\">");
 		sb.append(String.format("<a href=\"%s\">", contextPath + "/milktea/milk_tea_menu.htm?id=" + menuInfo.getId()));
@@ -668,7 +668,7 @@ public class MilkTeaCommonFunc {
 	}
 	
 	@SuppressWarnings("rawtypes")
-	private static String getHtmlShopPreview(ShopInfo shopInfo, String contextPath, Map messages) {
+	private static String getHtmlShopPreview(Shop shopInfo, String contextPath, Map messages) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("<div style=\"background-color:white;\" class=\"border\">");
 		sb.append(String.format("<a href=\"%s\">", contextPath + "/milktea/milk_tea_list_shop.htm?id=" + shopInfo.getId()));
@@ -686,7 +686,7 @@ public class MilkTeaCommonFunc {
 	}
 	
 	@SuppressWarnings("rawtypes")
-	public static String getHtmlListMenu(UserInfo userInfo, String contextPath, Map messages, int page) {
+	public static String getHtmlListMenu(User userInfo, String contextPath, Map messages, int page) {
 		byte[] statusList = new byte[] {MilkTeaMenuStatus.OPENING.getStatus(), MilkTeaMenuStatus.DELIVERING.getStatus()};
 		String options = null;
 		if (userInfo == null) {
@@ -694,7 +694,7 @@ public class MilkTeaCommonFunc {
 		} else if (!userInfo.isMilkteaAdmin()) {
 			options = "(dept & " + userInfo.getDept() + ") <> 0";
 		}
-		List<MenuInfo> menuList = MenuService.getMenuListByStatusList(statusList, options, -1, -1);
+		List<Menu> menuList = MenuService.getMenuListByStatusList(statusList, options, -1, -1);
 		// separate completed menu
 		statusList = new byte[] {MilkTeaMenuStatus.COMPLETED.getStatus()};
 		long totalCompleted = MenuService.getCountMenu(statusList, options);
@@ -704,7 +704,7 @@ public class MilkTeaCommonFunc {
 			int totalPage = (int)(totalCompleted - 1) / maxView + 1;
 			page = Math.min(page, totalPage);
 			int offset = (page - 1) * maxView;
-			List<MenuInfo> completedMenus = MenuService.getMenuListByStatusList(statusList, options, maxView, offset);
+			List<Menu> completedMenus = MenuService.getMenuListByStatusList(statusList, options, maxView, offset);
 			if (completedMenus != null && !completedMenus.isEmpty()) {
 				if (menuList == null) {
 					menuList = new ArrayList<>();
@@ -719,9 +719,9 @@ public class MilkTeaCommonFunc {
 		Map<Byte,List<String>> menuMaps = new HashMap<>();
 		List<Long> shopids = new ArrayList<>();
 		if (menuList != null && menuList.size() > 0) {
-			Iterator<MenuInfo> it = menuList.iterator();
+			Iterator<Menu> it = menuList.iterator();
 			while(it.hasNext()) {
-				MenuInfo menuInfo = it.next();
+				Menu menuInfo = it.next();
 				if (!menuInfo.isAvailableForUser(userInfo)) {
 					it.remove();
 					continue;
@@ -732,13 +732,13 @@ public class MilkTeaCommonFunc {
 				shopids.add(menuInfo.getShopId());
 			}
 		}
-		List<ShopInfo> shopList = ShopService.getShopListById(shopids);
+		List<Shop> shopList = ShopService.getShopListById(shopids);
 		if (shopList != null && shopList.size() > 0) {
-			for (MenuInfo menuInfo : menuList) {
+			for (Menu menuInfo : menuList) {
 				if (!menuMaps.containsKey(menuInfo.getStatus())) {
 					menuMaps.put(menuInfo.getStatus(), new ArrayList<>());
 				}
-				for (ShopInfo shopInfo : shopList) {
+				for (Shop shopInfo : shopList) {
 					if (shopInfo.getId() == menuInfo.getShopId()) {
 						menuMaps.get(menuInfo.getStatus()).add(getHtmlMenuPreview(menuInfo, shopInfo, contextPath, messages));
 						break;
@@ -780,9 +780,9 @@ public class MilkTeaCommonFunc {
 	}
 	
 	@SuppressWarnings("rawtypes")
-	public static String getHtmlMenuDetail(MenuInfo menuInfo, UserInfo userInfo, String contextPath, Map messages) {
+	public static String getHtmlMenuDetail(Menu menuInfo, User userInfo, String contextPath, Map messages) {
 		StringBuilder sb = new StringBuilder();
-		ShopInfo shopInfo = ShopService.getShopById(menuInfo.getShopId());
+		Shop shopInfo = ShopService.getShopById(menuInfo.getShopId());
 		if (shopInfo != null) {
 			boolean menuOpening = menuInfo.isOpening();
 			boolean isAdminAccess = (userInfo != null && userInfo.isMilkteaAdmin());
@@ -853,7 +853,7 @@ public class MilkTeaCommonFunc {
 			sb.append("</div>");
 			sb.append("<div class=\"col-lg-4 col-md-12\">");
 			if (menuOpening) {
-				long left = menuInfo.getExpired().getTime() - Calendar.getInstance().getTimeInMillis();
+				long left = menuInfo.getExpiredDate().getTime() - Calendar.getInstance().getTimeInMillis();
 				if (left <= 5 * CommonDefine.MILLION_SECOND_HOUR) {
 					sb.append("<div id=\"menu-countdown\" class=\"text-center\" style=\"margin-top:1em;\">");
 					sb.append("<div class=\"text-warning\" style=\"font-size:1.25rem;\">");
@@ -873,7 +873,7 @@ public class MilkTeaCommonFunc {
 	
 	@SuppressWarnings("rawtypes")
 	public static String getHtmlListShop(String contextPath, Map messages, int page) {
-		int total = (int)CommonDaoService.count(new TblShopInfo());
+		int total = CommonDaoFactory.Count(new TblShopInfo());
 		if (total <= 0) {
 			return "";
 		}
@@ -883,7 +883,7 @@ public class MilkTeaCommonFunc {
 			page = maxPage;
 		}
 		int offset = (page - 1) * MAX_VIEW_PER_PAGE;
-		List<ShopInfo> listShop = ShopService.getShopList("ORDER BY opening_count DESC", MAX_VIEW_PER_PAGE, offset);
+		List<Shop> listShop = ShopService.getShopList("ORDER BY opening_count DESC", MAX_VIEW_PER_PAGE, offset);
 		if (listShop == null || listShop.isEmpty()) {
 			return "";
 		}
@@ -901,7 +901,7 @@ public class MilkTeaCommonFunc {
 			sb.append("</div>");
 		} else {
 			List<String> elements = new ArrayList<>();
-			for (ShopInfo shop : listShop) {
+			for (Shop shop : listShop) {
 				elements.add(getHtmlShopPreview(shop, contextPath, messages));
 			}
 			sb.append(CommonHtmlFunc.getGridLayoutElement(elements, 6));
@@ -917,7 +917,7 @@ public class MilkTeaCommonFunc {
 	}
 	
 	@SuppressWarnings("rawtypes")
-	public static String getHtmlShopDetail(ShopInfo shopInfo, UserInfo userInfo, String contextPath, Map messages) {
+	public static String getHtmlShopDetail(Shop shopInfo, User userInfo, String contextPath, Map messages) {
 		StringBuilder sb = new StringBuilder();
 		if (shopInfo != null) {
 			sb.append("<div id=\"shop-detail\" class=\"col-12\"><div class=\"row\">");
@@ -961,7 +961,7 @@ public class MilkTeaCommonFunc {
 	}
 	
 	@SuppressWarnings("rawtypes")
-	public static String getHtmlListMenuOnShop(List<MenuInfo> menuList, String contextPath, Map messages) {
+	public static String getHtmlListMenuOnShop(List<Menu> menuList, String contextPath, Map messages) {
 		boolean hasMenu = (menuList != null && !menuList.isEmpty());
 		StringBuilder sb = new StringBuilder();
 		sb.append("<div id=\"order-list\">");
@@ -987,7 +987,7 @@ public class MilkTeaCommonFunc {
 			sb.append("<tbody>");
 			String tdStyle = String.format("<td style=\"border-top:0.0625rem solid %s;\">", ORDER_BORDER_COLOR);
 		if (hasMenu) {
-			for (MenuInfo menuInfo : menuList) {
+			for (Menu menuInfo : menuList) {
 				sb.append("<tr>");
 					sb.append(String.format("<td style=\"border-top:0.0625rem solid %s;\">", ORDER_BORDER_COLOR));
 						sb.append("<div style=\"max-width:250px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;\">");
@@ -1010,7 +1010,7 @@ public class MilkTeaCommonFunc {
 						sb.append(getShowPriceWithUnit(menuInfo.getShippingFee(), messages));
 					sb.append("</td>");
 					sb.append(tdStyle);
-						sb.append(CommonMethod.getFormatDateString(menuInfo.getCreated(), CommonDefine.DATE_FORMAT_PATTERN));
+						sb.append((menuInfo.getCreated()));
 					sb.append("</td>");
 				sb.append("</tr>");
 			}
@@ -1030,7 +1030,7 @@ public class MilkTeaCommonFunc {
 	}
 	
 	@SuppressWarnings("rawtypes")
-	public static String getOrderVotingModal(OrderInfo order, Map messages) {
+	public static String getOrderVotingModal(Order order, Map messages) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(String.format("<div class=\"modal fade\" id=\"voting-up-order-%d\">", order.getId()));
 			sb.append("<div class=\"modal-dialog modal-dialog-centered modal-md\">");
@@ -1058,7 +1058,7 @@ public class MilkTeaCommonFunc {
 		return sb.toString();
 	}
 	
-	public static String getOrderRating(OrderInfo order) {
+	public static String getOrderRating(Order order) {
 		StringBuilder sb = new StringBuilder();
 			sb.append(String.format("<div id=\"order-rating-%d\" class=\"stars\">", order.getId()));
 			sb.append("<span class=\"\" style=\"\">").append(order.getVotingStar()).append("</span>");
@@ -1067,7 +1067,7 @@ public class MilkTeaCommonFunc {
 		return sb.toString();
 	}
 	
-	public static String getOrderRatingWithComment(OrderInfo order) {
+	public static String getOrderRatingWithComment(Order order) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(String.format("<div id=\"order-rating-%d\" class=\"stars\">", order.getId()));
 		if (order.isVoted() && order.getVotingStar() > 0) {
@@ -1120,18 +1120,18 @@ public class MilkTeaCommonFunc {
 		return sb.toString();
 	}
 	
-	public static long getTotalMoney(List<OrderInfo> orderList) {
+	public static long getTotalMoney(List<Order> orderList) {
 		if (orderList == null || orderList.isEmpty()) {
 			return 0;
 		}
 		long total = 0;
-		for (OrderInfo order : orderList) {
+		for (Order order : orderList) {
 			total += (order.getDishPrice() + order.getAttrPrice()) * Math.max(order.getQuantity(), 1);
 		}
 		return total;
 	}
 	
-	public static long getFinalCost(long totalMoney, int totalOrder, MenuInfo menuInfo, OrderInfo order) {
+	public static long getFinalCost(long totalMoney, int totalOrder, Menu menuInfo, Order order) {
 		if (MilkTeaOrderFlag.KOC_TICKET.isValidFlag(order.getFlag())) {
 			return 0;
 		}

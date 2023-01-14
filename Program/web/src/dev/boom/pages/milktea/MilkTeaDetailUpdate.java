@@ -6,9 +6,9 @@ import dev.boom.common.CommonMethod;
 import dev.boom.common.milktea.MilkTeaCommonFunc;
 import dev.boom.common.milktea.MilkTeaSocketMessage;
 import dev.boom.core.BoomSession;
-import dev.boom.services.MenuInfo;
+import dev.boom.services.Menu;
 import dev.boom.services.MenuService;
-import dev.boom.services.OrderInfo;
+import dev.boom.services.Order;
 import dev.boom.services.OrderService;
 import dev.boom.services.UserService;
 
@@ -76,7 +76,7 @@ public class MilkTeaDetailUpdate extends MilkTeaAjaxPageBase {
 		case UPDATE_ORDER_LIST:
 			String strMenuId = getContext().getRequestParameter("menu_id");
 			if (CommonMethod.isValidNumeric(strMenuId, 1, Long.MAX_VALUE)) {
-				MenuInfo menuInfo = MenuService.getMenuById(Long.parseLong(strMenuId));
+				Menu menuInfo = MenuService.getMenuById(Long.parseLong(strMenuId));
 				if (!menuInfo.isAvailableForUser(userInfo)) {
 					return;
 				}
@@ -84,7 +84,7 @@ public class MilkTeaDetailUpdate extends MilkTeaAjaxPageBase {
 				if (msg == MilkTeaSocketMessage.UPDATE_MENU_DETAIL) {
 					sb.append(MilkTeaCommonFunc.getHtmlMenuDetail(menuInfo, userInfo, contextPath, getMessages()));
 				}
-				List<OrderInfo> listOrder = OrderService.getOrderInfoListByMenuId(menuInfo.getId());
+				List<Order> listOrder = OrderService.getOrderInfoListByMenuId(menuInfo.getId());
 				sb.append(MilkTeaCommonFunc.getHtmlListOrder(listOrder, menuInfo, userInfo, contextPath, getMessages(), getWorldInfo()));
 				addModel("result", sb.toString());
 			}

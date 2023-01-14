@@ -11,7 +11,7 @@ import dev.boom.common.enums.MainNavBarEnum;
 import dev.boom.core.GameLog;
 import dev.boom.services.AuthToken;
 import dev.boom.services.AuthTokenService;
-import dev.boom.services.CarouselInfo;
+import dev.boom.services.Carousel;
 import dev.boom.services.CarouselService;
 import dev.boom.socket.SocketSessionPool;
 
@@ -77,7 +77,7 @@ public class Home extends BoomMainPage {
 		if (getRedirect() != null) {
 			return;
 		}
-		List<CarouselInfo> carouselList = CarouselService.getCarouselList(MAX_CAROUSEL_SHOW);
+		List<Carousel> carouselList = CarouselService.getCarouselList(MAX_CAROUSEL_SHOW);
 		if (carouselList != null) {
 			addModel("carouselList", carouselList);
 		}

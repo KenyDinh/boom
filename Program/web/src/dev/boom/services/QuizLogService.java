@@ -9,19 +9,20 @@ import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 
 import dev.boom.common.game.QuizSubject;
-import dev.boom.dao.core.DaoValue;
+import dev.boom.dao.CommonDaoFactory;
+import dev.boom.dao.DaoValue;
 import dev.boom.socket.func.PatpatFunc;
 import dev.boom.tbl.info.TblQuizLogInfo;
 
 public class QuizLogService {
-	
+
 	public static final String CORRECT_ICON = ":white_check_mark:";
 	public static final String WRONG_ICON = ":x:";
 
 	private QuizLogService() {
 	}
 	
-	public static String getQuizLogData(QuizInfo quiz) {
+	public static String getQuizLogData(Quiz quiz) {
 		StringBuilder sb = new StringBuilder();
 		TblQuizLogInfo info = new TblQuizLogInfo();
 		info.Set("quiz_id", quiz.getId());
@@ -55,8 +56,8 @@ public class QuizLogService {
 				}
 			}
 		}
-		info.setSelectOption("ORDER BY question_index ASC, id ASC");
-		List<DaoValue> list = CommonDaoService.select(info);
+		info.SetSelectOption("ORDER BY question_index ASC, id ASC");
+		List<DaoValue> list = CommonDaoFactory.Select(info);
 		if (list == null || list.isEmpty()) {
 			sb.append("🠖 No one answered 🠔");
 			return sb.toString();
@@ -73,7 +74,7 @@ public class QuizLogService {
 		String value;
 		for (DaoValue dao : list) {
 			QuizLog quizLog = new QuizLog((TblQuizLogInfo) dao);
-			key = String.format("%s_%d", quizLog.getUsername(), quizLog.getQuestIndex());
+			key = String.format("%s_%d", quizLog.getUsername(), quizLog.getQuestionIndex());
 			if (quizLog.isCorrect()) {
 				value = CORRECT_ICON;
 			} else {
@@ -130,3 +131,4 @@ public class QuizLogService {
 		return sb.toString();
 	}
 }
+
