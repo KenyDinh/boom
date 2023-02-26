@@ -77,6 +77,10 @@ public class DeviceService {
 		deviceInfo.Set("name", name);
 		deviceInfo.Set("serial", serial);
 		deviceInfo.Set("image", image);
+		deviceInfo.Set("buy_date", CommonDefine.DEFAULT_DATE_TIME);
+		deviceInfo.Set("hold_date", CommonDefine.DEFAULT_DATE_TIME);
+		deviceInfo.Set("release_date", CommonDefine.DEFAULT_DATE_TIME);
+		deviceInfo.Set("extend_date", CommonDefine.DEFAULT_DATE_TIME);
 		deviceInfo.Set("type", type);
 		deviceInfo.Set("buy_date", buyDate);
 		deviceInfo.Set("note", note);

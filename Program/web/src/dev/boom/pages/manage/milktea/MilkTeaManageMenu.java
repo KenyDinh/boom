@@ -50,7 +50,13 @@ public class MilkTeaManageMenu extends ManagePageBase {
 
 	@Override
 	public boolean onSecurityCheck() {
-		return super.onSecurityCheck();
+		if (!super.onSecurityCheck()) {
+			return false;
+		}
+		if (!userInfo.isMilkteaAdmin()) {
+			return false;
+		}
+		return true;
 	}
 
 	@Override

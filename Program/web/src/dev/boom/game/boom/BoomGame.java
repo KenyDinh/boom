@@ -10,6 +10,7 @@ import java.util.ListIterator;
 import java.util.Map;
 
 import dev.boom.common.CommonMethod;
+import dev.boom.game.boom.BoomUtils.Rect;
 import dev.boom.services.BoomGameItem;
 import dev.boom.socket.endpoint.BoomGameEndPoint;
 import net.arnx.jsonic.JSON;
@@ -19,7 +20,7 @@ public class BoomGame {
 	private String gameId;
 	private long hostId;
 	private String hostName;
-	private int fsp = 20;
+	private int fsp = BoomGameManager.BOOM_MAX_GAME_FPS_FIXED;
 	private int status;
 	private int width;
 	private int height;
@@ -27,7 +28,6 @@ public class BoomGame {
 	private int mapId;
 	private int foregroundId;
 	private String mapImage;
-	private boolean isFreeMove;
 	private boolean hasCharClasses;
 	private long lastCheckHost;
 	private long lastItemSpawn;
@@ -43,6 +43,7 @@ public class BoomGame {
 	private List<BoomSprite> playersPos;
 	private List<BoomSprite> playerAbilityEffects;
 	private List<BoomSprite> fireEffectList;
+	private List<BoomItem> specialItems;
 	private BoomIDGenerator idGenerator;
 	private BoomGameItemUtils itemUtils;
 	private List<Long> inspectorIdList;
@@ -52,10 +53,12 @@ public class BoomGame {
 	private long pauseStartTime = 0l;
 	private long pauseDurationTime = 0l;
 	private List<Integer> bombTypeList;
-	private List<Integer> soundTrackIdList;
-	private int soundTrackEndId = 4;
 	private int soundTrackId;
 	private long gameStartTime = 0l;
+	private boolean isPartyRandom;
+	private List<Map<String, Integer>> specialItemData;
+	private long lastSpecialItemSpawn;
+	private boolean hasGroupEffect;
 
 	public BoomGame(long hostId, String hostName) {
 		super();
@@ -71,6 +74,7 @@ public class BoomGame {
 		playersPos = new ArrayList<>();
 		playerAbilityEffects = new ArrayList<>();
 		fireEffectList = new ArrayList<>();
+		specialItems = new ArrayList<>();
 		idGenerator = new BoomIDGenerator();
 		itemUtils = new BoomGameItemUtils();
 		lastCheckHost = System.nanoTime() + 10 * BoomGameManager.NANO_SECOND;
@@ -78,10 +82,9 @@ public class BoomGame {
 		playerScore = new BoomPlayerScore();
 		playerRanking = new HashMap<>();
 		bombTypeList = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8);
-		soundTrackIdList = Arrays.asList(1, 2, 3);
 		Collections.shuffle(bombTypeList);
-		Collections.shuffle(soundTrackIdList);
-		soundTrackId = soundTrackIdList.get(0);
+		soundTrackId = BoomSoundTrackEnum.getRandom();
+		hasGroupEffect = false;
 	}
 	
 	public void initMap(BoomGameMapEnum map) {
@@ -91,61 +94,26 @@ public class BoomGame {
 		this.mapId = map.getId();
 		this.foregroundId = map.getForegroundImgId();
 		this.mapImage = map.getImage();
-		this.isFreeMove = map.isFreeMove();
 		this.hasCharClasses = map.isCharClasses();
 		this.itemUtils.initItemIdProbsList(map.getItems());
 		this.itemSpawnInterval = BoomGameManager.NANO_SECOND * map.getItemSpawn();
+		this.soundTrackId = map.getSoundTrackId();
+		this.specialItemData = map.getSpecialItemData();
 		int columns = (this.width / this.unitSize);
-		int rows = (this.height / this.unitSize);
 		this.treesCount = 0;
 		collisionsList.clear();
 		teleportPortalsList.clear();
-		int[] collisionArray = map.getCollisions();
-		for (int i = 0; i < collisionArray.length; i++) {
+		List<Rect> rectList = BoomUtils.calculateCombineCollision(map.getCollisions(), this.width, this.height);
+		if (rectList != null) {
+			for (Rect rect : rectList) {
+				collisionsList.add(new BoomSprite(0, rect.getStartX(), rect.getStartY(), rect.getWidth(), rect.getHeight()));
+			}
+		}
+		for (int i = 0; i < map.getTeleports().length; i++) {
 			int col = i % columns;
 			int row = i / columns;
-			if (collisionArray[i] == BoomGameManager.BOOM_GAME_MAP_COLLISTION_VALUE) {
-				BoomCollision coll = new BoomCollision(0, col * this.unitSize, row * this.unitSize, this.unitSize, this.unitSize);
-				int checkRow, checkCol, index;
-				//TOP
-				checkRow = row - 1;
-				checkCol = col;
-				if (checkRow >= 0 && checkRow < rows) {
-					index = checkRow * columns + checkCol;
-					if (index >= 0 && index < collisionArray.length && collisionArray[index] != BoomGameManager.BOOM_GAME_MAP_COLLISTION_VALUE) {
-						coll.setFlagTop(); // No collision at the top side
-					}
-				}
-				//RIGHT
-				checkRow = row;
-				checkCol = col + 1;
-				if (checkCol >= 0 && checkCol < columns) {
-					index = checkRow * columns + checkCol;
-					if (index >= 0 && index < collisionArray.length && collisionArray[index] != BoomGameManager.BOOM_GAME_MAP_COLLISTION_VALUE) {
-						coll.setFlagRight(); // No collision at the right side
-					}
-				}
-				//BOTTOM
-				checkRow = row + 1;
-				checkCol = col;
-				if (checkRow >= 0 && checkRow < rows) {
-					index = checkRow * columns + checkCol;
-					if (index >= 0 && index < collisionArray.length && collisionArray[index] != BoomGameManager.BOOM_GAME_MAP_COLLISTION_VALUE) {
-						coll.setFlagBottom(); // No collision at the bottom side
-					}
-				}
-				//LEFT
-				checkRow = row;
-				checkCol = col - 1;
-				if (checkCol >= 0 && checkCol < columns) {
-					index = checkRow * columns + checkCol;
-					if (index >= 0 && index < collisionArray.length && collisionArray[index] != BoomGameManager.BOOM_GAME_MAP_COLLISTION_VALUE) {
-						coll.setFlagLeft(); // No collision at the left side
-					}
-				}
-				collisionsList.add(coll);
-			} else if (collisionArray[i] != 0) {
-				BoomGameTeleportPortal teleportPortal = new BoomGameTeleportPortal(collisionArray[i], 1, col * this.unitSize, row * this.unitSize, this.unitSize, this.unitSize);
+			if (map.getTeleports()[i] != 0) {
+				BoomGameTeleportPortal teleportPortal = new BoomGameTeleportPortal(map.getTeleports()[i], 1, col * this.unitSize, row * this.unitSize, this.unitSize, this.unitSize);
 				for (BoomGameTeleportPortal bgtp : teleportPortalsList) {
 					if (teleportPortal.getLinkedId() == bgtp.getLinkedId()) {
 						teleportPortal.setLinkedPortal(bgtp);
@@ -166,20 +134,19 @@ public class BoomGame {
 		
 		playersPos.clear();
 		for (int i = 0; i < map.getPlayersPos().length; i++) {
-			if (map.getPlayersPos()[i] != 0) {
+			if (map.getPlayersPos()[i] != 0 && playersPos.size() < BoomGameManager.BOOM_MAX_PLAYER) {
 				BoomSprite pos = new BoomSprite(0, (i % columns) * this.unitSize, ((int)(i / columns) * this.unitSize), this.unitSize, this.unitSize);
 				playersPos.add(pos);
 			}
 		}
 		Collections.shuffle(playersPos);
 		updatePlayer();
-		adjustTeleportTimeWait();
 	}
 	
 	private void updatePlayer() {
 		for (BoomPlayer bp : this.playersList) {
+			bp.removeFlag(BoomGameManager.BOOM_SPRITE_FLAG_PLAYERS_DEAD);
 			if (allocatePos(bp)) {
-				bp.setFreeMove(isFreeMove);
 				bp.setCharClasses(hasCharClasses);
 			} else {
 				bp.setFlag(BoomGameManager.BOOM_SPRITE_FLAG_PLAYERS_DEAD);
@@ -192,6 +159,29 @@ public class BoomGame {
 		this.setStatus(BoomGameStatusEnum.PREPARING.ordinal());
 		for (BoomPlayer bp : playersList) {
 			playerScore.addScore(bp.getId(), 0);
+		}
+		checkAndRandomlyGrouping();
+		// init group effect
+		Map<Long, Integer> memberCount = new HashMap<>();
+		for (BoomPlayer bp : this.playersList) {
+			if (bp.getGroupId() <= 0) {
+				continue;
+			}
+			int cnt = 1;
+			if (memberCount.containsKey(bp.getGroupId())) {
+				cnt += memberCount.get(bp.getGroupId());
+			}
+			memberCount.put(bp.getGroupId(), cnt);
+		}
+		for (BoomPlayer bp : this.playersList) {
+			if (!memberCount.containsKey(bp.getGroupId())) {
+				continue;
+			}
+			if (memberCount.get(bp.getGroupId()) <= 1) {
+				continue;
+			}
+			hasGroupEffect = true;
+			bp.initGroupEffect();
 		}
 	}
 	
@@ -271,7 +261,7 @@ public class BoomGame {
 		return mapImage;
 	}
 
-	public boolean allocatePos(BoomPlayer player) {
+	public synchronized boolean allocatePos(BoomPlayer player) {
 		for (BoomSprite bs : playersPos) {
 			if (bs.is(BoomGameManager.BOOM_SPRITE_FLAG_POS_OCCUPIED)) {
 				continue;
@@ -292,7 +282,7 @@ public class BoomGame {
 		this.playersList = playersList;
 	}
 	
-	public boolean addPlayer(BoomPlayer player) {
+	public synchronized boolean addPlayer(BoomPlayer player) {
 		if (this.playersList.size() >= playersPos.size()) {
 			return false;
 		}
@@ -301,7 +291,6 @@ public class BoomGame {
 				return true;
 			}
 		}
-		player.setFreeMove(isFreeMove);
 		player.setCharClasses(hasCharClasses);
 		if (isFinalStage()) {
 			int bombTypeIdx = this.playersList.size() % bombTypeList.size();
@@ -325,7 +314,7 @@ public class BoomGame {
 	
 	public boolean isExistPlayerInGame(long id) {
 		BoomPlayer bp = getBoomPlayerById(id);
-		if (bp == null || bp.isDead()) {
+		if (bp == null || (bp.isDead() && bp.getGroupId() <= 0)) {
 			return false;
 		}
 		return true;
@@ -360,17 +349,8 @@ public class BoomGame {
 	public void applyStage(int stage) {
 		setStage(stage);
 		setPlayerScore(BoomGameManager.getCacheBoomPlayerScore(stage));
-		adjustTeleportTimeWait();
 	}
 	
-	private void adjustTeleportTimeWait() {
-		if (isFinalStage()) {
-			for (BoomGameTeleportPortal portal : teleportPortalsList) {
-				portal.setTimeWait(BoomGameManager.BOOM_GAME_PORTAL_TIME_WAIT + 1); // increase time wait by 1 second, from 3 to 4
-			}
-		}
-	}
-
 	public boolean isInitState() {
 		return this.status == BoomGameStatusEnum.INIT.ordinal();
 	}
@@ -419,22 +399,50 @@ public class BoomGame {
 		//return getStage() == BoomGameStage.FINAL.ordinal();
 	}
 	
+	private long systemTimeCurrent;
+	public void update() {
+		systemTimeCurrent = System.nanoTime();
+		if (isPaused() || isResuming()) {
+			pushClientData();
+			return;
+		}
+		removeUnusedObject();
+		updateBombs();
+		updatePlayers();
+		updatePlayerSkillEffect();
+		spawnItem();
+		checkSpawnSpecialItem();
+		checkAndCreateFireWall();
+		checkGameEnd();
+		checkAndAddPoint();
+		pushClientData();
+	}
+	
 	private void checkGameEnd() {
 		if (isPlaying()) {
 			int countAlive = 0;
+			boolean onlySameGroupAlive = true;
+			long lastGroupId = -1;
 			for (BoomPlayer bp : playersList) {
 				if (bp.isDead()) {
 					continue;
 				}
+				if (lastGroupId == -1) {
+					lastGroupId = bp.getGroupId();
+				} else {
+					if (lastGroupId == 0 || lastGroupId != bp.getGroupId()) {
+						onlySameGroupAlive = false;
+					}
+				}
 				countAlive++;
 			}
 			int num = playersList.size();
-			if ((num == 1 && countAlive <= 0) || (num > 1 && countAlive <= 1)) { // able to play with 1 user
+			if ( (num == 1 && countAlive <= 0) || (num > 1 && countAlive <= 1) || (num > 1 && onlySameGroupAlive) ) { // able to play with 1 user
 				setStatus(BoomGameStatusEnum.FINISHED.ordinal());
 				return;
 			}
 		} else if (isInitState()) {
-			long t = System.nanoTime();
+			long t = this.systemTimeCurrent;
 			if (!BoomGameEndPoint.checkGameSocketUser(getGameId(), getHostId())) {
 				if (t > lastCheckHost + 10 * BoomGameManager.NANO_SECOND) {
 					setStatus(BoomGameStatusEnum.FINISHED.ordinal());
@@ -446,32 +454,29 @@ public class BoomGame {
 		}
 	}
 	
-	public void update() {
-		if (isPaused() || isResuming()) {
-			pushClientData();
-			return;
-		}
-		removeUnusedObject();
-		updateBombs();
-		updatePlayers();
-		updatePlayerSkillEffect();
-		spawnItem();
-		checkAndCreateFireWall();
-		checkGameEnd();
-		checkAndAddPoint();
-		pushClientData();
-	}
-	
 	private void checkAndAddPoint() {
 		int rank = BoomGameManager.BOOM_MAX_PLAYER - playerRanking.size();
+		rank = Math.max(rank, 1);
 		for (BoomPlayer bp : playersList) {
 			if (bp.isDead() && !bp.isRankingChecked()) {
 				playerRanking.put(bp.getId(), rank);
 				bp.addFlag(BoomGameManager.BOOM_SPRITE_FLAG_PLAYERS_RANKING);
+			} else if (!bp.isDead() && bp.isRankingChecked()) {
+				if (bp.triggerRevivalRankingCheck()) {
+					playerRanking.remove(bp.getId());
+					bp.removeFlag(BoomGameManager.BOOM_SPRITE_FLAG_PLAYERS_RANKING);
+				}
 			}
 		}
 		if (isFinished()) {
-			rank = BoomGameManager.BOOM_MAX_PLAYER - playerRanking.size();
+			int countNotRanking = 0;
+			for (BoomPlayer bp : playersList) {
+				if (!bp.isDead() && !bp.isRankingChecked()) {
+					countNotRanking++;
+				}
+			}
+			rank = BoomGameManager.BOOM_MAX_PLAYER - (playerRanking.size() + countNotRanking - 1); // expect 1 player only
+			rank = Math.max(rank, 1);
 			for (BoomPlayer bp : playersList) {
 				if (!bp.isDead() && !bp.isRankingChecked()) {
 					playerRanking.put(bp.getId(), rank);
@@ -493,7 +498,7 @@ public class BoomGame {
 	}
 	
 	private void extendTimeAfterPausing() {
-		this.pauseDurationTime = System.nanoTime() - this.pauseStartTime;
+		this.pauseDurationTime = this.systemTimeCurrent - this.pauseStartTime;
 		if (this.pauseDurationTime <= 0) {
 			return;
 		}
@@ -507,7 +512,7 @@ public class BoomGame {
 	}
 	
 	private void pushClientData() {
-		long currentTime = System.nanoTime();
+		long currentTime = systemTimeCurrent;
 		Map<String, Object> data = new HashMap<String, Object>();
 		// main map
 		Map<String, Object> map = new HashMap<>();
@@ -517,6 +522,9 @@ public class BoomGame {
 		map.put("status", this.status);
 		map.put("id", this.mapId);
 		map.put("fid", this.foregroundId);
+		if (getStage() <= 0) {
+			map.put("mode", (this.isPartyRandom ? 2 : 1));
+		}
 		data.put("map", map);
 		// teleport portals
 		List<Map<String, Object>> portals = new ArrayList<>();
@@ -561,7 +569,7 @@ public class BoomGame {
 		for (BoomPlayer bp : playersList) {
 			Map<String, Object> player = new HashMap<>();
 			player.put("id", bp.getId());
-			player.put("name", bp.getName());
+			player.put("name", bp.getFullname());
 			player.put("x", bp.getX());
 			player.put("y", bp.getY());
 			player.put("hp", bp.getSendHp());
@@ -570,15 +578,29 @@ public class BoomGame {
 			player.put("state", bp.getState().name().toLowerCase());
 			player.put("effect", bp.getEffectIdsList());
 			player.put("hide", (bp.checkIfHasValidEffect(BoomGameItemEffect.INVISIBLE_MAN) ? 1 : 0));
+			player.put("gid", bp.getGroupId());
+			player.put("gname", bp.getGroupName());
 			if (bp.checkIfHaveSpecialAbilityWithGauge()) {
 				player.put("gauge", bp.getCurrentGauge());
 			}
+			if (bp.isAvailableForRevival()) {
+				player.put("rva", 1);
+				if (bp.isDead()) {
+					player.put("revive", bp.getReviveGauge());
+				}
+			} else {
+				player.put("rva", 0);
+			}
+			player.put("rv", (bp.checkIfHasValidEffect(BoomGameItemEffect.MAGICAL_REVIVAL) ? 1 : 0));
 			players.add(player);
 		}
 		data.put("player", players);
 		// items
 		List<Map<String, Object>> items = new ArrayList<>();
 		for (BoomItem bi : itemsList) {
+			if (!bi.isValid()) {
+				continue;
+			}
 			Map<String, Object> item = new HashMap<>();
 			item.put("id", bi.getId());
 			item.put("x", bi.getX());
@@ -587,6 +609,20 @@ public class BoomGame {
 			items.add(item);
 		}
 		data.put("item", items);
+		// special items
+		List<Map<String, Object>> spItems = new ArrayList<>();
+		for (BoomItem bi : specialItems) {
+			if (!bi.isValid()) {
+				continue;
+			}
+			Map<String, Object> spItem = new HashMap<>();
+			spItem.put("id", bi.getId());
+			spItem.put("x", bi.getX());
+			spItem.put("y", bi.getY());
+			spItem.put("img", bi.getImageID());
+			spItems.add(spItem);
+		}
+		data.put("spitem", spItems);
 		// bomb explosions
 		List<Map<String, Object>> explosions = new ArrayList<>();
 		for (BoomSprite bs : bombEffects) {
@@ -642,7 +678,7 @@ public class BoomGame {
 		data.put("pscore", this.playerScore.getSendData(playersList));
 		//
 		if (isPreparing() || isResuming()) {
-			long current = System.nanoTime();
+			long current = systemTimeCurrent;
 			long passTime = (current - this.preparingTime) / BoomGameManager.NANO_SECOND;
 			int timeCountdown = isPreparing() ? (isExistInspector(getHostId()) ? BoomGameManager.BOOM_GAME_PREPARING_TIME_CD_1 : BoomGameManager.BOOM_GAME_PREPARING_TIME_CD_2) : BoomGameManager.BOOM_GAME_RESUMING_TIME_CD;
 			int timeLeft = CommonMethod.minmax(0, timeCountdown - (int)passTime, timeCountdown);
@@ -658,10 +694,7 @@ public class BoomGame {
 			//
 		}
 		// send data to client
-		try {
-			BoomGameEndPoint.sendSocketGameUpdate(getGameId(), JSON.encode(data));
-		} catch (Exception e) {
-		}
+		BoomGameEndPoint.sendSocketGameUpdate(getGameId(), JSON.encode(data));
 		// reset data
 		bombEffects.clear();
 		playerAbilityEffects = newPlayerAbilityEffects;
@@ -690,6 +723,13 @@ public class BoomGame {
 				iteratorItems.remove();
 			}
 		}
+		ListIterator<BoomItem> iteratorSpItems = specialItems.listIterator();
+		while (iteratorSpItems.hasNext()) {
+			BoomItem bi = iteratorSpItems.next();
+			if (!bi.isValid()) {
+				iteratorSpItems.remove();
+			}
+		}
 	}
 	
 	private void updateBombs() {
@@ -700,14 +740,14 @@ public class BoomGame {
 			}
 		}
 		for (BoomPlayer bp : playersList) {
-			bp.checkAndCreateNewBomb(bombsList, playersList, idGenerator);
+			bp.checkAndCreateNewBomb(collisionsList, bombsList, playersList, idGenerator);
 		}
 	}
 	
 	private void updatePlayers() {
 		for (BoomPlayer bp : playersList) {
 			// update move
-			bp.update(getWidth(), getHeight(), collisionsList, playersList, bombsList, itemsList, teleportPortalsList, itemUtils, fireEffectList);
+			bp.update(getWidth(), getHeight(), collisionsList, playersList, bombsList, itemsList, teleportPortalsList, itemUtils, fireEffectList, specialItems);
 			playerAbilityEffects.addAll(bp.checkActiveAbility(collisionsList, playersList, bombsList, itemsList, idGenerator, itemUtils, playerScore));
 		}
 	}
@@ -730,18 +770,12 @@ public class BoomGame {
 			return;
 		}
 		if (this.lastItemSpawn == 0) {
-			this.lastItemSpawn = System.nanoTime();
+			this.lastItemSpawn = this.systemTimeCurrent;
 			return;
 		}
-		long current = System.nanoTime();
+		long current = this.systemTimeCurrent;
 		if (current - this.lastItemSpawn >= this.itemSpawnInterval) {
 			int max = BoomUtils.getItemCountBaseOnNumberOfPlayer(this.playersList.size());
-			/*
-			int sdCount = 0;
-			if (isFinalStage()) {
-				sdCount = BoomUtils.getSuddenDeathItemCount(this.gameStartTime, current);
-			}
-			*/
 			while (this.itemsList.size() < max) {
 				BoomGameItem item = this.itemUtils.getSpawnItem(this.playersList, true);
 				if (item == null) {
@@ -767,37 +801,7 @@ public class BoomGame {
 				bomItem.setId(idGenerator.getNextItemId());
 				this.itemsList.add(bomItem);
 			}
-			/*
-			// sudden death by hunter trap item
-			if (sdCount > 0 && this.itemsList.size() < max + sdCount) {
-				while (this.itemsList.size() < max + sdCount) {
-					BoomGameItem item = BoomUtils.getSuddenDeathItem();
-					if (item == null) {
-						break;
-					}
-					boolean ret;
-					BoomItem bomItem;
-					int attempt = 0;
-					do {
-						int x = CommonMethod.random(this.getWidth() - 3 * this.unitSize) + this.unitSize;
-						int y = CommonMethod.random(this.getHeight() - 3 * this.unitSize) + this.unitSize;
-						bomItem = new BoomItem(item.getId(), item.getImageID(), x, y, this.unitSize, this.unitSize);
-						ret = addItem(bomItem);
-						// deadlock escape
-						attempt++;
-						if (attempt >= 50) {
-							break;
-						}
-					} while (!ret);
-					if (attempt >= 50) {
-						break;
-					}
-					bomItem.setId(idGenerator.getNextItemId());
-					this.itemsList.add(bomItem);
-				}
-			}
-			*/
-			this.lastItemSpawn = System.nanoTime();
+			this.lastItemSpawn = this.systemTimeCurrent;
 		}
 	}
 	
@@ -854,13 +858,10 @@ public class BoomGame {
 	}
 
 	private void checkAndCreateFireWall() {
-		if (!isFinalStage()) {
-			return;
-		}
 		if (this.gameStartTime <= 0) {
 			return;
 		}
-		long current = System.nanoTime();
+		long current = this.systemTimeCurrent;
 		long diff = current - this.gameStartTime;
 		if (diff < (BoomGameManager.NANO_SECOND * BoomGameManager.TIME_OUT_SUDDEN_DEATH)) {
 			return;
@@ -870,10 +871,7 @@ public class BoomGame {
 		if (diff <= 0) {
 			return;
 		}
-		//
-		if (this.soundTrackId != this.soundTrackEndId) {
-			this.soundTrackId = this.soundTrackEndId;
-		}
+		//change soundtrack ???
 		//
 		int index = CommonMethod.minmax(1, (int) diff, BoomGameManager.MAX_FIRE_WALL_SUDDEN_DEATH);
 		int count = 0;
@@ -921,6 +919,52 @@ public class BoomGame {
 		}
 	}
 	
+	private void checkAndRandomlyGrouping() {
+		if (!this.isPartyRandom) {
+			return;
+		}
+		if (this.playersList.size() < 4) {
+			return;
+		}
+		List<BoomPlayer> random = new ArrayList<>(this.playersList);
+		Collections.shuffle(random);
+		int idx = 0;
+		for (BoomPlayer player : random) {
+			long gid = (int)(idx / 2) + 1;
+			player.setGroupId(gid);
+			player.setGroupName(String.format("Pt_%02d", gid));
+			idx++;
+		}
+	}
+	
+	private void checkSpawnSpecialItem() {
+		if (!isPlaying()) {
+			return;
+		}
+		if (!hasGroupEffect) {
+			return;
+		}
+		if (this.specialItemData == null || this.specialItemData.isEmpty()) {
+			return;
+		}
+		if (this.lastSpecialItemSpawn == 0) {
+			this.lastSpecialItemSpawn = this.systemTimeCurrent;
+			return;
+		}
+		if (this.systemTimeCurrent - this.lastSpecialItemSpawn >= (BoomGameManager.REVIVAL_ITEM_DURATION_TIME * BoomGameManager.NANO_SECOND)) {
+			//remove special items
+			this.specialItems.clear();
+		}
+		if (this.systemTimeCurrent - this.lastSpecialItemSpawn >= (BoomGameManager.REVIVAL_ITEM_RESPAWN_TIME * BoomGameManager.NANO_SECOND)) {
+			// spawn special items
+			this.specialItems.clear();
+			for (Map<String, Integer> itemData : this.specialItemData) {
+				this.specialItems.add(new BoomItem(idGenerator.getNextItemId(), itemData.get("id"), itemData.get("img"), itemData.get("x") * this.unitSize, itemData.get("y") * this.unitSize, this.unitSize, this.unitSize));
+			}
+			this.lastSpecialItemSpawn = this.systemTimeCurrent;
+		}
+	}
+	
 	public void playerMove(long playerId, BoomDirectionEnum direction) {
 		if (!isPlaying()) {
 			return;
@@ -940,7 +984,7 @@ public class BoomGame {
 		if (bPlayer == null) {
 			return;
 		}
-		bPlayer.activateMainAbility(bombsList);
+		bPlayer.activateMainAbility();
 	}
 	
 	public void playerUserAbility(long playerId) {
@@ -964,6 +1008,14 @@ public class BoomGame {
 	
 	public boolean isExistInspector(long id) {
 		return this.inspectorIdList.contains(id);
+	}
+
+	public boolean isPartyRandom() {
+		return isPartyRandom;
+	}
+
+	public void setPartyRandom(boolean isPartyRandom) {
+		this.isPartyRandom = isPartyRandom;
 	}
 	
 }

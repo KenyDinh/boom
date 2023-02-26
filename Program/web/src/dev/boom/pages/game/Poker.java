@@ -3,12 +3,7 @@ package dev.boom.pages.game;
 import java.util.List;
 
 import dev.boom.common.game.GameTypeEnum;
-import dev.boom.game.card.poker.PokerGame;
-import dev.boom.game.card.poker.PokerGameManager;
-import dev.boom.game.card.poker.PokerPlayer;
 import dev.boom.pages.Game;
-import dev.boom.socket.SocketSessionPool;
-import dev.boom.socket.endpoint.PokerGameEndPoint;
 
 public class Poker extends Game {
 

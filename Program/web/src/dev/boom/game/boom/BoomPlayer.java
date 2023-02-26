@@ -1,6 +1,7 @@
 package dev.boom.game.boom;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -19,14 +20,14 @@ public class BoomPlayer extends BoomSprite {
 	private String fullname;
 	private double hp;
 	private int velocity;
+	private boolean isMoving;
 	private BoomCharater character;
 	private int damage;
 	private int atkSpeed;
 	private int atkRange;
 	private int movementSpeed;
-	private boolean isFreeMove;
 	private boolean hasCharClasses;
-	private boolean hasActiveCloak;
+	private boolean hasPhantomEffect;
 	private long lastActiveAbilityTime;
 	private int currentGauge = 0;
 	private BoomGameBomb lastCreatedBomb;
@@ -34,6 +35,10 @@ public class BoomPlayer extends BoomSprite {
 	private Stack<BoomGameBomb> bombCreationRequest;
 	private Queue<BoomPlayerAbility> activeAbilities;
 	private int bombType;
+	private long groupId;
+	private String groupName;
+	private BoomGameRevivalParam revivalParam;
+	private List<BoomDirectionEnum> directionList;// for confuse effect
 
 	public BoomPlayer(long id, String name, BoomCharater character, int x, int y, int width, int height) {
 		super(character.getId(), x, y, width, height);
@@ -43,7 +48,9 @@ public class BoomPlayer extends BoomSprite {
 		this.effectsList = new HashMap<>();
 		this.activeAbilities = new LinkedList<>();
 		this.lastActiveAbilityTime = System.nanoTime();
-		bombCreationRequest = new Stack<>();
+		this.bombCreationRequest = new Stack<>();
+		this.revivalParam = new BoomGameRevivalParam();
+		this.directionList = Arrays.asList(BoomDirectionEnum.UP, BoomDirectionEnum.DOWN, BoomDirectionEnum.LEFT, BoomDirectionEnum.RIGHT);
 		init(character);
 	}
 	
@@ -53,9 +60,9 @@ public class BoomPlayer extends BoomSprite {
 		effectsList.clear();
 		if (hasCharClasses()) {
 			if (this.character.getType() == BoomCharacterType.MONK.ordinal()) {
-				addEffect(new BoomPlayerItemEffect(BoomGameItemEffect.MONK_ATTACK.getId(), BoomGameItemEffect.MONK_ATTACK, 0, 0, 0));
+				addEffect(new BoomPlayerItemEffect(BoomGameItemEffect.MONK_ATTACK, 0, 0, 0));
 			} else if (this.character.getType() == BoomCharacterType.WARRIOR.ordinal()) {
-				addEffect(new BoomPlayerItemEffect(BoomGameItemEffect.WARRIOR_ATTACK.getId(), BoomGameItemEffect.WARRIOR_ATTACK, 0, 0, 0));
+				addEffect(new BoomPlayerItemEffect(BoomGameItemEffect.WARRIOR_ATTACK, 0, 0, 0));
 			}
 		} else {
 			this.character = BoomCharater.CHARACTER_00;
@@ -77,6 +84,12 @@ public class BoomPlayer extends BoomSprite {
 	
 	@Override
 	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
 		if (obj instanceof BoomPlayer) {
 			return this.getId() == ((BoomPlayer) obj).getId();
 		}
@@ -147,6 +160,23 @@ public class BoomPlayer extends BoomSprite {
 		}
 		setHp(newHP);
 	}
+	
+	public void recoverHP(int amount) {
+		if (amount <= 0) {
+			return;
+		}
+		if (checkIfHasValidEffect(BoomGameItemEffect.BLEEDING)) {
+			amount = amount / 2;
+		}
+		double newHP = getHp() + amount;
+		if (newHP > getMaxHp()) {
+			newHP = getMaxHp();
+		}
+		if (newHP < 0.1) {
+			newHP = 0;
+		}
+		setHp(newHP);
+	}
 
 	public int getMaxHp() {
 		return character.getMaxHP();
@@ -195,14 +225,6 @@ public class BoomPlayer extends BoomSprite {
 		return this.atkSpeed / 100;
 	}
 
-	public boolean isFreeMove() {
-		return isFreeMove;
-	}
-
-	public void setFreeMove(boolean isFreeMove) {
-		this.isFreeMove = isFreeMove;
-	}
-	
 	public boolean hasCharClasses() {
 		return hasCharClasses;
 	}
@@ -220,36 +242,40 @@ public class BoomPlayer extends BoomSprite {
 		this.bombType = bombType;
 	}
 
+	public long getGroupId() {
+		return groupId;
+	}
+
+	public void setGroupId(long groupId) {
+		this.groupId = groupId;
+	}
+
+	public String getGroupName() {
+		return groupName;
+	}
+
+	public void setGroupName(String groupName) {
+		this.groupName = groupName;
+	}
+
 	@Override
 	public int getAdjustX() {
-		if (isFreeMove) {
-			return BoomGameManager.BOOM_GAME_PLAYER_ADJUST_SIZE;
-		}
-		return super.getAdjustX();
+		return BoomGameManager.BOOM_GAME_PLAYER_ADJUST_SIZE;
 	}
 
 	@Override
 	public int getAdjustY() {
-		if (isFreeMove) {
-			return BoomGameManager.BOOM_GAME_PLAYER_ADJUST_SIZE * 2;
-		}
-		return super.getAdjustY();
+		return BoomGameManager.BOOM_GAME_PLAYER_ADJUST_SIZE * 2;
 	}
 
 	@Override
 	public int getAdjustWidth() {
-		if (isFreeMove) {
-			return -(BoomGameManager.BOOM_GAME_PLAYER_ADJUST_SIZE * 2);
-		}
-		return super.getAdjustWidth();
+		return -(BoomGameManager.BOOM_GAME_PLAYER_ADJUST_SIZE * 2);
 	}
 
 	@Override
 	public int getAdjustHeight() {
-		if (isFreeMove) {
-			return -(BoomGameManager.BOOM_GAME_PLAYER_ADJUST_SIZE * 2);
-		}
-		return super.getAdjustHeight();
+		return -(BoomGameManager.BOOM_GAME_PLAYER_ADJUST_SIZE * 2);
 	}
 
 	private int getSpeedAdd() {
@@ -281,14 +307,8 @@ public class BoomPlayer extends BoomSprite {
 	}
 	
 	public boolean checkIfHasValidEffect(BoomGameItemEffect checkEffect) {
-		if (this.effectsList == null || this.effectsList.isEmpty()) {
-			return false;
-		}
-		if (!this.effectsList.containsKey(checkEffect.getId())) {
-			return false;
-		}
-		BoomPlayerItemEffect effect = this.effectsList.get(checkEffect.getId());
-		return effect.hasEffect();
+		BoomPlayerItemEffect effect = getValidEffect(checkEffect);
+		return (effect != null);
 	}
 	
 	public int checkDamageBlockedEffect(int damage) {
@@ -332,8 +352,8 @@ public class BoomPlayer extends BoomSprite {
 		if (!effect.hasEffect()) {
 			return false;
 		}
-		int recoverHP = (effect.getEffectParam() * damage) / 100;
-		addHp(recoverHP);
+		int amount = (effect.getEffectParam() * damage) / 100;
+		recoverHP(amount);
 		return true;
 	}
 	
@@ -352,6 +372,17 @@ public class BoomPlayer extends BoomSprite {
 	}
 	
 	private BoomPlayerItemEffect getValidEffect(BoomGameItemEffect checkEffect) {
+		BoomPlayerItemEffect effect = getEffect(checkEffect);
+		if (effect == null) {
+			return null;
+		}
+		if (!effect.hasEffect()) {
+			return null;
+		}
+		return effect;
+	}
+	
+	private BoomPlayerItemEffect getEffect(BoomGameItemEffect checkEffect) {
 		if (this.effectsList == null || this.effectsList.isEmpty()) {
 			return null;
 		}
@@ -359,9 +390,6 @@ public class BoomPlayer extends BoomSprite {
 			return null;
 		}
 		BoomPlayerItemEffect effect = this.effectsList.get(checkEffect.getId());
-		if (!effect.hasEffect()) {
-			return null;
-		}
 		return effect;
 	}
 
@@ -370,7 +398,7 @@ public class BoomPlayer extends BoomSprite {
 		if (isDead()) {
 			return BoomSpriteState.DEAD;
 		}
-		if (this.velocity > 0 || ( !isFreeMove() && isPlayerNotInSideBlock() )) {
+		if (this.velocity > 0) {
 			if (getDirection() == BoomDirectionEnum.UP.ordinal()) {
 				return BoomSpriteState.MOVE_UP;
 			}
@@ -457,7 +485,7 @@ public class BoomPlayer extends BoomSprite {
 		}
 	}
 	
-	public void activateMainAbility(List<BoomGameBomb> bombs) {
+	public void activateMainAbility() {
 		if (this.character.getType() == BoomCharacterType.MONK.ordinal()) {
 			activeAbility(BoomGameItemEffect.MONK_ATTACK);
 			return;
@@ -475,7 +503,7 @@ public class BoomPlayer extends BoomSprite {
 				activeAbility(BoomGameItemEffect.IRON_SWORD);
 				return;
 			}
-			requestBombCreation(bombs);
+			requestBombCreation();
 			return;
 		}
 	}
@@ -499,10 +527,17 @@ public class BoomPlayer extends BoomSprite {
 			range = ((this.atkRange * this.getWidth()) / 100);
 			damage = getDamage();
 		}
+		int bleedingDuration = 0;
+		if (effectType == BoomGameItemEffect.MONK_ATTACK || effectType == BoomGameItemEffect.WARRIOR_ATTACK) {
+			BoomPlayerItemEffect hexdrinkerEffect = getValidEffect(BoomGameItemEffect.HEXDRINKER);
+			if (hexdrinkerEffect != null) {
+				bleedingDuration = hexdrinkerEffect.getEffectParam();
+			}
+		}
 		if (effectType == BoomGameItemEffect.MONK_ATTACK || effectType == BoomGameItemEffect.IRON_FIST) {
-			activeAbilities.add(new BoomPlayerAbility(1, damage, range, validEffect));
+			activeAbilities.add(new BoomPlayerAbility(1, damage, range, validEffect, bleedingDuration)); // 1 is punch (boom-image.js -> EFFECT_IMAGE)
 		} else {
-			activeAbilities.add(new BoomPlayerAbility(2, damage, range, validEffect));
+			activeAbilities.add(new BoomPlayerAbility(2, damage, range, validEffect, bleedingDuration)); // 2 is sword (boom-image.js -> EFFECT_IMAGE)
 		}
 	}
 	
@@ -522,12 +557,10 @@ public class BoomPlayer extends BoomSprite {
 			int newX = getX();
 			int newY = getY();
 			int adjX = 0, adjY = 0, adjW = 0, adjH = 0;
-			if (isFreeMove()) {
-				adjX = BoomGameManager.BOOM_GAME_PLAYER_ADJUST_SIZE;
-				adjY = BoomGameManager.BOOM_GAME_PLAYER_ADJUST_SIZE;
-				adjW = -(BoomGameManager.BOOM_GAME_PLAYER_ADJUST_SIZE * 2);
-				adjH = -(BoomGameManager.BOOM_GAME_PLAYER_ADJUST_SIZE * 2);
-			}
+			adjX = BoomGameManager.BOOM_GAME_PLAYER_ADJUST_SIZE;
+			adjY = BoomGameManager.BOOM_GAME_PLAYER_ADJUST_SIZE;
+			adjW = -(BoomGameManager.BOOM_GAME_PLAYER_ADJUST_SIZE * 2);
+			adjH = -(BoomGameManager.BOOM_GAME_PLAYER_ADJUST_SIZE * 2);
 			int boostArea = ability.getRange();
 			BoomSpriteState sState = BoomSpriteState.IDLE_DOWN;
 			if (getDirection() == BoomDirectionEnum.UP.ordinal()) {
@@ -544,16 +577,21 @@ public class BoomPlayer extends BoomSprite {
 				newX += boostArea;
 			}
 			BoomSprite ba, tmp;
+			boolean meleeAttack = false;
 			if (effectType == BoomGameItemEffect.MONK_ATTACK || effectType == BoomGameItemEffect.WARRIOR_ATTACK) {
 				ba = new BoomSprite(ability.getId(), newX, newY, getWidth(), getHeight());
 				tmp = new BoomSprite(ability.getId(), newX + adjX, newY + adjY, getWidth() + adjW, getHeight() + adjH);
+				meleeAttack = true;
 			} else {
 				ba = new BoomPlayerSkillEffect(getId(), ability.getDamage(), ability.getId(), newX, newY, getWidth(), getHeight());
 				tmp = ba;
 			}
+			if (ability.isBleeding()) {
+				ba.addFlag(BoomGameManager.BOOM_SPRITE_FLAG_ABILITY_BLEEDDING);
+			}
 			boolean hit = false;
 			for (BoomItem bi : itemsList) {
-				if (BoomUtils.checkCollision(tmp, bi)) {
+				if (BoomUtils.isDestroyableItem(bi.getItemId()) && BoomUtils.checkCollision(tmp, bi)) {
 					bi.addFlag(BoomGameManager.BOOM_SPRITE_FLAG_ITEM_GONE);
 					hit = true;
 				}
@@ -576,14 +614,28 @@ public class BoomPlayer extends BoomSprite {
 					continue;
 				}
 				if (BoomUtils.checkCollision(tmp, bp)) {
-					if (!bp.checkShieldProtectorEffect()) {
-						int nDamage = bp.checkDamageBlockedEffect(ability.getDamage());
-						if (nDamage > 0) {
-							if (!bp.checkDamageAbsorbEffect(nDamage)) {
-								bp.subHp(nDamage);
-								//
-								if (bp.isDead()) {
-									playerScore.addScore(getId(), BoomGameManager.BOOM_GAME_REWARD_POINT_ON_KILL);
+					long start = System.nanoTime();
+					if (ability.isBleeding()) {
+						long end = start + BoomGameManager.NANO_SECOND * ability.getBleedingDuration();
+						bp.addEffect(new BoomPlayerItemEffect(BoomGameItemEffect.BLEEDING, 0, start, end));
+					}
+					if (meleeAttack && getGroupId() > 0 && getGroupId() == bp.getGroupId()) {
+						// ally melee attack (take no damage but effect for 2 seconds)
+						if (effectType == BoomGameItemEffect.MONK_ATTACK) {
+							bp.applyConfuseEffect(start, start + BoomGameManager.NANO_SECOND * 2);
+						} else {
+							bp.addEffect(new BoomPlayerItemEffect(BoomGameItemEffect.SUPER_GLUE, 0, start, start + BoomGameManager.NANO_SECOND * 2));
+						}
+					} else {
+						if (!bp.checkShieldProtectorEffect()) {
+							int nDamage = bp.checkDamageBlockedEffect(ability.getDamage());
+							if (nDamage > 0) {
+								if (!bp.checkDamageAbsorbEffect(nDamage)) {
+									bp.subHp(nDamage);
+									//
+									if (bp.isDead()) {
+										playerScore.addScore(getId(), BoomGameManager.BOOM_GAME_REWARD_POINT_ON_KILL);
+									}
 								}
 							}
 						}
@@ -624,33 +676,25 @@ public class BoomPlayer extends BoomSprite {
 		return ret;
 	}
 	
-	public void requestBombCreation(List<BoomGameBomb> bombs) {
+	public void requestBombCreation() {
 		if (isDead()) {
 			return;
 		}
- 		
-//		int curBombCount = 0;
-//		for (BoomGameBomb bomb : bombs) {
-//			if (!bomb.isValid()) {
-//				continue;
-//			}
-//			if (bomb.getPlayerId() == this.id) {
-//				curBombCount++;
-//			}
-//		}
-//		if (curBombCount >= getBoomPoolSize()) {
-//			return;
-//		}
 		if (bombCreationRequest.isEmpty()) {
 			BoomGameBomb bomb = new BoomGameBomb(getId(), getBombType(), 0, 0, getWidth(), getHeight(), getBombSize(), getBombSize(), this.getDamage());
 			if (checkIfHasValidEffect(BoomGameItemEffect.QUICK_BOMBER)) {
 				bomb.addFlag(BoomGameManager.BOOM_SPRITE_FLAG_BOMD_FAST_EXPLODE);
 			}
+			BoomPlayerItemEffect holyPoder = getValidEffect(BoomGameItemEffect.HOLYPOWDER);
+			if (holyPoder != null) {
+				bomb.addFlag(BoomGameManager.BOOM_SPRITE_FLAG_BOMD_CONFUSED);
+				bomb.setConfusionDuration(holyPoder.getEffectParam());
+			}
 			bombCreationRequest.push(bomb);
 		}
 	}
 	
-	public void checkAndCreateNewBomb(List<BoomGameBomb> bombs, List<BoomPlayer> playersList, BoomIDGenerator idGenerator) {
+	public void checkAndCreateNewBomb(List<BoomSprite> collisions, List<BoomGameBomb> bombs, List<BoomPlayer> playersList, BoomIDGenerator idGenerator) {
 		if (isDead()) {
 			return;
 		}
@@ -659,41 +703,6 @@ public class BoomPlayer extends BoomSprite {
 		}
 		int bx = getX();
 		int by = getY();
-		int modX = bx % getWidth();
-		int modY = by % getHeight();
-		if (getDirection() == BoomDirectionEnum.UP.ordinal()) {
-			if (!isFreeMove()) {
-				if (modY > 0 && modY <= getHeight() / 2) {
-					return;
-				}
-				if (modY != 0) {
-					by += getHeight() - modY;
-				}
-			}
-		} else if (getDirection() == BoomDirectionEnum.DOWN.ordinal()) {
-			if (!isFreeMove()) {
-				if (modY >= getHeight() / 2) {
-					return;
-				}
-				by -= modY;
-			}
-		} else if (getDirection() == BoomDirectionEnum.LEFT.ordinal()) {
-			if (!isFreeMove()) {
-				if (modX > 0 && modX <= getWidth() / 2) {
-					return;
-				}
-				if (modX != 0) {
-					bx += getWidth() - modX;
-				}
-			}
-		} else if (getDirection() == BoomDirectionEnum.RIGHT.ordinal()) {
-			if (!isFreeMove()) {
-				if (modX >= getWidth() / 2) {
-					return;
-				}
-				bx -= modX;
-			}
-		}
 		BoomGameBomb boom = bombCreationRequest.pop();
 		boom.setX(bx);
 		boom.setY(by);
@@ -711,6 +720,14 @@ public class BoomPlayer extends BoomSprite {
 		}
 		if (curBombCount >= getBoomPoolSize()) {
 			return;
+		}
+		for (BoomSprite bs : collisions) {
+			if (bs.is(BoomGameManager.BOOM_SPRITE_FLAG_TREE_ROMOVED)) {
+				continue;
+			}
+			if (BoomUtils.checkCollision(this, bs)) {
+				return;
+			}
 		}
 		for (BoomPlayer bp : playersList) {
 			if (this.equals(bp) || bp.isDead()) {
@@ -736,62 +753,62 @@ public class BoomPlayer extends BoomSprite {
 		lastCreatedBomb = boom;
 	}
 	
-	private boolean isOppositeOrSameDirection(BoomDirectionEnum direction) {
-		if (getDirection() == direction.ordinal()) {
-			return true;
-		}
-		if (getDirection() == BoomDirectionEnum.UP.ordinal() && direction == BoomDirectionEnum.DOWN) {
-			return true;
-		}
-		if (getDirection() == BoomDirectionEnum.DOWN.ordinal() && direction == BoomDirectionEnum.UP) {
-			return true;
-		}
-		if (getDirection() == BoomDirectionEnum.LEFT.ordinal() && direction == BoomDirectionEnum.RIGHT) {
-			return true;
-		}
-		if (getDirection() == BoomDirectionEnum.RIGHT.ordinal() && direction == BoomDirectionEnum.LEFT) {
-			return true;
-		}
-		return false;
-	}
-	
 	public void movePlayer(BoomDirectionEnum direction) {
 		if (isDead()) {
 			return;
 		}
 		if (direction == null) {
-			this.velocity = 0;
+			//this.velocity = 0;
+			this.isMoving = false;
 			return;
 		}
-		if (!isOppositeOrSameDirection(direction) && !isFreeMove() && isPlayerNotInSideBlock()) {
-			this.velocity = 0;
-			return;
-		} else {
-			this.velocity = this.movementSpeed;
-			setDirection(direction.ordinal());
+		this.isMoving = true;
+		if (checkIfHasValidEffect(BoomGameItemEffect.CONFUSION)) {
+			direction = this.directionList.get(direction.ordinal() % this.directionList.size());
 		}
+		//this.velocity = this.movementSpeed;
+		setDirection(direction.ordinal());
 	}
-
+	
 	public void update(int maxX, int maxY, List<BoomSprite> collisions, List<BoomPlayer> players,
-			List<BoomGameBomb> bombs, List<BoomItem> itemsList, List<BoomGameTeleportPortal> portals, BoomGameItemUtils itemUtils, List<BoomSprite> fireWalls) {
+			List<BoomGameBomb> bombs, List<BoomItem> itemsList, List<BoomGameTeleportPortal> portals, BoomGameItemUtils itemUtils, List<BoomSprite> fireWalls, List<BoomItem> specialItems) {
 		if (isDead()) {
+			if (revivalParam.getRevivalCount() == 0) {
+				checkRevivalState(players);
+				for (BoomPlayer bp : players) {
+					if (this.equals(bp) || bp.isDead()) {
+						continue;
+					}
+					if (BoomUtils.checkCollision(this, bp)) {
+						checkForRevival(bp);
+					}
+				}
+			}
 			return;
 		}
 		updateSpecialAbilityGauge();
 		checkFireWall(fireWalls);
+		checkPhantomEffect(collisions, players, bombs);
+		checkBleedingEffect();
+		checkSpecialtItems(specialItems, itemUtils);
 		if (checkTeleportPlayer(maxX, maxY, collisions, players, bombs, itemsList, portals, itemUtils)) {
 			return;
 		}
 		if (checkIfHasValidEffect(BoomGameItemEffect.HUNTER_TRAP)) {
 			return;
 		}
-		if ( this.velocity != 0 || ( !isFreeMove() && isPlayerNotInSideBlock() ) ) {
+		if (this.isMoving) {
+			this.velocity = Math.min(this.movementSpeed, this.velocity + BoomGameManager.BOOM_PLAYER_ACCELERATION);
+		} else {
+			this.velocity = Math.max(0, this.velocity - 2 * BoomGameManager.BOOM_PLAYER_ACCELERATION);
+		}
+		if ( this.velocity > 0 ) {
 			int newX = getX();
 			int newY = getY();
 			int width = getWidth();
 			int height = getHeight();
 			int adjX = getAdjustX(), adjY = getAdjustY(), adjW = getAdjustWidth(), adjH = getAdjustHeight();
-			int boostSpeed = (this.velocity == 0 ? this.movementSpeed : this.velocity) + getSpeedBoost() + getSpeedAdd();
+			int boostSpeed = this.velocity + getSpeedBoost() + getSpeedAdd();
 			if (boostSpeed > this.getMaxSpeed()) {
 				boostSpeed = this.getMaxSpeed();
 			}
@@ -800,69 +817,80 @@ public class BoomPlayer extends BoomSprite {
 				boostSpeed = this.movementSpeed / 2;
 			}
 			if (getDirection() == BoomDirectionEnum.UP.ordinal()) {
-				if (this.velocity == 0) {
-					boostSpeed = CommonMethod.min(boostSpeed, (getY() % getHeight()));
-				}
 				newY -= boostSpeed;
 			} else if (getDirection() == BoomDirectionEnum.DOWN.ordinal()) {
-				if (this.velocity == 0) {
-					boostSpeed = CommonMethod.min(boostSpeed, getHeight() - (getY() % getHeight()));
-				}
 				newY += boostSpeed;
 			} else if (getDirection() == BoomDirectionEnum.LEFT.ordinal()) {
-				if (this.velocity == 0) {
-					boostSpeed = CommonMethod.min(boostSpeed, (getX() % getWidth()));
-				}
 				newX -= boostSpeed;
 			} else if (getDirection() == BoomDirectionEnum.RIGHT.ordinal()) {
-				if (this.velocity == 0) {
-					boostSpeed = CommonMethod.min(boostSpeed, getWidth() - (getX() % getWidth()));
-				}
 				newX += boostSpeed;
 			}
-			if (newX < 0) {
-				setX(0);
+			if (newX + adjX < 0) {
+				correctPossion(maxX, maxY, new BoomSprite(0, 0, 0, 0, maxY), collisions, null, null);
+				//setX(0);
 				return;
 			}
-			if (newX + width > maxX) {
-				setX(maxX - width);
+			if (newX + adjX + width + adjW > maxX) {
+				correctPossion(maxX, maxY, new BoomSprite(0, maxX, 0, 0, maxY), collisions, null, null);
+				//setX(maxX - width);
 				return;
 			}
-			if (newY < 0) {
-				setY(0);
+			if (newY + adjY < 0) {
+				correctPossion(maxX, maxY, new BoomSprite(0, 0, 0, maxX, 0), collisions, null, null);
+				//setY(0);
 				return;
 			}
-			if (newY + height > maxY) {
-				setY(maxY - height);
+			if (newY + adjY + height + adjH > maxY) {
+				correctPossion(maxX, maxY, new BoomSprite(0, 0, maxY, maxX, 0), collisions, null, null);
+				//setY(maxY - height);
 				return;
 			}
 			// walk through everything
-			if (checkIfHasValidEffect(BoomGameItemEffect.DARKNESS_COVER)) {
-				hasActiveCloak = true;
-				setX(newX);
-				setY(newY);
-				return;
-			} else if (hasActiveCloak) {
-				hasActiveCloak = false;
-				updayePlayerPosition(collisions, players, bombs, itemsList);
-				return;
-			}
-			for (BoomSprite bs : collisions) {
-				if (bs.is(BoomGameManager.BOOM_SPRITE_FLAG_TREE_ROMOVED)) {
-					continue;
+			if (!hasPhantomEffect) {
+				for (BoomSprite bs : collisions) {
+					if (bs.is(BoomGameManager.BOOM_SPRITE_FLAG_TREE_ROMOVED)) {
+						continue;
+					}
+					if (BoomUtils.checkCollision(newX + adjX, newY + adjY, width + adjW, height + adjH, bs)) {
+						correctPossion(maxX, maxY, bs, collisions, players, bombs);
+						slideOnCollision(maxX, maxY, newX + adjX, newY + adjY, width + adjW, height + adjH, bs.getX() + bs.getAdjustX(), bs.getY() + bs.getAdjustY(), bs.getWidth() + bs.getAdjustWidth(), bs.getHeight() + bs.getAdjustHeight(), collisions, players, bombs, itemsList, itemUtils);
+						return;
+					}
 				}
-				if (BoomUtils.checkCollision(newX + adjX, newY + adjY, width + adjW, height + adjH, bs)) {
-					correctPossion(boostSpeed, bs);
-					return;
+				boolean b = false;
+				for (BoomPlayer bp : players) {
+					if (this.equals(bp) || bp.isDead()) {
+						continue;
+					}
+					if (BoomUtils.checkCollision(newX + adjX, newY + adjY, width + adjW, height + adjH, bp)) {
+						if (revivalParam.checkLastRevival(bp)) {
+							b = true;
+							continue;
+						}
+						correctPossion(maxX, maxY, bp, null, players, bombs);
+						return;
+					}
 				}
-			}
-			for (BoomPlayer bp : players) {
-				if (this.equals(bp) || bp.isDead()) {
-					continue;
+				if (!b) {
+					revivalParam.clearLastRevival();
 				}
-				if (BoomUtils.checkCollision(newX + adjX, newY + adjY, width + adjW, height + adjH, bp)) {
-					correctPossion(boostSpeed, bp);
-					return;
+				
+				b = false;
+				for (BoomGameBomb bomb : bombs) {
+					if (!bomb.isValid()) {
+						continue;
+					}
+					if (BoomUtils.checkCollision(newX + adjX, newY + adjY, width + adjW, height + adjH, bomb)) {
+						if (this.lastCreatedBomb != null && this.lastCreatedBomb.equals(bomb)) {
+							b = true;
+							continue;
+						}
+						correctPossion(maxX, maxY, bomb, null, null, bombs);
+						return;
+					}
+				}
+				if (!b) {
+					lastCreatedBomb = null;
 				}
 			}
 			for (BoomItem bi : itemsList) {
@@ -876,24 +904,106 @@ public class BoomPlayer extends BoomSprite {
 					}
 				}
 			}
-			boolean b = false;
-			for (BoomGameBomb bomb : bombs) {
-				if (!bomb.isValid()) {
-					continue;
-				}
-				if (BoomUtils.checkCollision(newX + adjX, newY + adjY, width + adjW, height + adjH, bomb)) {
-					if (this.lastCreatedBomb != null && this.lastCreatedBomb.equals(bomb)) {
-						b = true;
-						continue;
-					}
-					correctPossion(boostSpeed, bomb);
-					return;
-				}
-			}
 			setX(newX);
 			setY(newY);
-			if (!b) {
-				lastCreatedBomb = null;
+		}
+	}
+	
+	private void slideOnCollision(int maxX, int maxY, int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2, 
+			List<BoomSprite> collisions, List<BoomPlayer> players, List<BoomGameBomb> bombs, List<BoomItem> itemsList, BoomGameItemUtils itemUtils) {
+		final int slideValue = 2;
+		final int slideCheck = 16;
+		int newX = getX();
+		int newY = getY();
+		int width = getWidth();
+		int height = getHeight();
+		int adjX = getAdjustX(), adjY = getAdjustY(), adjW = getAdjustWidth(), adjH = getAdjustHeight();
+		if (getDirection() == BoomDirectionEnum.UP.ordinal() || getDirection() == BoomDirectionEnum.DOWN.ordinal()) {
+			if (x1 + w1 - x2 <= slideCheck) {
+				newX -= slideValue;
+			} else if (x2 + w2 - x1 <= slideCheck) {
+				newX += slideValue;
+			}
+		} else if (getDirection() == BoomDirectionEnum.LEFT.ordinal() || getDirection() == BoomDirectionEnum.RIGHT.ordinal()) {
+			if (y1 + h1 - y2 <= slideCheck) {
+				newY -= slideValue;
+			} else if (y2 + h2 - y1 <= slideCheck) {
+				newY += slideValue;
+			}
+		}
+		if (newX + adjX < 0 || newX + adjX + width + adjW > maxX || 
+				newY + adjY < 0 || newY + adjY + height + adjH > maxY) {
+			return;
+		}
+		for (BoomSprite bs : collisions) {
+			if (bs.is(BoomGameManager.BOOM_SPRITE_FLAG_TREE_ROMOVED)) {
+				continue;
+			}
+			if (BoomUtils.checkCollision(newX + adjX, newY + adjY, width + adjW, height + adjH, bs)) {
+				return;
+			}
+		}
+		for (BoomPlayer bp : players) {
+			if (this.equals(bp) || bp.isDead()) {
+				continue;
+			}
+			if (BoomUtils.checkCollision(newX + adjX, newY + adjY, width + adjW, height + adjH, bp)) {
+				return;
+			}
+		}
+		boolean b = false;
+		for (BoomGameBomb bomb : bombs) {
+			if (!bomb.isValid()) {
+				continue;
+			}
+			if (BoomUtils.checkCollision(newX + adjX, newY + adjY, width + adjW, height + adjH, bomb)) {
+				if (this.lastCreatedBomb != null && this.lastCreatedBomb.equals(bomb)) {
+					b = true;
+					continue;
+				}
+				return;
+			}
+		}
+		if (!b) {
+			lastCreatedBomb = null;
+		}
+		for (BoomItem bi : itemsList) {
+			if (!bi.isValid()) {
+				continue;
+			}
+			if (BoomUtils.checkCollision(newX + adjX, newY + adjY, width + adjW, height + adjH, bi)) {
+				if (applyItem(bi, itemUtils)) {
+					bi.addFlag(BoomGameManager.BOOM_SPRITE_FLAG_ITEM_GONE);
+					break;
+				}
+			}
+		}
+		setX(newX);
+		setY(newY);
+	}
+	
+	private void checkSpecialtItems(List<BoomItem> specialItems, BoomGameItemUtils itemUtils) {
+		if (specialItems == null || specialItems.isEmpty()) {
+			return;
+		}
+		for (BoomItem bi : specialItems) {
+			if (!bi.isValid()) {
+				continue;
+			}
+			if (BoomUtils.checkCollision(this, bi)) {
+				if (applyItem(bi, itemUtils)) {
+					bi.addFlag(BoomGameManager.BOOM_SPRITE_FLAG_ITEM_GONE);
+					break;
+				}
+			}
+		}
+	}
+	
+	private void checkBleedingEffect() {
+		if (checkIfHasValidEffect(BoomGameItemEffect.BLEEDING)) {
+			double damage = (double)(BoomGameManager.BLEEDING_PARAM_EFFECT_DAMAGE * getMaxHp()) / BoomGameManager.BLEEDING_PARAM_EFFECT_ADJUST;
+			if (damage > 0) {
+				subHp(damage);
 			}
 		}
 	}
@@ -908,6 +1018,58 @@ public class BoomPlayer extends BoomSprite {
 				return;
 			}
 		}
+	}
+	
+	private void checkPhantomEffect(List<BoomSprite> collisions, List<BoomPlayer> players, List<BoomGameBomb> bombs) {
+		BoomPlayerItemEffect effect = getValidEffect(BoomGameItemEffect.PHANTOM);
+		if (effect != null) {
+			hasPhantomEffect = true;
+			return;
+		}
+		if (!hasPhantomEffect) {
+			return;
+		}
+		// effect already expired here
+		boolean isCollisionState = isInCollisionState(collisions, players, bombs);
+		if (!isCollisionState) {
+			hasPhantomEffect = false;
+			return;
+		}
+		double damage = (double)(BoomGameManager.PHANTOM_SIDE_EFFECT_DAMAGE * getMaxHp()) / BoomGameManager.PHANTOM_SIDE_EFFECT_ADJUST;
+		if (damage > 0) {
+			subHp(damage);
+		}
+	}
+	
+	private boolean isInCollisionState(List<BoomSprite> collisions, List<BoomPlayer> players, List<BoomGameBomb> bombs) {
+		for (BoomSprite bs : collisions) {
+			if (bs.is(BoomGameManager.BOOM_SPRITE_FLAG_TREE_ROMOVED)) {
+				continue;
+			}
+			if (BoomUtils.checkCollision(this, bs)) {
+				return true;
+			}
+		}
+		for (BoomPlayer bp : players) {
+			if (this.equals(bp) || bp.isDead()) {
+				continue;
+			}
+			if (BoomUtils.checkCollision(this, bp)) {
+				return true;
+			}
+		}
+		for (BoomGameBomb bomb : bombs) {
+			if (!bomb.isValid()) {
+				continue;
+			}
+			if (BoomUtils.checkCollision(this, bomb)) {
+				if (this.lastCreatedBomb != null && this.lastCreatedBomb.equals(bomb)) {
+					continue;
+				}
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	private boolean checkTeleportPlayer(int maxX, int maxY, List<BoomSprite> collisions, List<BoomPlayer> players,
@@ -936,51 +1098,73 @@ public class BoomPlayer extends BoomSprite {
 		return false;
 	}
 	
-	private void updayePlayerPosition(List<BoomSprite> collisions, List<BoomPlayer> players,
-			List<BoomGameBomb> bombs, List<BoomItem> itemsList) {
-		boolean check = false;
-//		int step = 0;
-//		int attemp = 0;
-//		do {
-//			
-//			step += 4;
-//			attemp++;
-//		} while(!check && attemp < 192);
-//		for (BoomItem bi : itemsList) {
-//			if (!bi.isValid()) {
-//				continue;
-//			}
-//			if (BoomUtils.checkCollision(this, bi)) {
-//				applyItem(bi);
-//				bi.addFlag(BoomGameManager.BOOM_SPRITE_FLAG_ITEM_GONE);
-//				break;
-//			}
-//		}
-	}
-	
-	private boolean isPlayerNotInSideBlock() {
-		return (getX() % getWidth() != 0 || getY() % getHeight() != 0);
-	}
-
-	private void correctPossion(int boostSpeed, BoomSprite collision) {
-		int addX = 0, addY = 0;
+	private void correctPossion(int maxX, int maxY, BoomSprite target, List<BoomSprite> collisions, List<BoomPlayer> players, List<BoomGameBomb> bombs) {
+		int boostSpeed = 0;
+		int mx = 0, my = 0;
 		if (getDirection() == BoomDirectionEnum.UP.ordinal()) {
-			addY = -1;
+			boostSpeed = (getY() + getAdjustY()) - (target.getY() + target.getAdjustY() + target.getHeight() + target.getAdjustHeight());
+			my = -1;
 		} else if (getDirection() == BoomDirectionEnum.DOWN.ordinal()) {
-			addY = 1;
+			boostSpeed = (target.getY() + target.getAdjustY()) - (getY() + getAdjustY() + getHeight() + getAdjustHeight());
+			my = 1;
 		} else if (getDirection() == BoomDirectionEnum.LEFT.ordinal()) {
-			addX = -1;
+			boostSpeed = (getX() + getAdjustX()) - (target.getX() + target.getAdjustX() + target.getWidth() + target.getAdjustWidth());
+			mx = -1;
 		} else if (getDirection() == BoomDirectionEnum.RIGHT.ordinal()) {
-			addX = 1;
+			boostSpeed = (target.getX() + target.getAdjustX()) - (getX() + getAdjustX() + getHeight() + getAdjustHeight());
+			mx = 1;
 		}
-		int adjX = getAdjustX(), adjY = getAdjustY(), adjW = getAdjustWidth(), adjH = getAdjustHeight();
+		if (boostSpeed <= 0) {
+			return;
+		}
+		int addX = 0, addY = 0;
 		while (boostSpeed > 0) {
-			if (BoomUtils.checkCollision(getX() + addX + adjX, getY() + addY + adjY, getWidth() + adjW, getHeight() + adjH, collision)) {
-				return;
+			addX = (boostSpeed * mx);
+			addY = (boostSpeed * my);
+			boolean canMove = true;
+			if (getX() + getAdjustX() + addX < 0 || getX() + getAdjustX() + addX + getHeight() + getAdjustHeight() > maxX || 
+					getY() + getAdjustY() + addY < 0 || getY() + getAdjustY() + getHeight() + getAdjustHeight() + addY > maxY) {
+				canMove = false;;
 			}
-			addX(addX);
-			addY(addY);
-			boostSpeed -= 1;
+			if (canMove && collisions != null) {
+				for (BoomSprite bs : collisions) {
+					if (bs.is(BoomGameManager.BOOM_SPRITE_FLAG_TREE_ROMOVED)) {
+						continue;
+					}
+					if (BoomUtils.checkCollision(getX() + addX + getAdjustX(), getY() + addY + getAdjustY(), getWidth() + getAdjustWidth(), getHeight() + getAdjustHeight(), bs)) {
+						canMove = false;
+						break;
+					}
+				}
+			}
+			if (canMove && players != null) {
+				for (BoomPlayer bp : players) {
+					if (this.equals(bp) || bp.isDead()) {
+						continue;
+					}
+					if (BoomUtils.checkCollision(getX() + addX + getAdjustX(), getY() + addY + getAdjustY(), getWidth() + getAdjustWidth(), getHeight() + getAdjustHeight(), bp)) {
+						canMove = false;
+						break;
+					}
+				}
+			}
+			if (canMove && bombs != null) {
+				for (BoomGameBomb bomb : bombs) {
+					if (!bomb.isValid()) {
+						continue;
+					}
+					if (BoomUtils.checkCollision(getX() + addX + getAdjustX(), getY() + addY + getAdjustY(), getWidth() + getAdjustWidth(), getHeight() + getAdjustHeight(), bomb)) {
+						canMove = false;
+						break;
+					}
+				}
+			}
+			if (canMove) {
+				addX(addX);
+				addY(addY);
+				break;
+			}
+			boostSpeed--;
 		}
 	}
 
@@ -1011,7 +1195,10 @@ public class BoomPlayer extends BoomSprite {
 				break;
 			case RECOVER_HP:
 			{
-				addHp(effectParam);
+				if (effectParam > 0) {
+					int amount = CommonMethod.min(getMaxHp(), effectParam * getMaxHp() / 100);
+					recoverHP(amount);
+				}
 				ret = true;
 			}
 				break;
@@ -1069,23 +1256,32 @@ public class BoomPlayer extends BoomSprite {
 					long start = System.nanoTime();
 					long end = start + BoomGameManager.NANO_SECOND * item.getItemEffectDuration(i + 1);
 					if (effect == BoomGameItemEffect.IRON_FIST) {
-						ret = replaceOrAddEffect(new BoomPlayerItemEffect(effectID, effect, effectParam, start, end), BoomGameItemEffect.IRON_SWORD.getId());;
+						ret = replaceOrAddEffect(new BoomPlayerItemEffect(effect, effectParam, start, end), BoomGameItemEffect.IRON_SWORD.getId());;
 					} else {
-						ret = replaceOrAddEffect(new BoomPlayerItemEffect(effectID, effect, effectParam, start, end), BoomGameItemEffect.IRON_FIST.getId());;
+						ret = replaceOrAddEffect(new BoomPlayerItemEffect(effect, effectParam, start, end), BoomGameItemEffect.IRON_FIST.getId());;
 					}
 				}
 			}
 				break;
 			case QUICK_BOMBER:
+			case HOLYPOWDER:
 			case BOMB_SHOOTER: {
 				if (isBomber()) {
 					long start = System.nanoTime();
 					long end = start + BoomGameManager.NANO_SECOND * item.getItemEffectDuration(i + 1);
-					ret = addEffect(new BoomPlayerItemEffect(effectID, effect, effectParam, start, end));
+					ret = addEffect(new BoomPlayerItemEffect(effect, effectParam, start, end));
 				}
 			}
 				break;
-			case INCREASE_SPEED: // to display status icon
+			case HEXDRINKER: {
+				if (!isBomber()) {
+					long start = System.nanoTime();
+					long end = start + BoomGameManager.NANO_SECOND * item.getItemEffectDuration(i + 1);
+					ret = addEffect(new BoomPlayerItemEffect(effect, effectParam, start, end));
+				}
+			}
+				break;
+			case INCREASE_SPEED: // just to display status icon for boots of speed
 			case SHEILD_PROTECTOR:
 			case INVISIBLE_MAN:
 			case HUNTER_TRAP:
@@ -1093,10 +1289,11 @@ public class BoomPlayer extends BoomSprite {
 			case SUPER_GLUE:
 			case BOOST_SPEED:
 			case WARRIOR_AMOR:
-			case DARKNESS_COVER: {
+			case PHANTOM:
+			case MAGICAL_REVIVAL: {
 				long start = System.nanoTime();
 				long end = start + BoomGameManager.NANO_SECOND * item.getItemEffectDuration(i + 1);
-				ret = addEffect(new BoomPlayerItemEffect(effectID, effect, effectParam, start, end));
+				ret = addEffect(new BoomPlayerItemEffect(effect, effectParam, start, end));
 			}
 				break;
 			default:
@@ -1122,6 +1319,116 @@ public class BoomPlayer extends BoomSprite {
 		return storedEffect.addOrRefreshEffect(effect);
 	}
 	
+	private void checkRevivalState(List<BoomPlayer> players) {
+		if (revivalParam.getRevivalId() <= 0) {
+			return;
+		}
+		for (BoomPlayer bp : players) {
+			if (this.equals(bp) || bp.isDead()) {
+				continue;
+			}
+			if (bp.getId() == revivalParam.getRevivalId() && !BoomUtils.checkCollision(this, bp)) {
+				revivalParam.reset();
+				return;
+			}
+		}
+	}
+	
+	private void checkForRevival(BoomPlayer source) {
+		if (!isDead()) {
+			// still alive
+			return;
+		}
+		if (source == null) {
+			// no subject
+			return;
+		}
+		if (getGroupId() <= 0 || source.getGroupId() <= 0) {
+			// no group
+			return;
+		}
+		if (getGroupId() != source.getGroupId()) {
+			// different group
+			return;
+		}
+		if (revivalParam.getRevivalId() > 0 && revivalParam.getRevivalId() != source.getId()) {
+			// different person
+			return;
+		}
+		BoomPlayerItemEffect effect = source.getValidEffect(BoomGameItemEffect.MAGICAL_REVIVAL);
+		if (effect == null) {
+			return;
+		}
+		if (revivalParam.getRevivalId() == 0) {
+			revivalParam.init(source);
+		}
+		else if (revivalParam.getRevivalId() == source.getId()) {
+			if (!revivalParam.check(source)) {
+				revivalParam.reset();
+				return;
+			}
+		}
+		// increase gauge
+		revivalParam.incRevivalGauge();
+		if (revivalParam.isGaugeMax()) {
+			revive();
+			revivalParam.setLastRevival(source);
+			source.revivalParam.setLastRevival(this);
+			effect.subEffectParam(1);
+			return;
+		}
+	}
+	
+	private void revive() {
+		setHp(getMaxHp());
+		Map<Integer, BoomPlayerItemEffect> newEffectsList = new HashMap<>();
+		if (this.effectsList != null && !this.effectsList.isEmpty()) {
+			for (Integer id : this.effectsList.keySet()) {
+				BoomPlayerItemEffect eff = this.effectsList.get(id);
+				switch (eff.getEffectType()) {
+				case INCREASE_SPEED:
+				case MONK_ATTACK:
+				case WARRIOR_ATTACK:
+					newEffectsList.put(eff.getId(), eff);
+					break;
+				default:
+					break;
+				}
+			}
+			this.effectsList = newEffectsList;
+		}
+		removeFlag(BoomGameManager.BOOM_SPRITE_FLAG_PLAYERS_DEAD);
+		revivalParam.incRevivalCount();
+	}
+	
+	public void applyConfuseEffect(long start, long end) {
+		addEffect(new BoomPlayerItemEffect(BoomGameItemEffect.CONFUSION, 0, start, end));
+		Collections.shuffle(directionList);// confuse
+	}
+	
+	public int getReviveGauge() {
+		if (!isDead()) {
+			return 0;
+		}
+		return revivalParam.getRevivalGauge();
+	}
+	
+	public boolean isAvailableForRevival() {
+		// DO NOT CHANGE UNLESS YOU KNOW HOW RANKING WORKS AND YOU CAN FIX IT
+		return (revivalParam.getRevivalCount() <= 0); 
+	}
+	
+	public boolean triggerRevivalRankingCheck() {
+		if (revivalParam.isRankingCheckFlag()) {
+			return false;
+		}
+		if (revivalParam.getRevivalCount() <= 0) {
+			return false;
+		}
+		revivalParam.setRankingCheckFlag(true);
+		return true;
+	}
+	
 	public void extendEffectDuration(long extension) {
 		if (extension <= 0) {
 			return;
@@ -1133,5 +1440,12 @@ public class BoomPlayer extends BoomSprite {
 			BoomPlayerItemEffect eff = this.effectsList.get(id);
 			eff.extendDuration(extension);
 		}
+	}
+	
+	public void initGroupEffect() {
+		if (this.groupId <= 0) {
+			return;
+		}
+		addEffect(new BoomPlayerItemEffect(BoomGameItemEffect.MAGICAL_REVIVAL, 1, 0, 0));
 	}
 }

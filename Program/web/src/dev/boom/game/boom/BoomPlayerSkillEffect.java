@@ -90,7 +90,7 @@ public class BoomPlayerSkillEffect extends BoomSprite {
 			return;
 		}
 		for (BoomItem bi : itemsList) {
-			if (BoomUtils.checkCollision(newX + getAdjustX(), newY + getAdjustY(), getWidth() + getAdjustWidth(), getHeight() + getAdjustHeight(), bi)) {
+			if (BoomUtils.isDestroyableItem(bi.getItemId()) && BoomUtils.checkCollision(newX + getAdjustX(), newY + getAdjustY(), getWidth() + getAdjustWidth(), getHeight() + getAdjustHeight(), bi)) {
 				bi.addFlag(BoomGameManager.BOOM_SPRITE_FLAG_ITEM_GONE);
 			}
 		}

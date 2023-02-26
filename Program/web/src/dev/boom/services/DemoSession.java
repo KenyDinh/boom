@@ -1,6 +1,5 @@
 package dev.boom.services;
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import dev.boom.common.CommonDefine;
@@ -63,11 +62,11 @@ public class DemoSession implements Comparable<DemoSession> {
 	}
 	
 	public String getFormattedDemoTime() {
-		return new SimpleDateFormat(CommonDefine.GAME_DEMO_DATE_FORMAT).format(getDemoTime());
+		return (getDemoTime());
 	}
 	
 	public String getFormattedForJSDemoTime() {
-		return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(getDemoTime()).replace(' ', 'T');
+		return (getDemoTime()).replace(' ', 'T');
 	}
 	
 	public void updateValue(String demoLocation, Date demoTime, String demoContent) {

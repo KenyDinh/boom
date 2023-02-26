@@ -1,5 +1,6 @@
 package dev.boom.services;
 
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,7 +12,6 @@ import dev.boom.common.game.QuizSubject;
 import dev.boom.core.GameLog;
 import dev.boom.dao.CommonDaoFactory;
 import dev.boom.dao.DaoValue;
-import dev.boom.dao.FunctionTransaction;
 import dev.boom.socket.func.PatpatCommandType;
 import dev.boom.socket.func.PatpatFunc;
 import dev.boom.socket.func.PatpatOutgoingMessage;
@@ -87,7 +87,9 @@ public class QuizService {
 		if (quiz == null || quizPlayer == null) {
 			return false;
 		}
-		FunctionTransaction ft = (conn) -> {
+		showQuizDetail(quiz, false);
+		
+		return CommonDaoFactory.functionTransaction((Connection conn) -> {
 			quiz.setPlayerNum((byte) 1);
 			Integer id = (Integer) CommonDaoFactory.Insert(conn, quiz.getQuizInfo());
 			if (id != null && id.intValue() > 0) {
@@ -109,15 +111,12 @@ public class QuizService {
 				return false;
 			}
 			return true;
-		};
-		showQuizDetail(quiz, false);
-		
-		return CommonDaoFactory.functionTransaction(ft);
+		});
 	}
 	
 	public static boolean startQuiz(Quiz quiz) {
 		List<String> list = new ArrayList<>();
-		FunctionTransaction ft = (conn) -> {
+		return CommonDaoFactory.functionTransaction((Connection conn) -> {
 			if (!quiz.isInSession()) {
 				list.add(String.format("UPDATE quiz_info SET status = %d WHERE id = %d", QuizStatus.IN_SESSION.getStatus(), quiz.getId()));
 			}
@@ -126,13 +125,12 @@ public class QuizService {
 				CommonDaoFactory.executeUpdate(conn, query);
 			}
 			return true;
-		};
-		return CommonDaoFactory.functionTransaction(ft);
+		});
 	}
 	
 	public static boolean endQuiz(Quiz quiz) {
 		List<String> list = new ArrayList<>();
-		FunctionTransaction ft = (conn) -> {
+		return CommonDaoFactory.functionTransaction((Connection conn) -> {
 			if (!quiz.isFinish()) {
 				list.add(String.format("UPDATE quiz_info SET status = %d WHERE id = %d", QuizStatus.FINISHED.getStatus(), quiz.getId()));
 			}
@@ -141,8 +139,7 @@ public class QuizService {
 				CommonDaoFactory.executeUpdate(conn, query);
 			}
 			return true;
-		};
-		return CommonDaoFactory.functionTransaction(ft);
+		});
 	}
 	
 	public static boolean hasQuestion(Quiz quizInfo) {
@@ -262,7 +259,7 @@ public class QuizService {
 			return false;
 		}
 		/////////////////////////////////////////////
-		FunctionTransaction ft = (conn) -> {
+		CommonDaoFactory.functionTransaction((Connection conn) -> {
 			quizInfo.setCurrentQuestion((byte) (currentQ + 1));
 			quizInfo.setStatus(QuizStatus.IN_SESSION.getStatus());
 			if (CommonDaoFactory.Update(conn, quizInfo.getQuizInfo()) < 0) {
@@ -272,8 +269,7 @@ public class QuizService {
 			String query = String.format("UPDATE quiz_player_info SET retry = %d WHERE quiz_id = %d AND status <> %d", quizInfo.getRetry(), quizInfo.getId(), QuizPlayerStatus.FINISHED.getStatus());
 			CommonDaoFactory.executeUpdate(conn, query);
 			return true;
-		};
-		CommonDaoFactory.functionTransaction(ft);
+		});
 		/////////////////////////////////////////////
 		quizInfo.getQuizInfo().Sync();
 		String channel = quizInfo.getName();

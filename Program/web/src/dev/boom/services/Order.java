@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.lang.StringEscapeUtils;
+
 import dev.boom.common.CommonDefine;
 import dev.boom.common.CommonMethod;
 import dev.boom.common.milktea.MilkTeaCommonFunc;
@@ -163,7 +165,11 @@ public class Order {
 	}
 
 	public String getSize() {
-		return (String) orderInfo.Get("size");
+		String str = (String) orderInfo.Get("size");
+		if (str != null) {
+			str = StringEscapeUtils.unescapeHtml(str);
+		}
+		return str;
 	}
 
 	public void setSize(String size) {
@@ -171,7 +177,11 @@ public class Order {
 	}
 
 	public String getIce() {
-		return (String) orderInfo.Get("ice");
+		String str = (String) orderInfo.Get("ice");
+		if (str != null) {
+			str = StringEscapeUtils.unescapeHtml(str);
+		}
+		return str;
 	}
 
 	public void setIce(String ice) {
@@ -179,7 +189,11 @@ public class Order {
 	}
 
 	public String getSugar() {
-		return (String) orderInfo.Get("sugar");
+		String str = (String) orderInfo.Get("sugar");
+		if (str != null) {
+			str = StringEscapeUtils.unescapeHtml(str);
+		}
+		return str;
 	}
 
 	public void setSugar(String sugar) {
@@ -187,7 +201,11 @@ public class Order {
 	}
 
 	public String getOptionList() {
-		return (String) orderInfo.Get("option_list");
+		String str = (String) orderInfo.Get("option_list");
+		if (str != null) {
+			str = StringEscapeUtils.unescapeHtml(str);
+		}
+		return str;
 	}
 
 	public void setOptionList(String optionList) {

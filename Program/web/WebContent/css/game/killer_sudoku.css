@@ -1,0 +1,183 @@
+:root {
+	--tbb: #bdbdbfde;
+	--tbn: #999999ab;
+	--che: #47506cff;
+	--chv: #353c52cc;
+	--cage_color: #eee;
+}
+
+* {
+	box-sizing: border-box;
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+body {
+	height: 100vh;
+	overflow-y: hidden;
+}
+
+div#warpper-table {
+	width: 540px;
+	margin: 0 auto;
+	padding-top: 5rem;
+}
+
+table#sudoku {
+	width: 540px;
+	height: 540px;
+	border-collapse: collapse;
+	border-top: 2px solid var(--tbb);
+	border-left: 2px solid var(--tbb);
+}
+
+table#sudoku td {
+	position: relative;
+	display: flex wrap;
+	align-items: center;
+	align-content: center;
+	background-color: #222;
+
+	width: 60px;
+	height: 60px;
+	text-align: center;
+	font-size: 1.8rem;
+}
+
+table#sudoku td:not(:nth-child(3n)) {
+	border-right: 1px solid var(--tbn);
+}
+
+table#sudoku td:nth-child(3n) {
+	border-right: 2px solid var(--tbb);
+}
+
+table#sudoku tr:not(:nth-child(3n)) > td {
+	border-bottom: 1px solid var(--tbn);
+}
+
+table#sudoku tr:nth-child(3n) > td {
+	border-bottom: 2px solid var(--tbb);
+}
+
+table#sudoku .block-inner:not(.init-num) {
+	color: #3498db;
+}
+
+table#sudoku .block-inner.init-num {
+	color: #E0E0E0;
+	/* font-weight: 700; */
+}
+
+table#sudoku td.cell-relate {
+	background-color: var(--chv);
+}
+
+table#sudoku td.editing {
+	background-color: var(--che);
+}
+
+table#sudoku .block-inner.invalid {
+	color: #e74c3c;
+	text-decoration: line-through;
+}
+
+input.n-input {
+	width: 40px;
+	text-align: center;
+	background-color: transparent;
+	outline: none;
+	color: white;
+	border: none;
+}
+
+.block-inner {
+	height: 100%;
+	width: 100%;
+	text-align: center;
+	border: none;
+	outline: none;
+	color: white;
+	background-color: inherit;
+	z-index: 100;
+	padding: 5px;
+}
+
+.cage_sum {
+	position: absolute;
+	font-size: 0.7rem;
+	z-index: 999;
+	text-align: left;
+	top: 0px;
+	left: 0px;
+	color: var(--cage_color);
+	background-color: inherit;
+	padding: 1px 3px;
+}
+
+.cage_angle_d, .cage_angle_u, .cage_angle_l, .cage_angle_r {
+	width: 5px;
+	height: 5px;
+	padding: 0;
+	position: absolute;
+}
+
+.cage_angle_d {
+	border-top: 1px dashed var(--cage_color);
+	bottom: 1px;
+}
+
+.cage_angle_r {
+	border-left: 1px dashed var(--cage_color);
+	right: 1px;
+}
+
+.cage_angle_u {
+	border-bottom: 1px dashed var(--cage_color);
+	top: 1px;
+}
+
+.cage_angle_l {
+	border-right: 1px dashed var(--cage_color);
+	left: 1px;
+}
+
+.cage_edge_l {
+	padding-left: 5px;
+}
+
+.cage_edge_l > .block-inner {
+	border-left: 1px dashed var(--cage_color);
+	padding-left: 0;
+}
+
+.cage_edge_r {
+	padding-right: 5px;
+}
+
+.cage_edge_r > .block-inner {
+	border-right: 1px dashed var(--cage_color);
+	padding-right: 0;
+}
+
+.cage_edge_u {
+	padding-top: 5px;
+}
+
+.cage_edge_u > .block-inner {
+	border-top: 1px dashed var(--cage_color);
+	padding-top: 0;
+}
+
+.cage_edge_d {
+	padding-bottom: 5px;
+}
+
+.cage_edge_d > .block-inner {
+	border-bottom: 1px dashed var(--cage_color);
+	padding-bottom: 0;
+}

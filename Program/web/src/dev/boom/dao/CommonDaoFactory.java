@@ -541,22 +541,22 @@ public class CommonDaoFactory {
 			strTableName = self.get(0).getTblName() + ".";
 		}
 
-		String strQueryWhere = "";
+		StringBuilder strQueryWhere = new StringBuilder();
 		for (Integer intCount : fieldCount) {
-			if (strQueryWhere != "") {
-				strQueryWhere += " AND ";
+			if (strQueryWhere.length() > 0) {
+				strQueryWhere.append(" AND ");
 			}
 
 			if (intCount == 1) {
-				strQueryWhere += strTableName + fieldID.get(nIndex) + " = " + fieldValue.get(nIndex);
+				strQueryWhere.append(strTableName).append(fieldID.get(nIndex)).append(" = ").append(fieldValue.get(nIndex));
 			} else {
-				strQueryWhere += strTableName + fieldID.get(nIndex) + " IN ( " + fieldValue.get(nIndex) + " )";
+				strQueryWhere.append(strTableName).append(fieldID.get(nIndex)).append(" IN ( ").append(fieldValue.get(nIndex)).append(" )");
 			}
 
 			nIndex++;
 		}
 
-		return strQueryWhere;
+		return strQueryWhere.toString();
 	}
 
 	public static List<DaoValue> _Select(Connection conn, List<DaoValue> self) {
@@ -578,21 +578,19 @@ public class CommonDaoFactory {
 				}
 			}
 
-			String strMainWhereClause = "";
-			strMainWhereClause = getSelectMultiWhere(self, 0, nSameTableCount, (nSameTableCount != nTableCount));
-
-			String strQuery = "SELECT [REPLACE] FROM " + self.get(0).getTblName();
-			String strSelectField = self.get(0).GetSelectFieldWithTableName();
+			StringBuilder strQueryWhere = new StringBuilder(getSelectMultiWhere(self, 0, nSameTableCount, (nSameTableCount != nTableCount)));
+			StringBuilder strQuery = new StringBuilder();
+			strQuery.append(self.get(0).getTblName());
+			StringBuilder strSelectField = new StringBuilder(self.get(0).GetSelectFieldWithTableName());
 			for (int i = nSameTableCount; i < nTableCount; i++) {
-				strQuery += " LEFT JOIN " + self.get(i).getTblName() + " ON ";
-				strQuery += self.get(0).getTblName() + "." + self.get(0).getForeignKey(self.get(i).getTblName()) + " = ";
-				strQuery += self.get(i).getTblName() + "." + self.get(i).getPrimaryKey();
+				strQuery.append(" LEFT JOIN ").append(self.get(i).getTblName()).append(" ON ");
+				strQuery.append(self.get(0).getTblName()).append(".").append(self.get(0).getForeignKey(self.get(i).getTblName())).append(" = ");
+				strQuery.append(self.get(i).getTblName()).append(".").append(self.get(i).getPrimaryKey());
 
-				strSelectField += "," + self.get(i).GetSelectFieldWithTableName();
+				strSelectField.append(",").append(self.get(i).GetSelectFieldWithTableName());
 			}
-			strQuery = strQuery.replace("[REPLACE]", strSelectField);
+			strQuery.insert(0, String.format("SELECT %s FROM ", strSelectField.toString()));
 
-			String strQueryWhere = strMainWhereClause;
 			for (int i = nSameTableCount; i < nTableCount; i++) {
 				List<String> strWhereList = self.get(i).GetSelectWhereClause();
 				if (strWhereList == null) {
@@ -600,25 +598,24 @@ public class CommonDaoFactory {
 				}
 
 				for (String strWhereUnit : strWhereList) {
-					if (strQueryWhere != "") {
-						strQueryWhere += " AND ";
+					if (strQueryWhere.length() > 0) {
+						strQueryWhere.append(" AND ");
 					}
-					strQueryWhere += self.get(i).getTblName() + "." + strWhereUnit;
+					strQueryWhere.append(self.get(i).getTblName()).append(".").append(strWhereUnit);
 				}
 			}
 
 			for (int i = nSameTableCount; i < nTableCount; i++) {
-				if (strQueryWhere != "") {
-					strQueryWhere += " AND ";
+				if (strQueryWhere.length() > 0) {
+					strQueryWhere.append(" AND ");
 				}
-				strQueryWhere += self.get(i).getTblName() + "." + self.get(i).getPrimaryKey() + " IS NOT NULL";
+				strQueryWhere.append(self.get(i).getTblName()).append(".").append(self.get(i).getPrimaryKey()).append(" IS NOT NULL");
 			}
 
-			if (strQueryWhere != "") {
-				strQuery += " WHERE " + strQueryWhere;
+			if (strQueryWhere.length() > 0) {
+				strQuery.append(" WHERE ").append(strQueryWhere);
 			}
-
-			strQuery += self.get(0).GetSelectOption();
+			strQuery.append(self.get(0).GetSelectOption());
 
 			GameLog.getInstance().info(String.format("[DB] Join Query : %s", strQuery));
 
@@ -626,7 +623,7 @@ public class CommonDaoFactory {
 			try {
 				Statement st = conn.createStatement();
 				try {
-					ResultSet rs = st.executeQuery(strQuery);
+					ResultSet rs = st.executeQuery(strQuery.toString());
 					while (rs.next()) {
 						int nColumnCount = 1;
 						for (int i = (nSameTableCount - 1); i < nTableCount; i++) {
@@ -678,23 +675,22 @@ public class CommonDaoFactory {
 		} else {
 			try {
 				List<String> strWhereList = self.GetSelectWhereClause();
-				String strWhere = "";
+				StringBuilder strWhere = new StringBuilder();
 
 				if (strWhereList != null) {
 					for (int i = 0; i < strWhereList.size(); i++) {
-						if (strWhere != "") {
-							strWhere += " AND ";
+						if (strWhere.length() > 0) {
+							strWhere.append(" AND ");
 						}
-						strWhere += strWhereList.get(i);
+						strWhere.append(strWhereList.get(i));
 					}
 				}
 
-				if (strWhere != "") {
-					strWhere = " WHERE " + strWhere;
+				if (strWhere.length() > 0) {
+					strWhere.insert(0, "WHERE ");
 				}
 
-				String strQuery = "SELECT " + self.GetSelectField() + " FROM " + self.getTblName() + strWhere + self.GetSelectOption();
-
+				String strQuery = String.format("SELECT %s FROM %s %s %s", self.GetSelectField(), self.getTblName(), strWhere.toString(), self.GetSelectOption());
 				GameLog.getInstance().info(String.format("[DB] Select Query : %s", strQuery));
 
 				List<DaoValue> retValueList = new ArrayList<DaoValue>();

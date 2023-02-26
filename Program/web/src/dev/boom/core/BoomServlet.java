@@ -6,6 +6,7 @@ import org.apache.click.ClickServlet;
 
 import dev.boom.common.VoteFuncs;
 import dev.boom.dao.fix.FixDataLoader;
+import dev.boom.game.boom.BoomGameMapEnum;
 import dev.boom.socket.endpoint.FridayEndpoint;
 import dev.boom.socket.func.PatpatFunc;
 
@@ -20,6 +21,7 @@ public class BoomServlet extends ClickServlet {
 		BoomProperties.load();
 		PatpatFunc.loadMessage();
 		FixDataLoader.init(getServletContext());
+		BoomGameMapEnum.init(getServletContext());
 		FridayEndpoint.initFridayBotToken();
 		VoteFuncs.initRewardID();
 	}

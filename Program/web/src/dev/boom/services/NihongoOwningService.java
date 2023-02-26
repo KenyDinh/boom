@@ -52,6 +52,7 @@ public class NihongoOwningService {
 		info.Set("pet_id", pet_id);
 		info.Set("user_id", user_id);
 		info.Set("current_level", 1);
+		info.Set("created", CommonMethod.getFormatStringNow());
 		return (CommonDaoFactory.Insert(info) > 0);
 	}
 
@@ -65,6 +66,7 @@ public class NihongoOwningService {
 		info.Set("pet_id", pet_id);
 		info.Set("user_id", user_id);
 		info.Set("current_level", 1);
+		info.Set("created", CommonMethod.getFormatStringNow());
 		updateList.add(info);
 		nihonUser.Set("star", (Integer)nihonUser.Get("star") - 1);
 		updateList.add(nihonUser);

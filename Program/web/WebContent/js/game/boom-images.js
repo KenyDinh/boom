@@ -5,10 +5,19 @@ const MAPS_IMAGE = [
 	"map/map_02.png",
 	"map/map_03.png",
 	"map/map_04.png",
+	"map/map_05.png",
+	"map/map_06.png",
+	"map/map_07.png",
+	"map/map_08.png",
+	"map/map_09.png",
 ]
 const MAPS_FOREGROUND_IMAGE = [
-	"map/map_fg_01.png",
-	"map/map_fg_02.png",
+	"map/map_fg_n01.png",
+	"map/map_fg_n02.png",
+	"map/map_fg_n03.png",
+	"map/map_fg_n04.png",
+	"map/map_fg_n05.png",
+	"map/map_fg_n06.png",
 	]
 const CHARACTERS_IMAGE = [
 	"char/pipo-nekonin001.png",
@@ -45,10 +54,7 @@ const CHARACTERS_IMAGE = [
 	"char/pipo-nekonin032.png",
 ]
 const TREES_IMAGE = [
-	"trees/tree_01.png",
-	"trees/tree_02.png",
-	"trees/tree_03.png",
-	"trees/tree_04.png",
+	"map/tree_update.png"
 ]
 const BOMB_IMAGE = [
 	"bomb/bombx_01.png",
@@ -80,6 +86,11 @@ const FIRE_EFFECT = [
 const TELEPORT_IMAGE = [
 	"map/teleport_on_anim.png",
 	"map/teleport_off_anim.png",
+]
+const REVIVAL_IMAGE = [
+	"map/holy_light_2.png",
+	"map/holy_light_s.png",
+	"map/clock_effect.png",
 ]
 const IMAGES_MAP = {};
 (function initImage() {
@@ -134,6 +145,11 @@ const IMAGES_MAP = {};
 		IMAGES_MAP[src] = image;
 	}
 	for (const src of FIRE_EFFECT) {
+		const image = new Image();
+		image.src = CONTEXT + "/img/game/boom/" + src;
+		IMAGES_MAP[src] = image;
+	}
+	for (const src of REVIVAL_IMAGE) {
 		const image = new Image();
 		image.src = CONTEXT + "/img/game/boom/" + src;
 		IMAGES_MAP[src] = image;

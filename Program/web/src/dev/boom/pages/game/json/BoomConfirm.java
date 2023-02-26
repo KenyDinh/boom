@@ -1,10 +1,10 @@
 package dev.boom.pages.game.json;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 
 import dev.boom.common.CommonMethod;
-import dev.boom.common.enums.UserFlagEnum;
-import dev.boom.core.BoomProperties;
+import dev.boom.common.enums.EventFlagEnum;
 import dev.boom.core.GameLog;
 import dev.boom.game.boom.BoomCharater;
 import dev.boom.game.boom.BoomGame;
@@ -12,6 +12,14 @@ import dev.boom.game.boom.BoomGameManager;
 import dev.boom.game.boom.BoomGameMapEnum;
 import dev.boom.game.boom.BoomPlayer;
 import dev.boom.pages.JsonPageBase;
+import dev.boom.services.BoomGroup;
+import dev.boom.services.BoomGroupService;
+import dev.boom.services.BoomPlayerStage;
+import dev.boom.services.BoomPlayerStageService;
+import dev.boom.services.BoomSeason;
+import dev.boom.services.BoomSeasonService;
+import dev.boom.services.BoomStage;
+import dev.boom.services.BoomStageService;
 import dev.boom.socket.SocketSessionPool;
 import dev.boom.socket.endpoint.BoomGameEndPoint;
 
@@ -23,10 +31,13 @@ public class BoomConfirm extends JsonPageBase {
 	private static final String TYPE_INSPECT = "inspect";
 	private static final String TYPE_MAP_CHANGE = "map";
 	private static final String TYPE_AVT_CHANGE = "avatar";
+	private static final String TYPE_MODE_CHANGE = "mode";
 
 	private String type;
 	private boolean error = false;
 	private String errorMessage;
+	private BoomSeason boomSeason;
+	private boolean isTournament;
 	
 	@Override
 	public boolean onSecurityCheck() {
@@ -43,6 +54,8 @@ public class BoomConfirm extends JsonPageBase {
 	public void onInit() {
 		super.onInit();
 		type = getContext().getRequestParameter("type");
+		boomSeason = BoomSeasonService.getCurrentBoomSeason();
+		isTournament = (getWorldInfo().isActiveEventFlag(EventFlagEnum.BOOM_TOURNAMENT) && boomSeason != null);
 	}
 
 	@Override
@@ -63,6 +76,9 @@ public class BoomConfirm extends JsonPageBase {
 			break;
 		case TYPE_AVT_CHANGE:
 			doCharacterChange();
+			break;
+		case TYPE_MODE_CHANGE:
+			doModeChange();
 			break;
 		default:
 			break;
@@ -97,14 +113,14 @@ public class BoomConfirm extends JsonPageBase {
 		if (CommonMethod.isValidNumeric(strInspector, 1, 1)) {
 			inspector = true;
 		}
-		if (!UserFlagEnum.BOOM_INSPECTOR.isValid(userInfo.getFlag())) {
+		if (!userInfo.isGameAdmin()) {
 			if (inspector) {
 				GameLog.getInstance().error("Unable to create game in inspector mode!");
 				error = true;
 				errorMessage = "No permission to create game in inspector mode!";
 				return;
 			}
-			if (BoomProperties.BOOM_TOURNAMENT) {
+			if (isTournament) {
 				GameLog.getInstance().error("Unable to create game during the boom tournament!");
 				error = true;
 				errorMessage = "No permission to create game during the boom tournament!";
@@ -113,18 +129,35 @@ public class BoomConfirm extends JsonPageBase {
 		}
 		int stage = 0;
 		String strStage = getContext().getRequestParameter("stage");
-		if (BoomProperties.BOOM_TOURNAMENT && CommonMethod.isValidNumeric(strStage, 0, Integer.MAX_VALUE)) {
-			stage = Integer.parseInt(strStage);
+		if (isTournament && CommonMethod.isValidNumeric(strStage, 1, Integer.MAX_VALUE)) {
+			BoomStage boomStage = BoomStageService.getBoomStage(Integer.parseInt(strStage));
+			if (boomStage != null) {
+				stage = (int)boomStage.getId();
+			}
+		}
+		BoomPlayerStage playerStage = BoomPlayerStageService.getBoomPlayerStage(userInfo.getId(), stage);
+		if (!inspector && stage > 0 && playerStage == null) {
+			GameLog.getInstance().error("You don't have access to this stage during the boom tournament!");
+			error = true;
+			errorMessage = "No permission to join the stage during the boom tournament!";
+			return;
 		}
 		boomGame.applyStage(stage);
 		int imgId = BoomCharater.CHARACTER_01.getId();
 		if (!inspector) {
-			BoomPlayer bp = new BoomPlayer(userInfo.getId(), userInfo.getUsername(), BoomCharater.CHARACTER_01, 0, 0, boomGame.getUnitSize(), boomGame.getUnitSize()); 
+			BoomPlayer bp = new BoomPlayer(userInfo.getId(), userInfo.getUsername(), BoomCharater.CHARACTER_01, 0, 0, boomGame.getUnitSize(), boomGame.getUnitSize());
 			boolean ret = boomGame.allocatePos(bp);
 			if (!ret) {
 				error = true;
 				errorMessage = "No space in game for new player!";
 				return;
+			}
+			if (playerStage != null && playerStage.getGroupId() > 0) {
+				BoomGroup boomGroup = BoomGroupService.getBoomGroup(playerStage.getGroupId());
+				if (boomGroup != null) {
+					bp.setGroupId(boomGroup.getId());
+					bp.setGroupName(StringEscapeUtils.unescapeHtml(boomGroup.getName()));
+				}
 			}
 			ret = boomGame.addPlayer(bp);
 			if (!ret) {
@@ -181,12 +214,25 @@ public class BoomConfirm extends JsonPageBase {
 		}
 		BoomPlayer bp;
 		if (!exist) {
+			BoomPlayerStage playerStage = BoomPlayerStageService.getBoomPlayerStage(userInfo.getId(), boomGame.getStage());
+			if (boomGame.getStage() > 0 && playerStage == null) {
+				error = true;
+				errorMessage = "No permission to join the game!";
+				return;
+			}
 			bp = new BoomPlayer(userInfo.getId(), userInfo.getUsername(), BoomCharater.CHARACTER_01, 0, 0, boomGame.getUnitSize(), boomGame.getUnitSize()); 
 			boolean ret = boomGame.allocatePos(bp);
 			if (!ret) {
 				error = true;
 				errorMessage = "No space in game for new player!";
 				return;
+			}
+			if (playerStage != null && playerStage.getGroupId() > 0) {
+				BoomGroup boomGroup = BoomGroupService.getBoomGroup(playerStage.getGroupId());
+				if (boomGroup != null) {
+					bp.setGroupId(boomGroup.getId());
+					bp.setGroupName(StringEscapeUtils.unescapeHtml(boomGroup.getName()));
+				}
 			}
 			ret = boomGame.addPlayer(bp);
 			if (!ret) {
@@ -234,7 +280,7 @@ public class BoomConfirm extends JsonPageBase {
 			errorMessage = "You can't inspect your own game!";
 			return;
 		}
-		if (!UserFlagEnum.BOOM_INSPECTOR.isValid(userInfo.getFlag())) {
+		if (!userInfo.isGameAdmin()) {
 			error = true;
 			errorMessage = "You don't have permission to inspect this game!";
 			return;
@@ -336,5 +382,44 @@ public class BoomConfirm extends JsonPageBase {
 		bp.init(BoomCharater.getById(charID));
 		putJsonData("mid", boomGame.getMapId());
 		putJsonData("avatar", bp.getImageID());
+	}
+	
+	private void doModeChange() {
+		if (isTournament) {
+			error = true;
+			errorMessage = "Not allow to change mode during tournament!";
+			return;
+		}
+		String strMode = getContext().getRequestParameter("mode");
+		if (!CommonMethod.isValidNumeric(strMode, 0, 1)) {
+			error = true;
+			errorMessage = "Invalid parameter!";
+			return;
+		}
+		int mode = Integer.parseInt(strMode);
+		String strGameId = getContext().getRequestParameter("game_id");
+		if (StringUtils.isBlank(strGameId)) {
+			error = true;
+			errorMessage = "No game found!";
+			return;
+		}
+		BoomGame boomGame = BoomGameManager.getBoomGame(strGameId);
+		if (boomGame == null || boomGame.getHostId() != userInfo.getId()) {
+			error = true;
+			errorMessage = "No game found!";
+			return;
+		}
+		if (!boomGame.isInitState()) {
+			error = true;
+			errorMessage = "Unable to change map!";
+			return;
+		}
+		if (boomGame.getStage() > 0) {
+			error = true;
+			errorMessage = "No permission to change mode!";
+			return;
+		}
+		boomGame.setPartyRandom(mode == 1);
+		putJsonData("mode", mode);
 	}
 }

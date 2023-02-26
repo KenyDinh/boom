@@ -1,5 +1,6 @@
 package dev.boom.pages.milktea;
 
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -11,7 +12,6 @@ import dev.boom.common.milktea.MilkTeaCommonFunc;
 import dev.boom.core.BoomSession;
 import dev.boom.core.GameLog;
 import dev.boom.dao.CommonDaoFactory;
-import dev.boom.dao.FunctionTransaction;
 import dev.boom.services.DishRating;
 import dev.boom.services.DishRatingService;
 import dev.boom.services.Order;
@@ -64,8 +64,7 @@ public class MilkteaCommentLoader extends MilkTeaAjaxPageBase {
 			if (strAction.equals("update_code")) {
 				List<Order> orderInfoList = OrderService.getOrderList("");
 				List<DishRating> dishRatingList = DishRatingService.getDishRatingList("");
-				
-				FunctionTransaction ft = (conn) -> {
+				CommonDaoFactory.functionTransaction((Connection conn) -> {
 					if (orderInfoList != null && orderInfoList.size() > 0) {
 						for (Order orderInfo : orderInfoList) {
 							int code = MilkTeaCommonFunc.getItemCodeName(orderInfo.getDishName());
@@ -91,8 +90,7 @@ public class MilkteaCommentLoader extends MilkTeaAjaxPageBase {
 						}
 					}
 					return true;
-				};
-				CommonDaoFactory.functionTransaction(ft);
+				});
 			}
 		}
 	}

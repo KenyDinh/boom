@@ -9,7 +9,6 @@ import org.apache.commons.lang.RandomStringUtils;
 
 import dev.boom.common.CommonDefine;
 import dev.boom.common.CommonMethod;
-import dev.boom.game.boom.BoomGameManager;
 import dev.boom.socket.endpoint.PokerGameEndPoint;
 import net.arnx.jsonic.JSON;
 

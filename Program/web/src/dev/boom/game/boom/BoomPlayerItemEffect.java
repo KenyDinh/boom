@@ -17,9 +17,9 @@ public class BoomPlayerItemEffect {
 		super();
 	}
 
-	public BoomPlayerItemEffect(int id, BoomGameItemEffect effectType, int effectParam, long start, long end) {
+	public BoomPlayerItemEffect(BoomGameItemEffect effectType, int effectParam, long start, long end) {
 		super();
-		this.id = id;
+		this.id = effectType.getId();
 		this.effectType = effectType;
 		this.effectParam = effectParam;
 		this.start = start;
@@ -99,7 +99,9 @@ public class BoomPlayerItemEffect {
 	}
 
 	public boolean hasEffect(long currentTime) {
-		if (effectType == BoomGameItemEffect.SHEILD_PROTECTOR || effectType == BoomGameItemEffect.WARRIOR_AMOR) {
+		if (effectType == BoomGameItemEffect.SHEILD_PROTECTOR 
+			|| effectType == BoomGameItemEffect.WARRIOR_AMOR
+			|| effectType == BoomGameItemEffect.MAGICAL_REVIVAL) {
 			return effectParam > 0;
 		}
 		if (effectType == BoomGameItemEffect.BOMB_SHOOTER) {
@@ -182,6 +184,8 @@ public class BoomPlayerItemEffect {
 		}
 		if (!hasEffect()) {
 			reset();
+		} else if (effectType == BoomGameItemEffect.MAGICAL_REVIVAL) {
+			return false;
 		}
 		this.start = effect.getStart();
 		this.end = effect.getEnd();

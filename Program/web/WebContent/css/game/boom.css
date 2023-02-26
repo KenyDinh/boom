@@ -38,3 +38,87 @@
 .game-map.selected {
     border: 1px solid #E74C3C;
 }
+.game-map > img {
+	width:100%;
+	object-fit:cover;
+}
+#create-game {
+	width:10rem;
+	margin-top:1rem;
+}
+#game-board {
+	flex-direction: column;
+	align-items: center;
+	justify-content:center;
+	margin-top:3rem;
+	font-family: monospace;
+	display:none;
+}
+#left-panel {
+	position:absolute;
+	left:0;
+	top:0;
+}
+#character-class {
+	margin-top:1rem;
+}
+#character-info {
+	margin-top:1rem;
+	font-size: 13px;
+}
+#hot-key-info {
+	margin-top:1rem;
+	text-align:left;
+}
+#score-panel {
+	position:absolute;
+	left:0;
+	top:0;
+	z-index:99;
+}
+.custom-select {
+	width:10rem;
+}
+.game-room {
+	width:150px;
+	text-align:center;
+	background-color:#CCD1D1;
+	color:#6C3483;
+}
+.game-room > img {
+	width:100%;
+	object-fit:cover;
+}
+.game-room > div {
+	text-overflow:ellipsis;
+	overflow:hidden;
+	white-space:nowrap;
+}
+.score-board-container {
+	display: -webkit-box !important;
+	display: -ms-flexbox !important;
+	display: flex !important;
+	flex-direction: column;
+    min-width: 200px;
+}
+.score-board-group-container {
+	display: -webkit-box !important;
+	display: -ms-flexbox !important;
+	display: flex !important;
+    background-color: #083667;
+    color: #FFFFFF;
+    font-weight: bold;
+}
+.score-board-gp-score {
+	margin-left: auto !important;
+	padding-right: 0.5rem;
+}
+.score-board-player-container {
+	display: -webkit-box !important;
+	display: -ms-flexbox !important;
+	display: flex !important;
+	align-items: center;
+}
+.score-board-player-container + .score-board-group-container {
+	margin-top: 0.5rem;
+}

@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -34,7 +35,6 @@ import dev.boom.common.enums.SurveyStatus;
 import dev.boom.core.GameLog;
 import dev.boom.dao.CommonDaoFactory;
 import dev.boom.dao.DaoValue;
-import dev.boom.dao.FunctionTransaction;
 import dev.boom.services.Survey;
 import dev.boom.services.SurveyOption;
 import dev.boom.services.SurveyQuestion;
@@ -135,6 +135,10 @@ public class ManageVote extends VotePageBase {
 				surveyInfo = survey;
 			} else {
 				surveyInfo = new Survey();
+				Date now = new Date();
+				surveyInfo.setCreated(CommonMethod.getFormatDateString(now));
+				surveyInfo.setUpdated(CommonMethod.getFormatDateString(now));
+				surveyInfo.setExpired(CommonMethod.getFormatDateString(new Date(now.getTime() + CommonDefine.MILLION_SECOND_DAY)));
 			}
 			if (surveyInfo == null) {
 				GameLog.getInstance().error("[ManageVote] Survey is null!");
@@ -143,11 +147,10 @@ public class ManageVote extends VotePageBase {
 			}
 			if (mode == MODE_SURVEY_EDIT && getContext().getRequestParameter("delete") != null) {
 				String sql = "DELETE FROM survey_result_info WHERE survey_id = " + surveyInfo.getId();
-				FunctionTransaction ft = (conn) -> {
+				CommonDaoFactory.functionTransaction((Connection conn) -> {
 					CommonDaoFactory.executeUpdate(conn, sql);
 					return true;
-				};
-				CommonDaoFactory.functionTransaction(ft);
+				});
 				VoteFuncs.reInitAllRewardId();
 			} else {
 				String strName = getContext().getRequestParameter("name");
@@ -501,6 +504,10 @@ public class ManageVote extends VotePageBase {
 				addModel("title", "Edit Survey");
 			} else {
 				surveyInfo = new Survey();
+				Date now = new Date();
+				surveyInfo.setCreated(CommonMethod.getFormatDateString(now));
+				surveyInfo.setUpdated(CommonMethod.getFormatDateString(now));
+				surveyInfo.setExpired(CommonMethod.getFormatDateString(new Date(now.getTime() + CommonDefine.MILLION_SECOND_DAY)));
 				addModel("title", "New Survey");
 			}
 			if (surveyInfo == null) {

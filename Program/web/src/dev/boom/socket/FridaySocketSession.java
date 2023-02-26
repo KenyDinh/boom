@@ -1,12 +1,13 @@
 package dev.boom.socket;
 
-import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.websocket.Session;
 
+import dev.boom.common.CommonDefine;
 import dev.boom.common.CommonMethod;
 import dev.boom.common.enums.ManageLogType;
 import dev.boom.dao.CommonDaoFactory;
@@ -125,13 +126,9 @@ public class FridaySocketSession extends SocketSessionBase {
 			Dish dishInfo = new Dish();
 			dishInfo.setShopId(shopInfo.getId());
 			//if (CommonDaoFactory.Count(dishInfo.getDishInfo()) > 0) {
-				if (CommonDaoFactory.executeUpdate(String.format("DELETE FROM %s WHERE shop_id = %d", dishInfo.getDishInfo().getTblName(), dishInfo.getShopId())) < 0) {
-					logError("[FridaySocketSession] (update) delete old dishs failed!");
-					return;
-				}
+			CommonDaoFactory.executeUpdate(String.format("DELETE FROM %s WHERE shop_id = %d", dishInfo.getDishInfo().getTblName(), dishInfo.getShopId()));
 			//}
 		}
-		List<DaoValue> updateList = new ArrayList<>();
 		dev.boom.services.Menu menuInfo = new dev.boom.services.Menu();
 		menuInfo.setName(menu.getMenu_name());
 		menuInfo.setShopId(shopInfo.getId());
@@ -139,14 +136,26 @@ public class FridaySocketSession extends SocketSessionBase {
 		menuInfo.setMaxDiscount(menu.getMax_discount());
 		menuInfo.setCode(menu.getCode());
 		menuInfo.setShippingFee(menu.getShipping_fee());
-		updateList.add(menuInfo.getMenuInfo());
-		for (MenuItem menuItem : listItems) {
-			Dish dishInfo = new Dish();
-			dishInfo.setShopId(shopInfo.getId());
-			dishInfo.setDetail(menuItem.getDetail());
-			updateList.add(dishInfo.getDishInfo());
+		Date now = new Date();
+		menuInfo.setCreated(CommonMethod.getFormatDateString(now));
+		menuInfo.setExpired(CommonMethod.getFormatDateString(new Date(now.getTime() + CommonDefine.MILLION_SECOND_DAY)));
+		menuInfo.setUpdated(CommonMethod.getFormatDateString(now));
+		boolean success = true;
+		if (CommonDaoFactory.Insert(menuInfo.getMenuInfo()) < 0) {
+			success = false;
 		}
-		if (CommonDaoFactory.Update(updateList) < 0) {
+		if (success) {
+			for (MenuItem menuItem : listItems) {
+				Dish dishInfo = new Dish();
+				dishInfo.setShopId(shopInfo.getId());
+				dishInfo.setDetail(menuItem.getDetail());
+				if (CommonDaoFactory.Insert(dishInfo.getDishInfo()) < 0) {
+					success = false;
+					break;
+				}
+			}
+		}
+		if (!success) {
 			logError("[FridaySocketSession] (update) update failed!");
 		} else {
 			User userInfo = new User();

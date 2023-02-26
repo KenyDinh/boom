@@ -59,29 +59,35 @@ public class BoomGameEndPoint extends EndPointBase {
 	}
 	
 	public static boolean checkGameSocketUser(String gameId, long userId) {
-		Map<String, SocketSessionBase> socketsList = SocketSessionPool.getMapSocketSession(ENDPOINT_NAME);
-		if (socketsList == null || socketsList.isEmpty()) {
-			return false;
-		}
-		for (String key : socketsList.keySet()) {
-			BoomGameSocketSession socket = (BoomGameSocketSession) socketsList.get(key);
-			if (socket.getGameId().equals(gameId) && socket.getUserId() == userId) {
-				return true;
+		try {
+			Map<String, SocketSessionBase> socketsList = SocketSessionPool.getMapSocketSession(ENDPOINT_NAME);
+			if (socketsList == null || socketsList.isEmpty()) {
+				return false;
 			}
+			for (String key : socketsList.keySet()) {
+				BoomGameSocketSession socket = (BoomGameSocketSession) socketsList.get(key);
+				if (socket.getGameId().equals(gameId) && socket.getUserId() == userId) {
+					return true;
+				}
+			}
+		} catch (Exception e) {
 		}
 		return false;
 	}
 	
 	public static void sendSocketGameUpdate(String gameId, String data) {
-		Map<String, SocketSessionBase> socketsList = SocketSessionPool.getMapSocketSession(ENDPOINT_NAME);
-		if (socketsList == null || socketsList.isEmpty()) {
-			return;
-		}
-		for (String key : socketsList.keySet()) {
-			BoomGameSocketSession socket = (BoomGameSocketSession) socketsList.get(key);
-			if (socket.getGameId().equals(gameId)) {
-				socket.sendMessage(String.format("{\"pid\":%d,\"data\":%s}", socket.getUserId(), data));
+		try {
+			Map<String, SocketSessionBase> socketsList = SocketSessionPool.getMapSocketSession(ENDPOINT_NAME);
+			if (socketsList == null || socketsList.isEmpty()) {
+				return;
 			}
+			for (String key : socketsList.keySet()) {
+				BoomGameSocketSession socket = (BoomGameSocketSession) socketsList.get(key);
+				if (socket.getGameId().equals(gameId)) {
+					socket.sendMessage(String.format("{\"pid\":%d,\"data\":%s}", socket.getUserId(), data));
+				}
+			}
+		} catch (Exception e) {
 		}
 	}
 

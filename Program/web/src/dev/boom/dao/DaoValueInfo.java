@@ -17,7 +17,7 @@ public class DaoValueInfo extends DaoValue {
 	@Override
 	public String GetInsertValuesClause() {
 		String strPrimaryKey = getPrimaryKey();// fieldWrite.GetKey();
-		String strClause = "";
+		StringBuilder strClause = new StringBuilder();
 
 		Field variables[] = getClassField();
 		try {
@@ -27,33 +27,33 @@ public class DaoValueInfo extends DaoValue {
 
 				String strToken[] = (variables[i].toString()).split("\\$Fields.");
 
-				if (strClause != "") {
-					strClause += ", ";
+				if (strClause.length() > 0) {
+					strClause.append(", ");
 				}
 
 				if (strPrimaryKey.equals(strToken[1])) {
 					if ((objRead.equals(objWrite)) == true) {
-						strClause += "DEFAULT";
+						strClause.append("DEFAULT");
 						continue;
 					}
 				}
 
 				if ((objRead.getClass() == String.class) || (objRead.getClass() == Date.class)) {
-					strClause += "'" + objWrite + "'";
+					strClause.append("'").append(objWrite).append("'");
 				} else {
-					strClause += objWrite;
+					strClause.append(objWrite);
 				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
-		return strClause;
+		return strClause.toString();
 	}
 
 	@Override
 	public String GetUpdateSetClause() {
-		String strClause = "";
+		StringBuilder strClause = new StringBuilder();
 		String strSubKey = getSubKey();
 
 		Field variables[] = getClassField();
@@ -66,31 +66,31 @@ public class DaoValueInfo extends DaoValue {
 					continue;
 				}
 
-				if (strClause != "") {
-					strClause += ", ";
+				if (strClause.length() > 0) {
+					strClause.append(", ");
 				}
 
 				String strToken[] = (variables[i].toString()).split("\\$Fields.");
 				if (strSubKey.contains(("<" + strToken[1] + ">"))) { // Update
 					if ((objRead.getClass() == String.class) || (objRead.getClass() == Date.class)) {
-						strClause += strToken[1] + " = '" + objRead + "'";
+						strClause.append(strToken[1]).append(" = '").append(objRead).append("'");
 					} else {
-						strClause += strToken[1] + " = " + objRead;
+						strClause.append(strToken[1]).append(" = ").append(objRead);
 					}
 					continue;
 				}
 
 				if ((objRead.getClass() == String.class) || (objRead.getClass() == Date.class)) {
-					strClause += strToken[1] + " = '" + objWrite + "'";
+					strClause.append(strToken[1]).append(" = '").append(objWrite).append("'");
 				} else {
-					strClause += strToken[1] + " = " + objWrite;
+					strClause.append(strToken[1]).append(" = ").append(objWrite);
 				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
-		return strClause;
+		return strClause.toString();
 	}
 
 	@Override
@@ -126,7 +126,7 @@ public class DaoValueInfo extends DaoValue {
 	public String GetUpdateWhereClause() {
 		String strPrimaryKey = getPrimaryKey(); // fieldWrite.GetKey();
 		String strSubKey = getSubKey();
-		String strClause = "";
+		StringBuilder strClause = new StringBuilder();
 
 		Field variables[] = getClassField();
 		try {
@@ -137,14 +137,14 @@ public class DaoValueInfo extends DaoValue {
 				String strToken[] = (variables[i].toString()).split("\\$Fields.");
 				if (strPrimaryKey.equals(strToken[1]) || strSubKey.contains(("<" + strToken[1] + ">"))) { // Update
 					// Keyは特別に処理.
-					if (strClause != "") {
-						strClause += " AND ";
+					if (strClause.length() > 0) {
+						strClause.append(" AND ");
 					}
 
 					if ((objRead.getClass() == String.class) || (objRead.getClass() == Date.class)) {
-						strClause += strToken[1] + " = '" + objWrite + "'";
+						strClause.append(strToken[1]).append(" = '").append(objWrite).append("'");
 					} else {
-						strClause += strToken[1] + " = " + objWrite;
+						strClause.append(strToken[1]).append(" = ").append(objWrite);
 					}
 					continue;
 				}
@@ -153,21 +153,21 @@ public class DaoValueInfo extends DaoValue {
 					continue;
 				}
 
-				if (strClause != "") {
-					strClause += " AND ";
+				if (strClause.length() > 0) {
+					strClause.append(" AND ");
 				}
 
 				if ((objRead.getClass() == String.class) || (objRead.getClass() == Date.class)) {
-					strClause += strToken[1] + " = '" + objRead + "'";
+					strClause.append(strToken[1]).append(" = '").append(objRead).append("'");
 				} else {
-					strClause += strToken[1] + " = " + objRead;
+					strClause.append(strToken[1]).append(" = ").append(objRead);
 				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
-		return strClause;
+		return strClause.toString();
 	}
 
 	@Override

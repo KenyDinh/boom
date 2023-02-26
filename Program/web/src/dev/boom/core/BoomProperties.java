@@ -18,7 +18,6 @@ public class BoomProperties {
 	public static String WEBSOCKET_PORT_SCALE = "";
 	public static String STATIC_FILE_PORT_SCALE = "";
 	public static String FRIDAY_VERSION = "1";
-	public static boolean BOOM_TOURNAMENT = false;
 	public static void load() {
 		Properties prop = new Properties();
 		try {
@@ -55,10 +54,6 @@ public class BoomProperties {
 		if (prop.containsKey("FRIDAY_VERSION")) {
 			FRIDAY_VERSION = prop.getProperty("FRIDAY_VERSION");
 			log.info("FRIDAY_VERSION <= " + FRIDAY_VERSION);
-		}
-		if (prop.containsKey("BOOM_TOURNAMENT")) {
-			BOOM_TOURNAMENT = Boolean.parseBoolean(prop.getProperty("BOOM_TOURNAMENT"));
-			log.info("BOOM_TOURNAMENT <= " + BOOM_TOURNAMENT);
 		}
 	}
 }

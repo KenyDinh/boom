@@ -9,7 +9,6 @@ import dev.boom.dao.CommonDaoFactory;
 import dev.boom.dao.DaoValue;
 import dev.boom.dao.IDaoFactory;
 import dev.boom.dao.fix.FixData;
-import dev.boom.tbl.data.TblQuizOptionJapaneseData;
 import dev.boom.tbl.data.TblQuizOptionProgrammingData;
 
 public class DaoQuizOptionProgrammingData extends FixData implements IDaoFactory {

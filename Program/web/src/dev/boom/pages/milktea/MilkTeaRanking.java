@@ -1,5 +1,6 @@
 package dev.boom.pages.milktea;
 
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -16,7 +17,6 @@ import dev.boom.common.milktea.MilkTeaItemOptionType;
 import dev.boom.common.milktea.MilkTeaOrderFlag;
 import dev.boom.common.milktea.MilkTeaTabEnum;
 import dev.boom.dao.CommonDaoFactory;
-import dev.boom.dao.FunctionTransaction;
 import dev.boom.services.MilkteaUser;
 import dev.boom.services.MilkteaUserService;
 import dev.boom.services.Order;
@@ -191,7 +191,7 @@ public class MilkTeaRanking extends MilkTeaMainPage {
 				query = "SELECT username, COUNT(user_id), SUM(final_price), GROUP_CONCAT(ice SEPARATOR ',') AS total_ice, GROUP_CONCAT(sugar SEPARATOR ',') AS total_sugar, GROUP_CONCAT(option_list SEPARATOR ',') AS total_topping "
 						+ "FROM order_info WHERE final_price > 0 AND created >= '" + start + "' AND created <= '" + end + "' GROUP BY username;";
 			}
-			FunctionTransaction ft = (conn) -> {
+			CommonDaoFactory.functionTransaction((Connection conn) -> {
 				List<List<Object>> listObject = CommonDaoFactory.executeQuery(conn, query);
 				if (listObject != null && !listObject.isEmpty()) {
 					try {
@@ -223,8 +223,7 @@ public class MilkTeaRanking extends MilkTeaMainPage {
 					}
 				}
 				return true;
-			};
-			CommonDaoFactory.functionTransaction(ft);
+			});
 			break;
 		default:
 			List<MilkteaUser> list = MilkteaUserService.getMilkteaUserInfo("WHERE order_count >= 10 ORDER BY total_money DESC");

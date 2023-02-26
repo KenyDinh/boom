@@ -336,7 +336,11 @@ public class DaoValue {
 			}
 
 			try {
-				variables[i].set(getFieldRead(), "-1");
+				if (variables[i].getType() == String.class) {
+					variables[i].set(getFieldRead(), "-1");
+				} else {
+					variables[i].set(getFieldRead(), -1);
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

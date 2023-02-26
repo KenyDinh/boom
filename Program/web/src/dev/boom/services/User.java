@@ -129,8 +129,13 @@ public class User {
 		return (UserRole.ADMINISTRATOR.getRole() == getRole() || UserRole.VOTE_ADMIN.getRole() == getRole());
 	}
 	
+	public boolean isGameAdmin() {
+		return (UserRole.ADMINISTRATOR.getRole() == getRole() || UserRole.GAME_ADMIN.getRole() == getRole());
+	}
+	
 	public boolean hasAdminRole() {
-		return (isAdministrator() || isMilkteaAdmin() || isDeviceAdmin());
+		// skip check for vote admin
+		return (isAdministrator() || isMilkteaAdmin() || isDeviceAdmin() || isGameAdmin());
 	}
 
 }

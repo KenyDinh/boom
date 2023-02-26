@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 
 import dev.boom.common.CommonDefine;
@@ -312,6 +313,8 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 		orderInfo.setAttrPrice(plusPrice);
 		orderInfo.setDishCode(MilkTeaCommonFunc.getItemCodeName(menuItem.getName()));
 		orderInfo.setQuantity(quantity);
+		orderInfo.setCreated(CommonMethod.getFormatStringNow());
+		orderInfo.setUpdated(CommonMethod.getFormatStringNow());
 		orderInfo.setFlag(MilkTeaOrderFlag.KOC_VALID.getValidFlag(orderInfo.getFlag()));
 		if (isTicket) {
 			orderInfo.setFlag(MilkTeaOrderFlag.KOC_TICKET.getValidFlag(orderInfo.getFlag()));
@@ -433,11 +436,10 @@ public class MilkTeaManageOrder extends MilkTeaAjaxPageBase {
 				if (dishRatingInfo == null) {
 					dishRatingInfo = new DishRating();
 					dishRatingInfo.setShopId(shopInfo.getId());
-					dishRatingInfo.setName(order.getDishName());
+					dishRatingInfo.setName(StringEscapeUtils.unescapeHtml(order.getDishName()));
 					dishRatingInfo.setCode(order.getDishCode());
-				} else {
-					dishRatingInfo.setUpdated(CommonMethod.getFormatDateString(now));
 				}
+				dishRatingInfo.setUpdated(CommonMethod.getFormatDateString(now));
 				dishRatingInfo.setOrderCount(dishRatingInfo.getOrderCount() + order.getQuantity());
 				dishRatingInfo.setStarCount(dishRatingInfo.getStarCount() + order.getQuantity() * star);
 				updates.add(dishRatingInfo.getDishRatingInfo());

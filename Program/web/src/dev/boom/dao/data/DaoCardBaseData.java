@@ -9,7 +9,6 @@ import dev.boom.dao.CommonDaoFactory;
 import dev.boom.dao.DaoValue;
 import dev.boom.dao.IDaoFactory;
 import dev.boom.dao.fix.FixData;
-import dev.boom.tbl.data.TblBoomGameItemData;
 import dev.boom.tbl.data.TblCardBaseData;
 
 public class DaoCardBaseData extends FixData implements IDaoFactory {

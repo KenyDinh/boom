@@ -1,0 +1,18 @@
+<div id="warpper-table">
+    <div>
+        <div class="form-group" style="display: flex; justify-content: space-between;">
+            <div style="display: flex; width: 15rem;">
+                 <select id="level-select" class="custom-select" style="width: 50%;">
+                 #set ($select = "selected")
+                     #foreach (${level} in ${level_list})
+                        <option value="${level.getLevel()}" ${select}>${level.getName()}</option>
+                         #set ($select = "")
+                     #end
+                </select>
+                <button id="btn-load-puzzle" class="btn btn-danger" style="margin-left:0.5rem; width: 50%;">Load Puzzle</button>
+               </div>
+        </div>
+    </div>
+    <table id="sudoku">
+    </table>
+</div>

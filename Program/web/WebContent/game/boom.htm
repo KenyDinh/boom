@@ -1,24 +1,21 @@
 #if (${user})
-#if (${inspector})
 <style>
-nav#main-nav-bar {
-	transition: 1s;
-	opacity: 0;
+nav#main-nav-bar{
+	display:none;
 }
-nav#main-nav-bar:hover {
-	opacity: 1;
+html{
+	overflow-y:hidden;
 }
 </style>
-#end
 <div style="position:relative">
 	<div id="game-control">
 		<div style="padding:3rem;">
 			#if (${inspector})
 			<div class="col-3">
 				#if (${stage_list})
-				<select name="stage" id="stage" class="custom-select" style="width:10rem;">
+				<select name="stage" id="stage" class="custom-select">
 				#foreach (${stage} in ${stage_list})
-					<option value="${stage.ordinal()}">${stage.getName()}</option>
+					<option value="${stage.getId()}">${stage.getName()}</option>
 				#end
 				</select>
 				#end
@@ -26,11 +23,11 @@ nav#main-nav-bar:hover {
 					<input type="checkbox" class="custom-control-input" id="inspector-mode"/>
 					<label class="custom-control-label none-select" for="inspector-mode">Inspector Mode</label>
 				</div>
-				<button class="btn btn-info" id="create-game" style="width:10rem;margin-top:1rem;">Create Game</button>
+				<button class="btn btn-info" id="create-game">Create Game</button>
 			</div>
 			#else
 				#if (!${stage_list})
-				<button class="btn btn-info" id="create-game" style="width:10rem;margin-top:1rem;">Create Game</button>
+				<button class="btn btn-info" id="create-game">Create Game</button>
 				#end
 			#end
 		</div>
@@ -39,29 +36,42 @@ nav#main-nav-bar:hover {
 			<h3 class="text-center">Available rooms</h3>
 			<div style="display:flex;justify-content:center;">
 				#foreach (${game} in ${list})
-				<div class="game-room border" style="width:150px;text-align:center;background-color:#CCD1D1;color:#6C3483;" data-id="${game.getGameId()}" title="Join this room">
-					<img src="${context}/img/game/boom/${game.getMapImage()}" style="width:100%;object-fit:cover;"/>
-					<div class="font-weight-bold bg-success text-center" data-toggle="tooltip" data-placement="bottom" style="text-overflow:ellipsis;overflow:hidden;white-space:nowrap;" title="Boom room">${game.getHostName()}</div>
+				<div class="game-room border" data-id="${game.getGameId()}" title="Join this room">
+					<img src="${context}/img/game/boom/${game.getMapImage()}"/>
+					<div class="font-weight-bold bg-success text-center" data-toggle="tooltip" data-placement="bottom" title="Boom room">${game.getHostName()}</div>
 				</div>
 				#end
 			</div>
 			#end
 		</div>
 	</div>
-	<div id="game-board" style="flex-direction: column;align-items: center;justify-content:center;margin-top:10rem;font-family: monospace;display:none;">
-		<div id="left-panel" style="position:absolute;left:0;top:0;">
+	<div id="game-board">
+		<div id="left-panel">
 			<div style="display:flex;flex-direction:column;">
 			<div id="map-list" style="display:none;">
 			<h5 class="text-center">Available maps</h5>
 			<div style="display:flex;max-width:240px;flex-wrap: wrap;">
 			#foreach (${map} in ${maps})
 				<div class="game-map" data-id="${map.getId()}" title="Choose this map">
-				<img src="${context}/img/game/boom/${map.getImage()}" style="width:100%;object-fit:cover;"/>
+				<img src="${context}/img/game/boom/${map.getImage()}"/>
 				</div>
 			#end
 			</div>
 			</div>
-			<div id="character-class" style="margin-top:1rem;">
+			#if (!${stage_list})
+				<div id="game-mode" style="display:none;">
+				<h5>Choose game mode:</h5>
+				<div class="form-check">
+					<input class="form-check-input game-mode-select" id="game_mode_sigle" type="radio" name="game_mode" value="0">
+					<label class="form-check-label font-weight-bold text-warning" for="game_mode_sigle">Single</label>
+				</div>
+				<div class="form-check">
+					<input class="form-check-input game-mode-select" id="game_mode_party" type="radio" name="game_mode" value="1">
+					<label class="form-check-label font-weight-bold text-warning" for="game_mode_party" title="randomly grouping at least 4 players">Party</label>
+				</div>
+				</div>
+			#end
+			<div id="character-class">
 			<h5>Character classes:</h5>
 			#foreach (${type} in ${char_types})
 				<div class="form-check">
@@ -70,7 +80,7 @@ nav#main-nav-bar:hover {
 				</div>
 			#end
 			</div>
-			<div id="character-info" style="margin-top:1rem;font-size: 13px;">
+			<div id="character-info">
 			<h5>Character base stats:</h5>
 			#foreach ($char in ${characters})
 				<p class="char-info-detail" data-id="${char.getId()}" style="display:none;">
@@ -93,7 +103,7 @@ nav#main-nav-bar:hover {
 				</p>
 			#end
 			</div>
-			<div style="margin-top:1rem;text-align:left;">
+			<div id="hot-key-info">
 			<h5>Hotkey cheat sheet:</h5>
 				<p>
 					Move right: &#129042;, D<br/>
@@ -105,19 +115,15 @@ nav#main-nav-bar:hover {
 			</div>
 			</div>
 		</div>
-		<div id="score-panel" style="position:absolute;left:0;top:0;">
+		<div id="score-panel">
 			<div style="margin-top:1rem;">
 				<h5>Player Score:</h5>
 				<div id="player-score">
 				</div>
 			</div>
-			#if (${inspector})
-			<div id="exit-game" style="margin-top:3rem;text-align:center;display:none;"><button class="btn btn-danger inspec">Force Finish</button></div>
-			#end
+			<div class="force-exit-game" style="margin-top:3rem;text-align:center;"><button class="btn btn-danger">Force Finish</button></div>
 		</div>
-		#if (!${inspector})
-		<div id="exit-game" style="position:absolute;top:-3rem;display:none;"><button class="btn btn-danger" >Exit Game</button></div>
-		#end
+		<div class="exit-game" style="position:absolute;top:-3rem;display:none;"><button class="btn btn-danger" >Exit Game</button></div>
 		<div id="character-list" style="max-width:864px;overflow-x:auto;display:none;cursor:grab;">
 			#foreach($char in ${characters})
 				#if ( ${char.getId()} gt 0 )
@@ -125,17 +131,21 @@ nav#main-nav-bar:hover {
 				#end
 			#end
 		</div>
-		<canvas id="canvas" style="max-width:864px;max-height:672px"> </canvas>
+		<canvas id="canvas"></canvas>
 		<div id="item-list" class="none-select" style="position:absolute;right:0;top:0;display:none;">
 			<h5 class="text-center">Available items</h5>
 			<div id="scroll-items" style="display:flex;flex-direction:column;overflow-y:scroll;max-height:672px;cursor:grab;">
-			#foreach (${item} in ${items})
-				#set ($posx = (${item.getImageID()} % 16) * 32)
-				#set ($posy = (${item.getImageID()} / 16) * 32)
-				<div class="game-item border" data-id="${item.getId()}" style="width:250px;text-align:center;color:#00bc8c;display:flex;">
-					<div style="background-image:url('${context}/img/game/boom/map/items.png');background-position: -${posx}px -${posy}px;width:32px;height:32px;flex-shrink:0;"></div>
-					<div style="font-size: 13px;">${format.message(${messages.get(${item.getLableExplain()})},${item.getItemEffectParam(1)},${item.getItemEffectDuration(1)})}</div>
-				</div>
+			#if (${itm_cnt})
+				#foreach (${item} in ${items})
+					#set ($posx = (${item.getImageID()} % ${itm_cnt}) * 32)
+					#set ($posy = (${item.getImageID()} / ${itm_cnt}) * 32)
+					<div class="game-item border" data-id="${item.getId()}" style="width:250px;text-align:center;color:#00bc8c;display:flex;">
+						<div style="background-image:url('${context}/img/game/boom/map/item_update.png');background-position: -${posx}px -${posy}px;width:32px;height:32px;flex-shrink:0;"></div>
+						<div style="font-size: 13px;">${format.message(${messages.get(${item.getLableExplain()})},${item.getItemEffectParam(1)},${item.getItemEffectDuration(1)})}</div>
+					</div>
+				#end
+			#else
+				<label>Missing item count</label>
 			#end
 			</div>
 		</div>
@@ -146,18 +156,13 @@ nav#main-nav-bar:hover {
 	<audio id="se-explosion">
 		<source src="${context}/img/game/boom/sound/explosion.mp3" type="audio/mpeg"/>
 	</audio>
-	<audio class="se-track" data-id="1">
-		<source src="${context}/img/game/boom/sound/sound_track_1.mp3" type="audio/mpeg"/>
-	</audio>
-	<audio class="se-track" data-id="2">
-		<source src="${context}/img/game/boom/sound/sound_track_2.mp3" type="audio/mpeg"/>
-	</audio>
-	<audio class="se-track" data-id="3">
-		<source src="${context}/img/game/boom/sound/sound_track_3.mp3" type="audio/mpeg"/>
-	</audio>
-	<audio class="se-track" data-id="4">
-		<source src="${context}/img/game/boom/sound/sound_track_4.mp3" type="audio/mpeg"/>
-	</audio>
+	#if (${sound_tracks})
+	#foreach (${track} in ${sound_tracks})
+		<audio class="se-track" data-id="${track.getId()}">
+			<source src="${context}/img/game/boom/sound/${track.getFileName()}" type="audio/mpeg"/>
+		</audio>
+	#end
+	#end
 </div>
 <script type="text/javascript">
 //<![CDATA[

@@ -50,6 +50,8 @@
   	<page classname="game.json.NihongoJson" path="game/json/nihongo_json.json"/>
   	<page classname="game.Sudoku" path="game/sudoku.htm"/>
   	<page classname="game.json.SudokuLoader" path="game/json/sudoku_loader.json"/>
+	<page classname="game.KillerSudoku" path="game/killer_sudoku.htm"/>
+	<page classname="game.json.KillerSudokuLoader" path="game/json/sudoku_loader.json"/>
   	<page classname="game.Boom" path="game/boom.htm"/>
   	<page classname="game.Poker" path="game/poker.htm"/>
   	<page classname="game.json.BoomConfirm" path="game/json/boom_confirm.json"/>
@@ -74,6 +76,7 @@
   	<page classname="manage.ManageUser" path="manage/manage_user.htm"/>
   	<page classname="manage.ChangeLog" path="manage/change_log.htm"/>
   	<page classname="manage.ManageGameDemo" path="manage/manage_game_demo.htm"/>
+  	<page classname="manage.boom.BoomGameManager" path="manage/boom/boom_game_manager.htm"/>
   </pages>
 
 </click-app>

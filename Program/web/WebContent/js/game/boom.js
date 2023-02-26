@@ -6,10 +6,13 @@ GAME_STATUS = {
 	RESUME : 4,
 	FINISHED : 5
 }
-
+BOMB_EFFECT_ANIMATE = {
+	NONE : 0,
+	ROTATE : 1
+}
 // class
 class Sprite {
-	constructor(ctx, x, y, imgSrc, width, height, {sx = 0, sy = 0, sw, sh, frameMax = 1, frameHoldMax = 1, initRotateDeg = 0, rotate = false, rotateSpeed = 0, loop = true, loopEndFunc = ()=>{this.currentFrame = this.frameMax - 1}} = {}) {
+	constructor(ctx, x, y, imgSrc, width, height, {sx = 0, sy = 0, sw, sh, gbAlpha = 1.0, frameMax = 1, frameHoldMax = 1, initRotateDeg = 0, rotate = false, rotateSpeed = 0, loop = true, loopEndFunc = ()=>{this.currentFrame = this.frameMax - 1}} = {}) {
 		this.ctx = ctx;
 		this.x = x;
 		this.y = y;
@@ -21,6 +24,7 @@ class Sprite {
 		this.sy = sy;
 		this.sw = sw ?? this.width;
 		this.sh = sh ?? this.height;
+		this.gbAlpha = gbAlpha;
 		this.currentFrame = 0;
 		this.frameMax = frameMax;
 		this.frameHold = 0;
@@ -95,6 +99,9 @@ class Sprite {
 			}
 			this.ctx.translate(-(this.x + this.width/2), -(this.y + this.height/2));
 		}
+		if (this.gbAlpha != 1.0) {
+			this.ctx.globalAlpha = this.gbAlpha;
+		}
 		this.ctx.drawImage(
 				this.image,
 				this.sx + (this.sw * this.currentFrame),
@@ -105,6 +112,9 @@ class Sprite {
 				this.y, 
 				this.width, 
 				this.height);
+		if (this.gbAlpha != 1.0) {
+			this.ctx.globalAlpha = 1.0;
+		}
 		if (this.initRotateDeg != 0 || this.rotate) {
 			this.ctx.restore();
 		}
@@ -112,18 +122,19 @@ class Sprite {
 }
 
 class Bomb extends Sprite {
-	constructor(ctx, x, y, imgSrc, width, height, effectIds = []) {
+	constructor(ctx, x, y, imgSrc, width, height, effects = {}) {
 		super(ctx, x, y, imgSrc, width, height);
-		this.effectIds = effectIds;
+		this.effects = effects;
 		this.initEffect();
 	}
 
 	initEffect() {
 		this.effectList = [];
-		for (const id of this.effectIds) {
-			const _sx = ((id % 16) * 32);
-			const _sy = (parseInt(id / 16) * 32);
-			this.effectList.push(new Sprite(this.ctx, this.x, this.y, BOMB_ITEM[0], 16, 16, {sx:_sx, sy:_sy, sw:32, sh:32, rotate:true, rotateSpeed:9}));
+		for (const eff of this.effects) {
+			const _sx = ((eff.id % ITM_CNT) * 32);
+			const _sy = (parseInt(eff.id / ITM_CNT) * 32);
+			const _rt = (eff.tp == BOMB_EFFECT_ANIMATE.ROTATE);
+			this.effectList.push(new Sprite(this.ctx, this.x, this.y, BOMB_ITEM[0], 16, 16, {sx:_sx, sy:_sy, sw:32, sh:32, rotate:_rt, rotateSpeed:9}));
 		}
 	}
 
@@ -144,16 +155,91 @@ class Bomb extends Sprite {
 
 class Item extends Sprite {
 	constructor(ctx, x, y, width, height, imageID) {
-		const _sx = ((imageID % 16) * 32);
-		const _sy = (parseInt(imageID / 16) * 32);
+		const _sx = ((imageID % ITM_CNT) * 32);
+		const _sy = (parseInt(imageID / ITM_CNT) * 32);
 		super(ctx, x, y, BOMB_ITEM[0], width, height, {sx:_sx, sy:_sy, sw:32, sh:32, });
 	}
 }
 
-class Ghost extends Sprite {
-	constructor(ctx, x, y, imgSrc, width, height) {
-		super(ctx, x, y, imgSrc, width, height, {sw:32, sh:32, frameMax: 8, frameHoldMax: 2, loop: false});
+class SpItem extends Sprite {
+	constructor(ctx, x, y, width, height, imageID) {
+		let shiftX, shiftY;
+		shiftX = (width <= 32) ? 0 : (width - 32)/2;
+		shiftY = (height <= 32) ? 0 : (height - 32)/2;
+		const _sx = ((imageID % ITM_CNT) * 32);
+		const _sy = (parseInt(imageID / ITM_CNT) * 32);
+		super(ctx, x + shiftX, y + shiftY, BOMB_ITEM[0], Math.min(width, 32), Math.min(height, 32), {sx:_sx, sy:_sy, sw:32, sh:32});
+		shiftX = (width > 64) ? 0 : (64 - width)/2;
+		shiftY = (height > 64) ? 0 : (64 - height)/2;
+		this.shiningEffect = new Sprite(this.ctx, x - shiftX, y - shiftY, REVIVAL_IMAGE[2], Math.max(64,width), Math.max(64,height), {sw:96, sh:96, frameMax: 15, frameHoldMax: 8})
 	}
+	
+	sync(data) {
+		
+	}
+	
+	update() {
+		super.update();
+		this.shiningEffect.update();
+	}
+	
+}
+
+class Tree extends Sprite {
+	constructor(ctx, x, y, width, height, imageID) {
+		imageID = Math.max(0,imageID-1);
+		const _sx = ((imageID % TREE_CNT) * 48);
+		const _sy = (parseInt(imageID / TREE_CNT) * 48);
+		super(ctx, x, y, TREES_IMAGE[0], width, height, {sx:_sx, sy:_sy, sw:48, sh:48, });
+	}
+}
+
+class Ghost extends Sprite {
+	constructor(ctx, x, y, imgSrc, width, height, revive) {
+		super(ctx, x, y, imgSrc, width, height, {sw:32, sh:32, frameMax: 8, frameHoldMax: 2, loop: false});
+		this.revive = revive;//revival gauge
+		let shiftX = (width > 64) ? 0 : (64 - width)/2;
+		let shiftY = (height > 64) ? 0 : (64 - height)/2;
+		this.revivalEffect = new Sprite(this.ctx, this.x - shiftX, this.y - shiftY, REVIVAL_IMAGE[0], Math.max(64,width), Math.max(64,height), {sw:96, sh:96, frameMax: 10, frameHoldMax: 2})
+	}
+	
+	setAttention() {
+		this.attentionEffect = new Sprite(this.ctx, this.x, this.y, REVIVAL_IMAGE[1], this.width, this.height, {sw:48, sh:48, frameMax: 10, frameHoldMax: 2});
+	}
+	
+	sync(data) {
+		super.sync(data);
+		if (data.revive) {
+			this.revive = data.revive;
+		} else {
+			this.revive = 0;
+		}
+	}
+	
+	update() {
+		super.update();
+		if (this.revive > 0) {
+			this.revivalEffect.update();
+		}
+		if (this.attentionEffect) {
+			this.attentionEffect.update();
+		}
+	}
+	
+	draw() {
+		super.draw();
+		if (this.revive > 0) {
+			this.ctx.fillStyle = "#333333";
+			this.ctx.fillRect(this.x, this.y - 16, this.width, 10);
+			this.ctx.fillStyle = "#28B463";
+			this.ctx.fillRect(this.x + 1, this.y - 16 + 1, (this.revive / 1000) * (this.width - 2), 8);
+		}
+	}
+	
+	isReviving() {
+		return (this.revive > 0);
+	}
+
 }
 
 class Explosion extends Sprite {
@@ -211,7 +297,7 @@ class SkillEffect extends Sprite {
 }
 
 class Player extends Sprite {
-	constructor(ctx, name, x, y, width, height, imgId, state, hp, maxHP, effect = [], invisible = false, color = "#CB4335", gauge = 0) {
+	constructor(ctx, name, x, y, width, height, imgId, state, hp, maxHP, effect = [], invisible = false, isAlly = false, gauge = 0) {
 		super(ctx, x, y, CHARACTERS_IMAGE[imgId - 1], width, height, {frameHoldMax: 4});
 		this.imgId = imgId;
 		this.name = name;
@@ -220,7 +306,7 @@ class Player extends Sprite {
 		this.hp = hp;
 		this.maxHP = maxHP;
 		this.invisible = invisible;
-		this.color = color;
+		this.isAlly = isAlly;
 		this.effect = effect;
 		this.gauge = gauge;
 		this.cPut = CHARACTERS_IMAGE_PUT[CHARACTERS_IMAGE[this.imgId - 1]];
@@ -235,7 +321,7 @@ class Player extends Sprite {
 		this.maxHP = data.maxHP ?? this.maxHP;
 		this.effect = data.effect ?? this.effect;
 		this.invisible = data.invisible ?? this.invisible;
-		this.color = data.color ?? this.color;
+		this.isAlly = data.isAlly ?? this.isAlly;
 		if (data.gauge) {
 			this.gauge = data.gauge;
 		} else {
@@ -274,14 +360,14 @@ class Player extends Sprite {
 			this.height
 		);
 		this.ctx.font = "12px Comic Sans MS";
-		this.ctx.fillStyle = this.color;
+		this.ctx.fillStyle = "#2145b0";
 		this.ctx.textAlign = "center";
 		this.ctx.fillText(this.name, this.x + this.width / 2, this.y - 16 - 1);
-		this.ctx.fillStyle = "#424949";
+		this.ctx.fillStyle = "#0d0d0d";
 		this.ctx.fillRect(this.x, this.y - 16, this.width, 8);
-		this.ctx.fillStyle = "#E74C3C";
+		this.ctx.fillStyle = "#262626";
 		this.ctx.fillRect(this.x + 1, this.y - 16 + 1, this.width - 2, 8 - 2);
-		this.ctx.fillStyle = "#28B463";
+		this.ctx.fillStyle = (this.isAlly ? "#1fa155" : "#b02121");
 		this.ctx.fillRect(this.x + 1, this.y - 16 + 1, (this.hp / this.maxHP) * (this.width - 2), 8 - 2);
 		//gauge
 		if (this.gauge > 0) {
@@ -298,8 +384,8 @@ class Player extends Sprite {
 				if (!eff.blk || (this.frameHold % 8 < 4)) {
 					this.ctx.drawImage(
 							this.effectImage,
-							((id % 16) * 32),
-							(parseInt(id / 16) * 32),
+							((id % ITM_CNT) * 32),
+							(parseInt(id / ITM_CNT) * 32),
 							32,
 							32,
 							sx,
@@ -331,11 +417,15 @@ class BoomGame {
 		this.syncVersion = 0;
 		this.gameObjects = new Map();
 		this.currentPID = 0;
+		this.currentGID = 0;
+		this.rvStatus = 0;
+		this.mode = 0;
 		this.preparingTime = 0;
 		this.totalFrame = 0;
 		this.path = new Path2D();
 		this.keyStack = [];
 		this.hasSeExplosion = false;
+		this.mapPidNameGroup = new Map();
 		this.init();
 	}
 
@@ -362,6 +452,7 @@ class BoomGame {
 		this.gameObjects.set('trees', []);
 		this.gameObjects.set('bombs', new Map());
 		this.gameObjects.set('items', new Map());
+		this.gameObjects.set('spitems', new Map());
 		this.gameObjects.set('explosions', []);
 		this.gameObjects.set('abilities', []);
 		this.gameObjects.set('skills', new Map());
@@ -444,16 +535,20 @@ class BoomGame {
 			}
 		});
 		//
-		$j('#exit-game > button').click(() => {
-			if ($j('#exit-game > button').hasClass('inspec')) {
-				let cnf = confirm("Force finish this game?");
-				if (!cnf) {
-					return;
-				}
+		$j('.exit-game > button').click(() => {
+			if (this.socket && this.socket.isOpen()) {
+				this.socket.sendMessage('stop')
+				$j('.exit-game').hide();
+			}
+		});
+		$j('.force-exit-game > button').click(() => {
+			let cnf = confirm("Force finish this game?");
+			if (!cnf) {
+				return;
 			}
 			if (this.socket && this.socket.isOpen()) {
 				this.socket.sendMessage('stop')
-				$j('#exit-game').hide();
+				$j('.force-exit-game').hide();
 			}
 		});
 		this.seExplosion = document.getElementById('se-explosion');
@@ -540,13 +635,102 @@ class BoomGame {
 		return total;
 	}
 	
+	drawDynamicScoreBoard() {
+		$j('#left-panel').hide();
+		$j('#score-panel').show();
+		if (this.scores) {
+			const tableScore = $j('#player-score');
+			tableScore.empty();
+			const func = this.calculateTotalScore;
+			if (this.mapPidNameGroup.size) {
+				const groupArr = []; // {}
+				for (const playerObj of this.scores) {
+					for (const name in playerObj) {
+						if (playerObj.hasOwnProperty(name)) {
+							let grName = '';
+							let total_point = func(playerObj);
+							if (this.mapPidNameGroup.has(name)) {
+								grName = this.mapPidNameGroup.get(name);
+							}
+							//
+							let exist = false;
+							if (grName != '') {
+								for (const group of groupArr) {
+									if (group.name == grName) {
+										group.point += total_point;
+										group.member.push({name:name,point:total_point});
+										group.member.sort((a,b)=>(b.point - a.point));
+										exist = true;
+										break;
+									}
+								}
+							}
+							if (!exist) {
+								groupArr.push({name:grName,point:total_point,member:[{name:name,point:total_point}]});
+							}
+							break;
+						}
+					}
+				}
+				groupArr.sort((a,b)=>(b.point - a.point));
+				let html = '<div class="score-board-container">';
+				for (const group of groupArr) {
+					html += '<div class="score-board-group-container">';
+					html += '<span>' + group.name + '</span>';
+					html += '<span class="score-board-gp-score">' + group.point + '</span>';
+					html += '</div>';
+					for (const mem of group.member) {
+						html += '<div class="score-board-player-container">';
+						let avatar;
+						if (this.playerAvas && this.playerAvas[mem.name]) {
+							avatar = $j('.character[data-id=' + this.playerAvas[mem.name] + ']');
+						}
+						if (avatar && avatar.length) {
+							html += avatar.clone().removeClass('selected').show().prop('outerHTML');
+						} else {
+							html += '<div class="character"></div>';
+						}
+						html += '<div>' + mem.name + '</div>';
+						html += '<div class="score-board-gp-score">' + mem.point + '</div>';
+						html += '</div>';
+					}
+				}
+				html += '</div>';
+				tableScore.append(html);
+			} else {
+				this.scores.sort((a,b)=>(func(b) - func(a)));
+				const scoreBoard = $j('<div class="score-board-container"></div>')
+				for (const playerObj of this.scores) {
+					for (const name in playerObj) {
+						if (playerObj.hasOwnProperty(name)) {
+							const player_score = $j('<div class="score-board-player-container"></div>');
+							let avatar;
+							if (this.playerAvas && this.playerAvas[name]) {
+								avatar = $j('.character[data-id=' + this.playerAvas[name] + ']');
+							}
+							if (avatar && avatar.length) {
+								player_score.append(avatar.clone().removeClass('selected').show());
+							} else {
+								player_score.append('<div class="character"></div>');
+							}
+							player_score.append('<div>' + name + '</div>');
+							player_score.append('<div class="score-board-gp-score">' + func(playerObj) + '</div>');
+							scoreBoard.append(player_score);
+							break;
+						}
+					}
+				}
+				tableScore.append(scoreBoard);
+			}
+		}
+	}
+	
 	drawTableScore() {
 		if (!this.scores) {
 			return false;
 		}
 		if (!this.tableScore) {
 			let roundMax = 0;
-			const playerName = [];
 			for (const playerObj of this.scores) {
 				for (const name in playerObj) {
 					if (playerObj.hasOwnProperty(name)) {
@@ -559,14 +743,16 @@ class BoomGame {
 								}
 							}
 						}
-						playerName.push(name);
 						break;
 					}
 				}
 			}
 			let table = '<table border="1" style="width:100%;height:100%;border-collapse:collapse;">';
 			table += '<tr>';
-			table += '<th></th>';
+			table += '<th>Player</th>';
+			if (this.mapPidNameGroup.size) {
+				table += '<th>Team</th>';
+			}
 			for (let i = 0; i < roundMax; i++) {
 				table += '<th>Round ' + (i + 1) + '</th>';
 			}
@@ -579,6 +765,13 @@ class BoomGame {
 					if (playerObj.hasOwnProperty(name)) {
 						table += '<tr>';
 						table += '<td>' + name + '</td>';
+						if (this.mapPidNameGroup.size) {
+							if (this.mapPidNameGroup.has(name)) {
+								table += '<td>' + this.mapPidNameGroup.get(name) + '</td>';
+							} else {
+								table += '<td></td>';
+							}
+						}
 						const rScore = playerObj[name];
 						let total = 0;
 						for (let i = 0; i < roundMax; i++) {
@@ -597,7 +790,7 @@ class BoomGame {
 				}
 			}
 			table += '</table>';
-			const maxWidth = 200 + ((parseInt(roundMax) + 1) * 80);
+			const maxWidth = 200 + ((parseInt(roundMax) + 1) * 80) + (this.mapPidNameGroup.size > 0 ? 100 : 0);
 			const maxHeight = 60 + (this.scores.length * 40);
 			let data = "";
 			data += "<svg xmlns='http://www.w3.org/2000/svg' width='" + maxWidth + "' height='" + maxHeight + "'>";
@@ -651,6 +844,7 @@ class BoomGame {
 		this.checkKey();
 		if (this.status != GAME_STATUS.INIT) {
 			$j('#map-list').hide();
+			$j('#game-mode').hide();
 			if (this.status != GAME_STATUS.PREPARING) {
 				$j('#character-list').hide();
 				$j('#character-class').hide();
@@ -660,53 +854,19 @@ class BoomGame {
 		if (this.status != GAME_STATUS.INIT && this.status != GAME_STATUS.PREPARING) {
 			const cpid = this.currentPID;
 			if (this.inspectors && this.inspectors.find((id)=>(id==cpid))) {
-				$j('#left-panel').hide();
-				$j('#score-panel').show();
-				if (this.scores) {
-					const tableScore = $j('#player-score');
-					tableScore.empty();
-					const func = this.calculateTotalScore;
-					this.scores.sort((a,b)=>(func(b) - func(a)));
-					for (const playerObj of this.scores) {
-						for (const name in playerObj) {
-							if (playerObj.hasOwnProperty(name)) {
-								let total = 0;
-								const rScore = playerObj[name];
-								for (const round in rScore) {
-									if (rScore.hasOwnProperty(round)) {
-										total += rScore[round];
-									}
-								}
-								const player_score = $j('<div class="d-flex" style="align-items:center;"></div>');
-								let avatar;
-								if (this.playerAvas && this.playerAvas[name]) {
-									avatar = $j('.character[data-id=' + this.playerAvas[name] + ']');
-								}
-								if (avatar && avatar.length) {
-									player_score.append(avatar.clone().removeClass('selected').show());
-								} else {
-									player_score.append('<div class="character"></div>');
-								}
-								player_score.append('<div>' + name + ' : ' + total + '</div>');
-								tableScore.append(player_score);
-								break;
-							}
-						}
-					}
-				}
+				this.drawDynamicScoreBoard();
 			}
 		} else {
 			$j('#score-panel').hide();
 		}
 		if (this.gameObjects.get('alive_players').size + this.gameObjects.get('deadth_players').size == 1) {
-			$j('#exit-game').show();
-		} else {
-			const cpid = this.currentPID;
-			if (this.inspectors && this.inspectors.find((id)=>(id==cpid))) {
-				$j('#exit-game').show();
+			if ($j('.force-exit-game').is(':visible')) {
+				$j('.exit-game').hide();
 			} else {
-				$j('#exit-game').hide();
+				$j('.exit-game').show();
 			}
+		} else {
+			$j('.exit-game').hide();
 		}
 		this.totalFrame++;
 	}
@@ -722,7 +882,9 @@ class BoomGame {
 			tree.update();
 		}
 		for (const deadthPlayer of this.gameObjects.get('deadth_players').values()) {
-			deadthPlayer.update();
+			if (!deadthPlayer.isReviving()) {
+				deadthPlayer.update();
+			}
 		}
 		for (const firewall of this.gameObjects.get('fire_walls').values()) {
 			firewall.update();
@@ -731,6 +893,9 @@ class BoomGame {
 			bomb.update();
 		}
 		for (const item of this.gameObjects.get('items').values()) {
+			item.update();
+		}
+		for (const item of this.gameObjects.get('spitems').values()) {
 			item.update();
 		}
 		let _tPlayer = null;
@@ -743,6 +908,11 @@ class BoomGame {
 		}
 		if (_tPlayer != null) {
 			_tPlayer.update();
+		}
+		for (const deadthPlayer of this.gameObjects.get('deadth_players').values()) {
+			if (deadthPlayer.isReviving()) {
+				deadthPlayer.update();
+			}
 		}
 		for (const ability of this.gameObjects.get('abilities')) {
 			ability.update();
@@ -770,6 +940,11 @@ class BoomGame {
 			this.path.lineTo(canvas.width / 3, canvas.height/4);
 			this.ctx.fillStyle = "rgba(255,255,255,0.8)";
 			this.ctx.fill(this.path);
+			const modeText = (this.mode == 0) ? "Tournament" : (this.mode == 2 ? "Party" : "Single");
+			this.ctx.font = (this.mode == 0) ? "40px Comic Sans MS" : "60px Comic Sans MS";
+			this.ctx.fillStyle = "#636363";
+			this.ctx.textAlign = "center";
+			this.ctx.fillText(modeText, canvas.width/2 - (this.mode == 0 ? 20 : 10), canvas.height/2 + (this.mode == 0 ? 15 : 23));
 		} else if ((this.status == GAME_STATUS.PREPARING || this.status == GAME_STATUS.RESUME) && this.preparingTime) {
 			this.ctx.fillStyle = "rgba(66, 73, 73, 0.3)";
 			this.ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -821,6 +996,7 @@ class BoomGame {
 		this.preparingTime = jsonObj.data.prp;
 		this.playerAvas = jsonObj.data.pava;
 		this.scores = jsonObj.data.pscore;
+		this.mapPidNameGroup.clear();
 		if (jsonObj.data.stid) {
 			this.updateSoundTrack(jsonObj.data.stid);
 		}
@@ -829,15 +1005,18 @@ class BoomGame {
 			const foregroundArray = [];
 			this.unitSize = objData.map.unitSize;
 			this.status = objData.map.status;
+			this.mode = objData.map.mode ?? 0;
 			if (this.mapID != objData.map.id) {
 				this.mapID = objData.map.id;
 				this.foregroundID = objData.map.fid;
-				triggerMapChange(this.mapID);// outer function
+				this.width = objData.map.width;
+				this.height = objData.map.height;
+				triggerMapChange(this.mapID, this.width, this.height);// outer function
 			}
 			mapArray.push(new Sprite(this.ctx, 0, 0, MAPS_IMAGE[this.mapID - 1], objData.map.width, objData.map.height));
 			this.gameObjects.set('maps', mapArray);
 			if (this.foregroundID > 0) {
-				foregroundArray.push(new Sprite(this.ctx, 0, 0, MAPS_FOREGROUND_IMAGE[this.foregroundID - 1], objData.map.width, objData.map.height));
+				foregroundArray.push(new Sprite(this.ctx, 0, 0, MAPS_FOREGROUND_IMAGE[this.foregroundID - 1], objData.map.width, objData.map.height, {gbAlpha: 0.6}));
 			}
 			this.gameObjects.set('foregrounds', foregroundArray);
 		}
@@ -847,7 +1026,7 @@ class BoomGame {
 		if (objData.tree) {
 			const treeArray = [];
 			for (const tree of objData.tree) {
-				treeArray.push(new Sprite(this.ctx, tree.x, tree.y, TREES_IMAGE[tree.img - 1], this.unitSize, this.unitSize));
+				treeArray.push(new Tree(this.ctx, tree.x, tree.y, this.unitSize, this.unitSize, tree.img));
 			}
 			this.gameObjects.set('trees', treeArray);
 		}
@@ -856,6 +1035,9 @@ class BoomGame {
 		}
 		if (objData.item) {
 			this.syncItems(objData.item);
+		}
+		if (objData.spitem) {
+			this.syncSpItems(objData.spitem);
 		}
 		if (objData.player) {
 			this.syncPlayers(objData.player);
@@ -933,23 +1115,54 @@ class BoomGame {
 			}
 		}
 	}
+	syncSpItems(items) {
+		const mapItems = this.gameObjects.get('spitems');
+		for (const item of items) {
+			if (mapItems.has(item.id)) {
+				mapItems.get(item.id).sync(item);
+			} else {
+				mapItems.set(item.id, new SpItem(this.ctx, item.x, item.y, this.unitSize, this.unitSize, item.img));
+			}
+			mapItems.get(item.id).syncVersion(this.syncVersion);
+		}
+		for (const [id, item] of mapItems) {
+			if (!item.checkSyncVersion(this.syncVersion)) {
+				mapItems.delete(id);
+			}
+		}
+	}
 	syncPlayers(players) {
+		for (const player of players) {
+			if (player.id == this.currentPID) {
+				this.currentGID = player.gid;
+				this.rvStatus = player.rv;
+				break;
+			}
+		}
 		const mapAlivePlayers = this.gameObjects.get('alive_players');
 		const mapDeadthPlayers = this.gameObjects.get('deadth_players');
 		for (const player of players) {
 			player.invisible = false;
-			player.color = "#CB4335";
-			if (player.id != this.currentPID) {
+			const full_name = player.name;
+			player.name = full_name.split('.')[0];
+			if (player.id == this.currentPID || (this.currentGID > 0 && this.currentGID == player.gid)) {
+				player.isAlly = true;
+			}
+			if (player.hide) {
 				const cpid = this.currentPID;
-				if (player.hide && !this.inspectors.find((id)=>(id==cpid))) {
+				if (!player.isAlly && !this.inspectors.find((id)=>(id==cpid))) {
 					player.invisible = true;
 				}
-			} else {
-				player.color = "#F6F54D";
 			}
 			if (player.hp <= 0) {
 				if (!mapDeadthPlayers.has(player.id)) {
-					mapDeadthPlayers.set(player.id, new Ghost(this.ctx, player.x, player.y, GHOST_DEADTH_IMAGE[0], this.unitSize, this.unitSize));
+					const ghost = new Ghost(this.ctx, player.x, player.y, GHOST_DEADTH_IMAGE[0], this.unitSize, this.unitSize);
+					if (player.isAlly && player.id != this.currentPID && this.rvStatus > 0 && player.rva) {
+						ghost.setAttention();
+					}
+					mapDeadthPlayers.set(player.id, ghost);
+				} else {
+					mapDeadthPlayers.get(player.id).sync(player);
 				}
 				if (mapAlivePlayers.has(player.id)) {
 					mapAlivePlayers.delete(player.id);
@@ -960,6 +1173,13 @@ class BoomGame {
 				} else {
 					mapAlivePlayers.get(player.id).sync(player);
 				}
+				if (mapDeadthPlayers.has(player.id)) {
+					mapDeadthPlayers.delete(player.id);
+				}
+			}
+			// pid - name - group
+			if (player.gid) {
+				this.mapPidNameGroup.set(full_name, player.gname);
 			}
 		}
 	}
@@ -980,20 +1200,20 @@ class BoomGame {
 		}
 	}
 	syncPortals(portals) {
+		const portalUpdate = new Map();
 		const mapPortals = this.gameObjects.get('portals');
-		if (portals.length == 0) {
-			mapPortals.clear();
-			return;
-		}
 		for (const portal of portals) {
 			const key = this.makeGeneralKey(portal.x, portal.y);
 			if (mapPortals.has(key)) {
 				portal.imgSrc = TELEPORT_IMAGE[portal.img - 1];
-				mapPortals.get(key).sync(portal);
+				portalUpdate.set(key, mapPortals.get(key));
+				portalUpdate.get(key).sync(portal);
 			} else {
-				mapPortals.set(key, new Sprite(this.ctx, portal.x, portal.y, TELEPORT_IMAGE[portal.img - 1], this.unitSize, this.unitSize, {frameMax:12, frameHoldMax:10}));
+				portalUpdate.set(key, new Sprite(this.ctx, portal.x, portal.y, TELEPORT_IMAGE[portal.img - 1], this.unitSize, this.unitSize, {frameMax:12, frameHoldMax:10}));
 			}
 		}
+		// overwrite
+		this.gameObjects.set('portals', portalUpdate);
 	}
 	syncFireWall(fireWalls) {
 		const mapFireWalls = this.gameObjects.get('fire_walls');
@@ -1016,7 +1236,7 @@ class BoomGame {
 	}
 }
 
-function triggerMapChange(id) {
+function triggerMapChange(id, width = 864, height = 672) {
 	$j('.char-info-detail').hide();
 	if (MAP_CHARS.get(id)) {
 		$j('#character-class').show();
@@ -1033,6 +1253,9 @@ function triggerMapChange(id) {
 	for (const item of items) {
 		$j('.game-item[data-id="' + item + '"]').css('display', 'flex');
 	}
+	const canvas = document.querySelector('#canvas');
+	canvas.width = width;
+	canvas.height = height;
 }
 
 function init(ret) {
@@ -1044,6 +1267,7 @@ function init(ret) {
 	if (ret.game_url) {
 		if (ret.game_id) {
 			$j('.game-map').data('game',ret.game_id);
+			$j('.game-mode-select').data('game',ret.game_id);
 			$j('.character').removeClass('selected').data('game',ret.game_id);
 			$j('.character[data-id="' + ret.avatar + '"]').addClass('selected');
 			$j('#character-list').css('display','inline-flex');
@@ -1057,6 +1281,7 @@ function init(ret) {
 			}
 			if (ret.host) {
 				$j('#map-list').show();
+				$j('#game-mode').show();
 				$j('.game-map').removeClass('selected');
 				$j('.game-map[data-id="' + ret.mid + '"]').addClass('selected');
 			}
@@ -1086,6 +1311,7 @@ function refreshLobby() {
 	}
 }
 $j(document).ready(function() {
+	$j('#content').css('margin-top','');
 	if ($j('#token').length) {
 		const lobbySocket = new BoomSocket($j('#token').text());
 		lobbySocket.init({
@@ -1179,8 +1405,6 @@ $j(document).ready(function() {
 			},
 			success : function(ret) {
 				if (ret.error) {
-					alert(ret.error);
-					window.location.reload();
 					return;
 				}
 				$j('.character').removeClass('selected');
@@ -1190,6 +1414,29 @@ $j(document).ready(function() {
 					$j('.char-info-detail[data-id=' + ret.avatar + ']').show();
 				} else {
 					$j('.char-info-detail[data-id=0]').show();
+				}
+			},
+			error : function() {
+				alert("Unexpected error occurred!");
+				window.location.reload();
+			}
+		});
+	});
+	$j('.game-mode-select').click(function() {
+		const gameID = $j(this).data('game');
+		const mode = $j(this).val();
+		$j.ajax({
+			url : CONTEXT + "/game/json/boom_confirm.json",
+			type : "post",
+			data : {
+				"type" : "mode",
+				"mode" : mode,
+				"game_id" : gameID
+			},
+			success : function(ret) {
+				if (ret.error) {
+					alert(ret.error);
+					window.location.reload();
 				}
 			},
 			error : function() {
@@ -1235,6 +1482,13 @@ $j(document).ready(function() {
 			const type = $j(this).val();
 			$j('.character').hide();
 			$j('.character[data-type=' + type + ']').show();
+			const len = $j('.character[data-type=' + type + ']').length;
+			if (len > 0) {
+				const idx = parseInt(Math.random() * len);
+				if (idx >= 0 && idx < len) {
+					$j('.character[data-type=' + type + ']').eq(idx).trigger('click');
+				}
+			}
 		}
 	});
 });

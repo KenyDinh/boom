@@ -121,7 +121,8 @@ public class VoteConfirm extends JsonPageBase {
 		}
 		resultObject.addAnswer(questionIndex, String.valueOf(rewardID));
 		resultInfo.setProgress(newProgress);;
-		resultInfo.setResult(resultObject.toString());;
+		resultInfo.setResult(resultObject.toString());
+		resultInfo.setUpdated(CommonMethod.getFormatStringNow());
 		if (resultInfo.getSurveyResultInfo().isInsert()) {
 			if (CommonDaoFactory.Insert(resultInfo.getSurveyResultInfo()) <= 0) {
 				GameLog.getInstance().info("Cant insert option result!");

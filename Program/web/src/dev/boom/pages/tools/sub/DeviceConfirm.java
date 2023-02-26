@@ -723,6 +723,10 @@ public class DeviceConfirm extends JsonPageBase {
 			deviceInfo.Set("name", strName);
 			deviceInfo.Set("serial", strSerial);
 			deviceInfo.Set("image", "");
+			deviceInfo.Set("buy_date", CommonDefine.DEFAULT_DATE_TIME);
+			deviceInfo.Set("hold_date", CommonDefine.DEFAULT_DATE_TIME);
+			deviceInfo.Set("release_date", CommonDefine.DEFAULT_DATE_TIME);
+			deviceInfo.Set("extend_date", CommonDefine.DEFAULT_DATE_TIME);
 			deviceInfo.Set("type", type.getType());
 			deviceInfo.Set("buy_date", buyDate);
 			deviceInfo.Set("dep", dept.getDep());

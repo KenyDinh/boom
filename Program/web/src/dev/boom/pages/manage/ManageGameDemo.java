@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.apache.click.element.CssImport;
 import org.apache.click.element.JsImport;
+import org.apache.commons.lang.StringEscapeUtils;
 
 import com.google.gson.Gson;
 
@@ -170,7 +171,7 @@ public class ManageGameDemo extends ManagePageBase {
 	private String getGameDemoInfo(DemoSession info, int count) {
 		StringBuilder gameDemoBox = new StringBuilder();
 		
-		DemoSessionContent sessionContent = new Gson().fromJson(info.getContent(), DemoSessionContent.class);
+		DemoSessionContent sessionContent = new Gson().fromJson(StringEscapeUtils.unescapeHtml(info.getContent()), DemoSessionContent.class);
 		List<DemoSessionSingleContent> contentList = null;
 		if (sessionContent != null && sessionContent.isValid()) {
 			contentList = sessionContent.getContent();

@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -156,6 +157,9 @@ public class PatpatFunc {
 				break;
 			}
 			existingQuizInfo = new Quiz();
+			Date now = new Date();
+			existingQuizInfo.setCreated(CommonMethod.getFormatDateString(now));
+			existingQuizInfo.setExpired(CommonMethod.getFormatDateString(new Date(now.getTime() + CommonDefine.MILLION_SECOND_MINUTE * 15)));
 			String strQNum = quizSubject.getParameter(QuizDefine.PARAM_Q_NUM, arr);
 			if (strQNum != null) {
 				if (!CommonMethod.isValidNumeric(strQNum, QuizDefine.MIN_QUESTION, QuizDefine.MAX_QUESTION)) {
@@ -703,7 +707,6 @@ public class PatpatFunc {
 		post.setEntity(entity);
 		try {
 			HttpResponse response = client.execute(post);
-			System.out.println("Response Code : " + response.getStatusLine().getStatusCode());
 			return true;
 		} catch (ClientProtocolException e) {
 			e.printStackTrace();

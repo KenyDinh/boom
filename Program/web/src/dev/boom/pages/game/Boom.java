@@ -4,19 +4,24 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import dev.boom.common.enums.UserFlagEnum;
+import dev.boom.common.enums.EventFlagEnum;
 import dev.boom.common.game.GameTypeEnum;
-import dev.boom.core.BoomProperties;
 import dev.boom.game.boom.BoomCharacterType;
 import dev.boom.game.boom.BoomCharater;
 import dev.boom.game.boom.BoomGame;
 import dev.boom.game.boom.BoomGameManager;
 import dev.boom.game.boom.BoomGameMapEnum;
-import dev.boom.game.boom.BoomGameStage;
+import dev.boom.game.boom.BoomSoundTrackEnum;
 import dev.boom.pages.Game;
 import dev.boom.services.BoomGameItem;
 import dev.boom.services.BoomGameItemService;
+import dev.boom.services.BoomPlayerStageService;
+import dev.boom.services.BoomSeason;
+import dev.boom.services.BoomSeasonService;
+import dev.boom.services.BoomStage;
+import dev.boom.services.BoomStageService;
 import dev.boom.socket.SocketSessionPool;
 import dev.boom.socket.endpoint.BoomGameLobbyEndPoint;
 
@@ -44,16 +49,9 @@ public class Boom extends Game {
 	public void onRender() {
 		super.onRender();
 		if (userInfo != null) {
-			if (BoomProperties.BOOM_TOURNAMENT) {
-				List<BoomGameStage> stageList = new ArrayList<>();
-				for (BoomGameStage stage : BoomGameStage.values()) {
-					if (!stage.isAvaiable()) {
-						continue;
-					}
-					stageList.add(stage);
-				}
-				addModel("stage_list", stageList);
-			}
+			int itemCount = BoomGameManager.ITEM_IMAGE_ITEM_COUNT_PER_ROW;
+			addModel("itm_cnt", itemCount);
+			initBoomSeasonStage();
 			String token = SocketSessionPool.generateValidToken(BoomGameLobbyEndPoint.ENDPOINT_NAME, userInfo);
 			String params = String.format("?%s=%s", BoomGameLobbyEndPoint.VALIDATION_KEY, token);
 			addModel("token", getSocketUrl(BoomGameLobbyEndPoint.SOCKET_PATH, params));
@@ -70,10 +68,13 @@ public class Boom extends Game {
 			addModel("user", userInfo);
 			addModel("characters", BoomCharater.values());
 			addModel("char_types", BoomCharacterType.values());
+			addModel("sound_tracks", BoomSoundTrackEnum.values());
 			addModel("items", itemsList);
 			StringBuilder sb = new StringBuilder();
-			sb.append("MAP_ITEMS = new Map();");
-			sb.append("MAP_CHARS = new Map();");
+			sb.append("const ITM_CNT = ").append(itemCount).append(";");
+			sb.append("const TREE_CNT = ").append(BoomGameManager.TREE_IMAGE_TREE_COUNT_PER_ROW).append(";");
+			sb.append("const MAP_ITEMS = new Map();");
+			sb.append("const MAP_CHARS = new Map();");
 			for (BoomGameMapEnum map : BoomGameMapEnum.values()) {
 				if (map.getProb() > 0) {
 					mapList.add(map);
@@ -89,7 +90,7 @@ public class Boom extends Game {
 			addModel("maps", mapList);
 			addModel("js_variable", sb.toString());
 			List<BoomGame> list;
-			if (UserFlagEnum.BOOM_INSPECTOR.isValid(userInfo.getFlag())) {
+			if (userInfo.isGameAdmin()) {
 				addModel("inspector", "1");
 				list = BoomGameManager.getListNotFinishedGame(userInfo.getId());
 			} else {
@@ -97,10 +98,30 @@ public class Boom extends Game {
 			}
 			if (list.isEmpty()) {
 				return;
+			} else if (!userInfo.isGameAdmin()){
+				list = list.stream().filter(bg -> {
+					return BoomPlayerStageService.hasAccess(userInfo.getId(), bg.getStage());
+				}).collect(Collectors.toList());
 			}
 			addModel("list", list);
 		}
 		
+	}
+	
+	private void initBoomSeasonStage() {
+		boolean isTournament = getWorldInfo().isActiveEventFlag(EventFlagEnum.BOOM_TOURNAMENT);
+		if (!isTournament) {
+			return;
+		}
+		BoomSeason boomSeason = BoomSeasonService.getCurrentBoomSeason();
+		if (boomSeason == null) {
+			return;
+		}
+		List<BoomStage> stageList = BoomStageService.getBoomStageListAll(String.format("WHERE season_id = %d", boomSeason.getId()));
+		if (stageList == null || stageList.isEmpty()) {
+			return;
+		}
+		addModel("stage_list", stageList);
 	}
 
 	@Override

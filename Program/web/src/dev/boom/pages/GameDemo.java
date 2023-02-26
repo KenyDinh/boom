@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.lang.StringEscapeUtils;
+
 import com.google.gson.Gson;
 
 import dev.boom.common.CommonMethod;
@@ -77,13 +79,13 @@ public class GameDemo extends BoomMainPage {
 							upcomingSession = demoSessionInfo;
 						}
 						scheduledSessionInfo.add(demoSessionInfo);
-						scheduledSessionContent.add(new Gson().fromJson(demoSessionInfo.getContent(), DemoSessionContent.class));
+						scheduledSessionContent.add(new Gson().fromJson(StringEscapeUtils.unescapeHtml(demoSessionInfo.getContent()), DemoSessionContent.class));
 					} 
 				}
 			}
 			
 			if (sessionToDisplay != null) {
-				DemoSessionContent sessionContent = new Gson().fromJson(sessionToDisplay.getContent(), DemoSessionContent.class);
+				DemoSessionContent sessionContent = new Gson().fromJson(StringEscapeUtils.unescapeHtml(sessionToDisplay.getContent()), DemoSessionContent.class);
 				
 				if (sessionContent != null && sessionContent.isValid()) {
 					addModel("nextSession", sessionToDisplay);
@@ -91,7 +93,7 @@ public class GameDemo extends BoomMainPage {
 				}
 				
 				if (upcomingSession != null) {
-					DemoSessionContent upcomingContent = new Gson().fromJson(upcomingSession.getContent(), DemoSessionContent.class);
+					DemoSessionContent upcomingContent = new Gson().fromJson(StringEscapeUtils.unescapeHtml(upcomingSession.getContent()), DemoSessionContent.class);
 					if (upcomingContent != null && upcomingContent.isValid()) {
 						addModel("upcomingContent", upcomingContent.getContent().get(0));
 						addModel("upcomingDate", upcomingSession.getFormattedDemoTime());

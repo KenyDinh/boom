@@ -1,0 +1,50 @@
+<style>
+.group-container{
+	width:20%;
+}
+.season-container{
+	width:35%;
+	padding-left:1rem;
+}
+.stage-container{
+	width:20%;
+	padding-left:1rem;
+}
+.player-stage-container{
+	width:25%;
+	padding-left:1rem;
+}
+a > .fa-plus-square{
+	font-size:1.8rem;
+}
+.table-label{
+    font-size:1.5rem;
+    font-weight:bold;
+}
+.row-selected{
+	background-color:#1a2f68;
+}
+.form-label{
+	font-size:1.5rem;
+    font-weight:bold;
+}
+.action-col{
+	text-align:right;
+}
+</style>
+<div style="margin-top:1rem;"></div>
+<div class="col-lg-3 col-md-6 col-sm-12">
+$!{seasonForm}
+$!{stageForm}
+$!{groupForm}
+$!{playerStageForm}
+</div>
+#if (${groupTable})
+<div class="d-flex">
+	$!{groupTable}
+	$!{seasonTable}
+	$!{stageTable}
+	$!{playerStageTable}
+</div>
+
+#end

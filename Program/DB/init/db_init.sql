@@ -1,5 +1,5 @@
 /*
-SQLyog Community
+SQLyog Community v12.2.4 (64 bit)
 MySQL - 5.7.27-log : Database - boom
 *********************************************************************
 */
@@ -28,6 +28,53 @@ CREATE TABLE `auth_token_info` (
   `expired` datetime NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `token` (`token`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+/*Table structure for table `boom_group_info` */
+
+DROP TABLE IF EXISTS `boom_group_info`;
+
+CREATE TABLE `boom_group_info` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+/*Table structure for table `boom_player_stage_info` */
+
+DROP TABLE IF EXISTS `boom_player_stage_info`;
+
+CREATE TABLE `boom_player_stage_info` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `stage_id` int(10) unsigned NOT NULL,
+  `player_id` int(10) unsigned NOT NULL,
+  `player_name` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `group_id` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+/*Table structure for table `boom_season_info` */
+
+DROP TABLE IF EXISTS `boom_season_info`;
+
+CREATE TABLE `boom_season_info` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `start_time` datetime NOT NULL,
+  `end_time` datetime NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+/*Table structure for table `boom_stage_info` */
+
+DROP TABLE IF EXISTS `boom_stage_info`;
+
+CREATE TABLE `boom_stage_info` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `season_id` int(10) unsigned NOT NULL,
+  `name` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `max_player` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*Table structure for table `carousel_info` */

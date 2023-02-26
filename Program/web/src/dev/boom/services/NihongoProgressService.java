@@ -83,6 +83,7 @@ public class NihongoProgressService {
 		info.Set("user_id", user_id);
 		info.Set("test_id", test_id);
 		info.Set("progress", progress);
+		info.Set("created", CommonMethod.getFormatStringNow());
 		updates.add(info);
 		if (progress == MAX_PROGRESS) {
 			nihonUser.Set("star", (Integer)nihonUser.Get("star") + 1);

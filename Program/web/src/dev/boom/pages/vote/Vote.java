@@ -31,7 +31,7 @@ import dev.boom.services.json.SurveyAnswerWrapper;
 public class Vote extends VotePageBase {
 
 	private static final long serialVersionUID = 1L;
-	private static final int CODE_LENGTH = 6;
+	//private static final int CODE_LENGTH = 6;
 	
 	private Survey activeSurvey = null;
 	
@@ -237,7 +237,8 @@ public class Vote extends VotePageBase {
 				}
 				resultObject.addAnswer(questionIndex, qAnswer);
 				resultInfo.setProgress(newProgress);
-				resultInfo.setResult(resultObject.toString());;
+				resultInfo.setResult(resultObject.toString());
+				resultInfo.setUpdated(CommonMethod.getFormatStringNow());
 				if (resultInfo.getSurveyResultInfo().isInsert()) {
 					if (CommonDaoFactory.Insert(resultInfo.getSurveyResultInfo()) <= 0) {
 						GameLog.getInstance().info("Cant insert option result!");

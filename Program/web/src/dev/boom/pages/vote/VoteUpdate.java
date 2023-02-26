@@ -162,6 +162,7 @@ public class VoteUpdate extends JsonPageBase {
 					}
 					resultInfo.Set("progress", (byte) (maxIdx + 1));
 					resultInfo.Set("result", resultObject.toString());
+					resultInfo.Set("updated", CommonMethod.getFormatStringNow());
 					updateList.add(resultInfo);
 				}
 			}

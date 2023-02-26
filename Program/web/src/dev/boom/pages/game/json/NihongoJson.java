@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 
+import dev.boom.common.CommonMethod;
 import dev.boom.dao.CommonDaoFactory;
 import dev.boom.pages.JsonPageBase;
 import dev.boom.services.NihongoOwningService;
@@ -39,6 +40,7 @@ public class NihongoJson extends JsonPageBase {
 			nihonUser = new TblNihongoUserInfo();
 			nihonUser.Set("user_id", userInfo.getId());
 			nihonUser.Set("username", userInfo.getUsername());
+			nihonUser.Set("created", CommonMethod.getFormatStringNow());
 			if (CommonDaoFactory.Insert(nihonUser) <= 0) {
 				return false;
 			}

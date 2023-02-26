@@ -7,6 +7,8 @@ import java.util.Map;
 
 import javax.websocket.Session;
 
+import org.apache.commons.lang.StringEscapeUtils;
+
 import dev.boom.common.CommonMethod;
 import dev.boom.common.milktea.MilkTeaItemOptionType;
 import dev.boom.common.milktea.MilkTeaOrderFlag;
@@ -208,15 +210,16 @@ public class ManageMilkTeaSocketSession extends SocketSessionBase {
 	
 	private MenuOrderItem toMenuOrderItem(List<MenuItem> menuItemList, Order orderInfo) {
 		MenuItem itemOrder = null;
+		String dName = StringEscapeUtils.unescapeHtml(orderInfo.getDishName());
 		for (MenuItem menuItem : menuItemList) {
-			if (menuItem.getName().equals(orderInfo.getDishName()) && menuItem.getType().equals(orderInfo.getDishType())) {
+			if (menuItem.getName().equals(dName) && menuItem.getType().equals(StringEscapeUtils.unescapeHtml(orderInfo.getDishType()))) {
 				itemOrder = menuItem;
 				break;
 			}
 		}
 		if (itemOrder == null) {
-			logError("[ManageMilkTeaSocketSession] No matched menu item, order_id:" + orderInfo.getId() + ", order_name:" + orderInfo.getDishName());
-			putError("Item is out of stock or invalid: " + orderInfo.getDishName());
+			logError("[ManageMilkTeaSocketSession] No matched menu item, order_id:" + orderInfo.getId() + ", order_name:" + dName);
+			putError("Item is out of stock or invalid: " + dName);
 			return null;
 		}
 		MenuOrderItem menuOrderItem = new MenuOrderItem();

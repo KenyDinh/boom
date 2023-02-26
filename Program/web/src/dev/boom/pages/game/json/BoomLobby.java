@@ -1,13 +1,14 @@
 package dev.boom.pages.game.json;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
-import dev.boom.common.enums.UserFlagEnum;
 import dev.boom.core.BoomSession;
 import dev.boom.core.GameLog;
 import dev.boom.game.boom.BoomGame;
 import dev.boom.game.boom.BoomGameManager;
 import dev.boom.pages.PageBase;
+import dev.boom.services.BoomPlayerStageService;
 import dev.boom.services.User;
 import dev.boom.services.UserService;
 
@@ -37,7 +38,7 @@ public class BoomLobby extends PageBase {
 	public void onRender() {
 		super.onRender();
 		List<BoomGame> list;
-		if (UserFlagEnum.BOOM_INSPECTOR.isValid(userInfo.getFlag())) {
+		if (userInfo.isGameAdmin()) {
 			addModel("inspector", "1");
 			list = BoomGameManager.getListNotFinishedGame(userInfo.getId());
 		} else {
@@ -45,6 +46,10 @@ public class BoomLobby extends PageBase {
 		}
 		if (list.isEmpty()) {
 			return;
+		} else if (!userInfo.isGameAdmin()){
+			list = list.stream().filter(bg -> {
+				return BoomPlayerStageService.hasAccess(userInfo.getId(), bg.getStage());
+			}).collect(Collectors.toList());
 		}
 		addModel("list", list);
 	}

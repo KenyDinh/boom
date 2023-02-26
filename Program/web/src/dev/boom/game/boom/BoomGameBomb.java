@@ -14,6 +14,7 @@ public class BoomGameBomb extends BoomSprite {
 	private int xSize = 1;
 	private int ySize = 1;
 	private int damage = 10;
+	private int confusionDuration;
 
 	public BoomGameBomb(long playerId, int imageID, int x, int y, int width, int height, int sizeX, int sizeY, int damage) {
 		super(imageID, x, y, width, height);
@@ -79,6 +80,14 @@ public class BoomGameBomb extends BoomSprite {
 		this.damage = damage;
 	}
 	
+	public int getConfusionDuration() {
+		return confusionDuration;
+	}
+
+	public void setConfusionDuration(int confusionDuration) {
+		this.confusionDuration = confusionDuration;
+	}
+
 	@Override
 	public int getAdjustX() {
 		return BoomGameManager.BOOM_GAME_BOOM_ADJUST_SIZE;
@@ -101,6 +110,12 @@ public class BoomGameBomb extends BoomSprite {
 
 	@Override
 	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
 		if (obj instanceof BoomGameBomb) {
 			BoomGameBomb comp = (BoomGameBomb) obj;
 			return (getPlayerId() == comp.getPlayerId() && getStart() == comp.getStart() && getEnd() == comp.getEnd());
@@ -236,10 +251,17 @@ public class BoomGameBomb extends BoomSprite {
 		return this.is(BoomGameManager.BOOM_SPRITE_FLAG_BOMD_FAST_EXPLODE);
 	}
 	
-	public List<Integer> getEffectsList() {
-		List<Integer> effects = new ArrayList<>();
+	public boolean isConfused() {
+		return this.is(BoomGameManager.BOOM_SPRITE_FLAG_BOMD_CONFUSED);
+	}
+	
+	public List<BoomGameBombEffect> getEffectsList() {
+		List<BoomGameBombEffect> effects = new ArrayList<>();
 		if (isFastExplode()) {
-			effects.add(BoomGameItemEffect.QUICK_BOMBER.getImageID());
+			effects.add(new BoomGameBombEffect(BoomGameItemEffect.QUICK_BOMBER));
+		}
+		if (isConfused()) {
+			effects.add(new BoomGameBombEffect(BoomGameItemEffect.CONFUSION));
 		}
 		return effects;
 	}
@@ -271,8 +293,11 @@ public class BoomGameBomb extends BoomSprite {
 		BoomSprite centerBx = new BoomBombExplosion(1, getX(), getY(), getWidth(), getHeight());
 		explosions.add(centerBx);
 		checkExplosionCollision(centerBx, collisions, players, itemsList, idGenerator, itemUtils, playerScore);
+		// getAdjustHeight()/2 = 8;
+		// getAdjustWidth()/2 = 8;
+		// if the thickness of obstacle is not more than (getAdjustHeight()/2), then the obstacle can not prevent explosion
 		for (int i = 0; i < xSize; i++) {
-			BoomSprite bx = new BoomBombExplosion(1, getX() + (i + 1) * getWidth(), getY(), getWidth(), getHeight());
+			BoomSprite bx = new BoomBombExplosion(1, getX() + (i + 1) * (getWidth() + getAdjustWidth()/2), getY(), getWidth(), getHeight());
 			explosions.add(bx);
 			for (BoomGameBomb bomb : bombs) {
 				if (BoomUtils.checkCollision(bx, bomb)) {
@@ -282,9 +307,13 @@ public class BoomGameBomb extends BoomSprite {
 			if (checkExplosionCollision(bx, collisions, players, itemsList, idGenerator, itemUtils, playerScore)) {
 				break;
 			}
+			if (bx.getX() + bx.getAdjustX() < 0 || bx.getX() + bx.getAdjustX() + bx.getWidth() + bx.getAdjustWidth() > maxX ||
+					bx.getY() + bx.getAdjustY() < 0 || bx.getY() + bx.getAdjustY() + bx.getHeight() + bx.getAdjustHeight() > maxY) {
+				break;
+			}
 		}
 		for (int i = 0; i < xSize; i++) {
-			BoomSprite bx = new BoomBombExplosion(1, getX() - (i + 1) * getWidth(), getY(), getWidth(), getHeight());
+			BoomSprite bx = new BoomBombExplosion(1, getX() - (i + 1) * (getWidth() + getAdjustWidth()/2), getY(), getWidth(), getHeight());
 			explosions.add(bx);
 			for (BoomGameBomb bomb : bombs) {
 				if (BoomUtils.checkCollision(bx, bomb)) {
@@ -292,11 +321,15 @@ public class BoomGameBomb extends BoomSprite {
 				}
 			}
 			if (checkExplosionCollision(bx, collisions, players, itemsList, idGenerator, itemUtils, playerScore)) {
+				break;
+			}
+			if (bx.getX() + bx.getAdjustX() < 0 || bx.getX() + bx.getAdjustX() + bx.getWidth() + bx.getAdjustWidth() > maxX ||
+					bx.getY() + bx.getAdjustY() < 0 || bx.getY() + bx.getAdjustY() + bx.getHeight() + bx.getAdjustHeight() > maxY) {
 				break;
 			}
 		}
 		for (int i = 0; i < ySize; i++) {
-			BoomSprite bx = new BoomBombExplosion(1, getX(), getY() + (i + 1) * getHeight(), getWidth(), getHeight());
+			BoomSprite bx = new BoomBombExplosion(1, getX(), getY() + (i + 1) * (getHeight() + getAdjustHeight()/2), getWidth(), getHeight());
 			explosions.add(bx);
 			for (BoomGameBomb bomb : bombs) {
 				if (BoomUtils.checkCollision(bx, bomb)) {
@@ -306,9 +339,13 @@ public class BoomGameBomb extends BoomSprite {
 			if (checkExplosionCollision(bx, collisions, players, itemsList, idGenerator, itemUtils, playerScore)) {
 				break;
 			}
+			if (bx.getX() + bx.getAdjustX() < 0 || bx.getX() + bx.getAdjustX() + bx.getWidth() + bx.getAdjustWidth() > maxX ||
+					bx.getY() + bx.getAdjustY() < 0 || bx.getY() + bx.getAdjustY() + bx.getHeight() + bx.getAdjustHeight() > maxY) {
+				break;
+			}
 		}
 		for (int i = 0; i < ySize; i++) {
-			BoomSprite bx = new BoomBombExplosion(1, getX(), getY() - (i + 1) * getHeight(), getWidth(), getHeight());
+			BoomSprite bx = new BoomBombExplosion(1, getX(), getY() - (i + 1) * (getHeight() + getAdjustHeight()/2), getWidth(), getHeight());
 			explosions.add(bx);
 			for (BoomGameBomb bomb : bombs) {
 				if (BoomUtils.checkCollision(bx, bomb)) {
@@ -316,6 +353,10 @@ public class BoomGameBomb extends BoomSprite {
 				}
 			}
 			if (checkExplosionCollision(bx, collisions, players, itemsList, idGenerator, itemUtils, playerScore)) {
+				break;
+			}
+			if (bx.getX() + bx.getAdjustX() < 0 || bx.getX() + bx.getAdjustX() + bx.getWidth() + bx.getAdjustWidth() > maxX ||
+					bx.getY() + bx.getAdjustY() < 0 || bx.getY() + bx.getAdjustY() + bx.getHeight() + bx.getAdjustHeight() > maxY) {
 				break;
 			}
 		}
@@ -326,7 +367,7 @@ public class BoomGameBomb extends BoomSprite {
 		boolean ret = false;
 		
 		for (BoomItem bi : itemsList) {
-			if (BoomUtils.checkCollision(bi, bx)) {
+			if (BoomUtils.isDestroyableItem(bi.getItemId()) && BoomUtils.checkCollision(bi, bx)) {
 				bi.addFlag(BoomGameManager.BOOM_SPRITE_FLAG_ITEM_GONE);
 			}
 		}
@@ -345,24 +386,31 @@ public class BoomGameBomb extends BoomSprite {
 				ret = true;
 			}
 		}
-		for (BoomPlayer bp : players) {
-			if (bp.isDead()) {
-				continue;
-			}
-			if (BoomUtils.checkCollision(bx, bp)) {
-				if (!bp.checkShieldProtectorEffect()) {
-					int nDamage = bp.checkDamageBlockedEffect(damage);
-					if (nDamage > 0) {
-						if (!bp.checkDamageAbsorbEffect(nDamage)) {
-							bp.subHp(nDamage);
-							//
-							if (bp.isDead() && bp.getId() != getPlayerId()) {
-								playerScore.addScore(getPlayerId(), BoomGameManager.BOOM_GAME_REWARD_POINT_ON_KILL);
+		if (!ret) {
+			for (BoomPlayer bp : players) {
+				if (bp.isDead()) {
+					continue;
+				}
+				if (BoomUtils.checkCollision(bx, bp)) {
+					if (isConfused()) {
+						long start = System.nanoTime();
+						long end = start + BoomGameManager.NANO_SECOND * getConfusionDuration();
+						bp.applyConfuseEffect(start, end);
+					}
+					if (!bp.checkShieldProtectorEffect()) {
+						int nDamage = bp.checkDamageBlockedEffect(damage);
+						if (nDamage > 0) {
+							if (!bp.checkDamageAbsorbEffect(nDamage)) {
+								bp.subHp(nDamage);
+								//
+								if (bp.isDead() && bp.getId() != getPlayerId()) {
+									playerScore.addScore(getPlayerId(), BoomGameManager.BOOM_GAME_REWARD_POINT_ON_KILL);
+								}
 							}
 						}
 					}
+					ret = true;
 				}
-				ret = true;
 			}
 		}
 
