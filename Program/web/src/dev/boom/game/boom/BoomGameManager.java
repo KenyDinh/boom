@@ -164,7 +164,7 @@ public class BoomGameManager {
 		return CACHE_BOOM_GAME.get(gameId);
 	}
 
-	public static boolean addBoomGame(BoomGame boomGame) {
+	public static synchronized boolean addBoomGame(BoomGame boomGame) {
 		if (CACHE_BOOM_GAME.size() >= BOOM_MAX_GAME_CREATED) {
 			return false;
 		}
