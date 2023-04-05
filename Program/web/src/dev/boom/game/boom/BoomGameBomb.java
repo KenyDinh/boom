@@ -15,6 +15,7 @@ public class BoomGameBomb extends BoomSprite {
 	private int ySize = 1;
 	private int damage = 10;
 	private int confusionDuration;
+	private long groupId;
 
 	public BoomGameBomb(long playerId, int imageID, int x, int y, int width, int height, int sizeX, int sizeY, int damage) {
 		super(imageID, x, y, width, height);
@@ -88,6 +89,14 @@ public class BoomGameBomb extends BoomSprite {
 		this.confusionDuration = confusionDuration;
 	}
 
+	public long getGroupId() {
+		return groupId;
+	}
+
+	public void setGroupId(long groupId) {
+		this.groupId = groupId;
+	}
+
 	@Override
 	public int getAdjustX() {
 		return BoomGameManager.BOOM_GAME_BOOM_ADJUST_SIZE;
@@ -121,6 +130,10 @@ public class BoomGameBomb extends BoomSprite {
 			return (getPlayerId() == comp.getPlayerId() && getStart() == comp.getStart() && getEnd() == comp.getEnd());
 		}
 		return false;
+	}
+	
+	private String getKey() {
+		return String.format("B-%d-%d", getX(), getY());
 	}
 
 	public boolean isValid() {
@@ -387,23 +400,34 @@ public class BoomGameBomb extends BoomSprite {
 			}
 		}
 		if (!ret) {
+			String key = getKey();
 			for (BoomPlayer bp : players) {
 				if (bp.isDead()) {
 					continue;
 				}
+				if (bp.isBombExploded(key)) {
+					continue;
+				}
 				if (BoomUtils.checkCollision(bx, bp)) {
+					bp.addBombExploded(key);
 					if (isConfused()) {
 						long start = System.nanoTime();
 						long end = start + BoomGameManager.NANO_SECOND * getConfusionDuration();
 						bp.applyConfuseEffect(start, end);
 					}
 					if (!bp.checkShieldProtectorEffect()) {
-						int nDamage = bp.checkDamageBlockedEffect(damage);
+						int nDamage = getDamage();
+						boolean sameGroup = (getGroupId() > 0 && getGroupId() == bp.getGroupId());
+						if (sameGroup) {
+							// 50% damage to ally
+							nDamage = (nDamage * BoomGameManager.BOMB_DAMAGE_TO_ALLY_RATE) / 100;
+						}
+						nDamage = bp.checkDamageBlockedEffect(nDamage);
 						if (nDamage > 0) {
 							if (!bp.checkDamageAbsorbEffect(nDamage)) {
 								bp.subHp(nDamage);
 								//
-								if (bp.isDead() && bp.getId() != getPlayerId()) {
+								if (bp.isDead() && bp.getId() != getPlayerId() && !sameGroup) {
 									playerScore.addScore(getPlayerId(), BoomGameManager.BOOM_GAME_REWARD_POINT_ON_KILL);
 								}
 							}

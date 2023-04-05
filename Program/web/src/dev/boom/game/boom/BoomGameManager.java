@@ -30,8 +30,9 @@ public class BoomGameManager {
 	public static final int BOOM_GAME_ITEM_ADJUST_SIZE = BOOM_GAME_PLAYER_ADJUST_SIZE;
 	public static final int BOOM_MAX_GAME_FPS_FIXED = 20;
 	public static final int BOOM_PLAYER_ACCELERATION = 2;
-	
-	public static final int BOOM_GAME_MAP_COLLISTION_VALUE = 1;
+	public static final int BOOM_GAME_MELEE_ABILITY_DEFAULT_SPEED = 2;
+	public static final int BOOM_GAME_ALLY_ATTACK_EFFECT_LASTS = 2;
+	public static final int BOOM_GAME_GAUGE_MAX_VALUE = 1000;
 	
 	public static final int BOOM_GAME_BOMB_THROWN_SPEED = 30;
 	public static final int BOOM_GAME_BOMB_PUSHED_SPEED = 24;
@@ -61,7 +62,7 @@ public class BoomGameManager {
 	
 	public static final int BOOM_GAME_REWARD_POINT_ON_KILL = 1;
 	
-	public static final int BOOM_GAME_PREPARING_TIME_CD_1 = 30; //second
+	public static final int BOOM_GAME_PREPARING_TIME_CD_1 = 15; //second
 	public static final int BOOM_GAME_PREPARING_TIME_CD_2 = 10; //second
 	public static final int BOOM_GAME_RESUMING_TIME_CD = 3;
 	public static final int TIME_OUT_SUDDEN_DEATH = 3 * 60;// 3 minutes
@@ -77,6 +78,7 @@ public class BoomGameManager {
 	public static final int REVIVAL_TIME_REQUIRED = 3; // 3 seconds
 	public static final int REVIVAL_ITEM_RESPAWN_TIME = 60; // 60 seconds
 	public static final int REVIVAL_ITEM_DURATION_TIME = 15; // 15 seconds
+	public static final int BOMB_DAMAGE_TO_ALLY_RATE = 50; // 50% damage to ally
 	
 	
 	// BOOM_MAX_PLAYER

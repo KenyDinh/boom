@@ -51,7 +51,7 @@
   	<page classname="game.Sudoku" path="game/sudoku.htm"/>
   	<page classname="game.json.SudokuLoader" path="game/json/sudoku_loader.json"/>
 	<page classname="game.KillerSudoku" path="game/killer_sudoku.htm"/>
-	<page classname="game.json.KillerSudokuLoader" path="game/json/sudoku_loader.json"/>
+	<page classname="game.json.KillerSudokuLoader" path="game/json/killer_sudoku_loader.json"/>
   	<page classname="game.Boom" path="game/boom.htm"/>
   	<page classname="game.Poker" path="game/poker.htm"/>
   	<page classname="game.json.BoomConfirm" path="game/json/boom_confirm.json"/>

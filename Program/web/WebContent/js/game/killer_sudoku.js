@@ -209,9 +209,10 @@ function checkCage(cage_id) {
 			}
 		}
 	}
+	let filled_cells_sum = cells_value.reduce((s, v) => 1 <= v && v <= 9 ? s + v : s, 0)
 	let cells_value_sum = cells_value.reduce((s, v) => typeof(s) !== "undefined" && 1 <= v && v <= 9 ? s + v : undefined, 0)
 	// console.log(cage_id, cage_sum, cage_cells, cage_cells.map(_1d_coor => getCellValue(parseInt(_1d_coor / 9), _1d_coor % 9)), cells_value_sum)
-	return typeof(cells_value_sum) === "undefined" || cells_value_sum == cage_sum;
+	return typeof(cells_value_sum) === "undefined" ? filled_cells_sum < cage_sum : cells_value_sum == cage_sum;
 }
 
 function checkNewCheckedCell(row, col) {
@@ -324,211 +325,76 @@ function clearBoard() {
 	});
 }
 
-function loadProblem(level=1) {
+function loadProblem(level) {
 	level = textToNumber(level);
-	if (level === 1) {
-		board = [
-			[0, 4, 0, 1, 3, 5, 0, 0, 7],
-			[0, 0, 0, 0, 0, 0, 0, 0, 0],
-			[0, 0, 1, 0, 0, 0, 5, 0, 4],
-			[7, 0, 4, 8, 0, 2, 0, 6, 0],
-			[8, 0, 3, 0, 9, 4, 0, 0, 0],
-			[0, 6, 9, 3, 0, 0, 2, 4, 0],
-			[4, 0, 0, 0, 8, 1, 7, 0, 0],
-			[0, 0, 7, 0, 6, 0, 0, 0, 0],
-			[0, 0, 0, 4, 7, 0, 0, 0, 2],
-		]
-		cage_list = [
-			[21, [0, 1, 2]],
-			[10, [3, 12]],
-			[7, [4, 13]],
-			[11, [5, 14]],
-			[22, [6, 7, 15, 16, 24]],
-			[10, [8, 17]],
-			[15, [9, 10, 18]],
-			[6, [11, 20]],
-			[23, [19, 27, 28, 36]],
-			[15, [21, 30]],
-			[11, [22, 23, 31]],
-			[19, [25, 26, 34]],
-			[13, [29, 38, 39]],
-			[5, [32, 33]],
-			[9, [35]],
-			[8, [37, 46]],
-			[14, [40, 41, 42]],
-			[12, [43, 44]],
-			[5, [45, 54]],
-			[19, [47, 48, 56, 57]],
-			[13, [49, 58]],
-			[9, [50, 51]],
-			[12, [52, 53]],
-			[24, [55, 64, 65]],
-			[13, [59, 68, 77]],
-			[20, [60, 69, 78]],
-			[3, [61]],
-			[9, [62, 71, 80]],
-			[8, [63, 72]],
-			[15, [66, 67, 76]],
-			[13, [70, 79]],
-			[11, [73, 74, 75]],
-		]
+	$j.ajax({
+		url : CONTEXT + "/game/json/killer_sudoku_loader.json",
+		type : "POST",
+		data : {"level" : level},
+		dataType : "json",
+		success : function(ret) {
+			if (ret.data && ret.cage_data) {
+				parseSudokuProblem(ret.data, ret.cage_data);
+			}
+		},
+		error : function() {
+		}
+	});
+}
+function parseSudokuProblem(data, cage_data) {
+	if (!data || !cage_data) {
+		return;
 	}
-	else if (level === 2) {
-		board = [
-			[0, 1, 0, 0, 0, 7, 5, 6, 0],
-			[7, 0, 0, 9, 1, 5, 0, 0, 0],
-			[0, 0, 0, 0, 0, 0, 0, 9, 0],
-			[9, 0, 0, 0, 0, 0, 0, 0, 5],
-			[0, 6, 0, 5, 0, 8, 7, 0, 4],
-			[8, 0, 0, 0, 0, 0, 0, 0, 0],
-			[0, 0, 0, 0, 0, 1, 0, 2, 6],
-			[6, 0, 0, 0, 4, 0, 0, 0, 0],
-			[0, 9, 0, 2, 0, 6, 0, 0, 3],
-		]
-		cage_list = [
-			[22, [0, 9, 10, 18]],
-			[14, [1, 2, 3]],
-			[20, [4, 5, 6, 7]],
-			[8, [8]],
-			[8, [11, 20]],
-			[18, [12, 13, 22]],
-			[8, [14, 15]],
-			[13, [16, 25]],
-			[14, [17, 26, 35]],
-			[27, [19, 27, 28, 37]],
-			[6, [21]],
-			[4, [23, 24]],
-			[5, [29, 30]],
-			[18, [31, 38, 39, 40]],
-			[16, [32, 33, 41]],
-			[15, [34, 43, 44]],
-			[10, [42, 51, 52]],
-			[10, [36, 45]],
-			[18, [46, 54, 55, 63]],
-			[8, [47, 56]],
-			[15, [48, 57]],
-			[17, [49, 50, 58]],
-			[16, [53, 62, 71]],
-			[10, [59, 68]],
-			[27, [60, 69, 77, 78]],
-			[7, [61, 70]],
-			[9, [64, 65]],
-			[6, [66, 75]],
-			[9, [67, 76]],
-			[1, [72]],
-			[17, [73, 74]],
-			[10, [79, 80]],
-		]
+	let lines = null;
+	if (data.indexOf(";") > 0) {
+		lines = data.split(";");
+	} else {
+		lines = data.split("\n");
 	}
-	else if (level === 3) {
-		board = [
-			[0, 0, 0, 3, 0, 0, 0, 0, 0],
-			[0, 0, 0, 0, 0, 0, 0, 3, 0],
-			[0, 3, 0, 0, 0, 0, 0, 0, 0],
-			[0, 0, 0, 0, 0, 8, 0, 0, 0],
-			[0, 0, 0, 0, 0, 0, 0, 0, 0],
-			[0, 5, 0, 0, 0, 0, 0, 0, 2],
-			[2, 0, 0, 0, 0, 0, 0, 0, 4],
-			[0, 0, 0, 0, 0, 4, 0, 0, 0],
-			[0, 0, 0, 0, 6, 0, 0, 0, 0],
-		]
-		cage_list = [
-			[22, [0, 1, 9, 10]],
-			[17, [2, 3, 4, 13]],
-			[8, [5, 14]],
-			[13, [6, 7]],
-			[13, [8, 17]],
-			[15, [11, 20, 29]],
-			[11, [12, 21]],
-			[11, [15, 16, 25]],
-			[7, [18, 27]],
-			[12, [19, 28]],
-			[13, [22, 30, 31]],
-			[11, [23, 24]],
-			[21, [26, 34, 35, 43]],
-			[21, [32, 33, 42]],
-			[8, [36]],
-			[6, [37, 46]],
-			[2, [38]],
-			[16, [39, 40, 41]],
-			[5, [44, 53]],
-			[3, [45]],
-			[23, [47, 48, 49, 50]],
-			[9, [51, 60]],
-			[13, [52, 61, 62]],
-			[7, [54, 63]],
-			[21, [55, 64, 73]],
-			[24, [56, 57, 58]],
-			[9, [59, 67, 68]],
-			[4, [65, 74]],
-			[9, [66]],
-			[22, [69, 76, 77, 78]],
-			[13, [70, 71]],
-			[4, [72]],
-			[1, [75]],
-			[11, [79, 80]],
-		]
+	if (lines == null || lines.length <= 0) {
+		return;
 	}
-	else // if (level === 4)
-	{
-		board = [
-			[0, 0, 0, 0, 0, 0, 0, 0, 0],
-			[0, 0, 0, 0, 0, 0, 0, 0, 0],
-			[0, 0, 0, 0, 0, 0, 0, 0, 0],
-			[0, 0, 0, 0, 0, 0, 0, 0, 0],
-			[0, 0, 0, 0, 0, 0, 0, 0, 0],
-			[0, 0, 0, 0, 0, 0, 0, 0, 0],
-			[0, 0, 0, 0, 0, 0, 0, 0, 0],
-			[0, 0, 0, 0, 0, 0, 0, 0, 0],
-			[0, 0, 0, 0, 0, 0, 0, 0, 0],
-		]
-		cage_list = [
-			[32, [0, 1, 2, 10, 11]],
-			[19, [3, 4, 5, 6]],
-			[16, [7, 8, 16, 17]],
-			[12, [9, 18, 19]],
-			[23, [12, 13, 20, 21, 22]],
-			[9, [14, 15]],
-			[12, [23, 24]],
-			[9, [25, 34]],
-			[10, [26, 35]],
-			[14, [27, 36]],
-			[10, [28, 29, 30]],
-			[20, [31, 40, 49]],
-			[11, [32, 33]],
-			[21, [37, 38, 39]],
-			[7, [41, 42, 43]],
-			[14, [44, 53]],
-			[8, [45, 54]],
-			[6, [46, 55]],
-			[3, [47, 48]],
-			[21, [50, 51, 52]],
-			[17, [56, 57]],
-			[26, [58, 59, 60, 67, 68]],
-			[9, [61, 62, 71]],
-			[20, [63, 64, 72, 73]],
-			[7, [65, 66]],
-			[32, [69, 70, 78, 79, 80]],
-			[17, [74, 75, 76, 77]],
-		]
+	let cage_str_list = null;
+	if (cage_data.indexOf(";") > 0) {
+		cage_str_list = cage_data.split(";");
+	} else {
+		cage_str_list = cage_data.split("\n");
+	}
+	if (cage_str_list == null || cage_str_list.length <= 0) {
+		return;
 	}
 	clearBoard();
-	for (let i = 0; i < board.length; i++) {
-		for (let j = 0; j < board[i].length; j++) {
-			const block_element = $j('td#block-' + i + '-' + j);
-			const num = board[i][j];
+	for (let i = 0; i < lines.length; i++) {
+		const cd = lines[i].split("");
+		if (cd.length <= 0) {
+			return;
+		}
+		for (let j = 0; j < cd.length; j++) {
+			const cell = $j('td#block-' + i + '-' + j);
+			if (cell.length <= 0) {
+				continue;
+			}
+			const num = textToNumber(cd[j]);
 			if (num > 0) {
-				$j(block_element).html('<div class="block-inner init-num">' + board[i][j] + '</div>') 
+				$j(cell).html('<div class="block-inner init-num">' + cd[j] + '</div>') 
 			} else {
-				$j(block_element).html('<div class="block-inner"></div>') 
+				$j(cell).html('<div class="block-inner"></div>') 
 			}
 		}
 	}
 	map_cage_id = {}; // dsu
 	let cage_id = 0;
+	cage_list = [];
 
-	for (let [cage_sum, cage_cells] of cage_list) {
-		cage_cells.sort((u, v) => u - v)
+	for (let cage_str of cage_str_list) {
+		let matcher = [...cage_str.matchAll(/^(\d+)\[([\d\+]+)\]$/g)];
+		if (!matcher || matcher.length === 0) {
+			continue;
+		}
+		let cage_sum = +matcher[0][1];
+		let cage_cells = matcher[0][2].split("+").map(u => +u).sort((u, v) => u - v);
+		cage_list.push([cage_sum, cage_cells]);
+
 		min_coor = cage_cells[0];
 		let min_row = parseInt(min_coor / 9), min_col = min_coor % 9;
 		const cell = $j('td#block-' + min_row + '-' + min_col)
@@ -562,87 +428,4 @@ function loadProblem(level=1) {
 		}
 		cage_id++;
 	}
-
-	/*
-	$j.ajax({
-		url : CONTEXT + "/game/json/sudoku_loader.json",
-		type : "POST",
-		data : {"type" : 1, "level" : level},
-		dataType : "json",
-		success : function(ret) {
-			if (ret.data) {
-				parseSudokuProblem(ret.data);
-			}
-		},
-		error : function() {
-		}
-	});*/
-
-}
-function parseSudokuProblem(data) {
-	if (!data) {
-		return;
-	}
-	let lines = null;
-	if (data.indexOf(";") > 0) {
-		lines = data.split(";");
-	} else {
-		lines = data.split("\n");
-	}
-	if (lines == null || lines.length <= 0) {
-		return;
-	}
-	clearBoard();
-	for (let i = 0; i < lines.length; i++) {
-		const cd = lines[i].split("");
-		if (cd.length <= 0) {
-			return;
-		}
-		for (let j = 0; j < cd.length; j++) {
-			const cell = $j('td#block-' + i + '-' + j);
-			if (cell.length <= 0) {
-				continue;
-			}
-			const num = textToNumber(cd[j]);
-			if (num > 0) {
-				cell.text(cd[j]);
-				cell.addClass('init-num');
-			} else {
-				cell.text("-");
-			}
-		}
-	}
-}
-function generatePuzzle(level) {
-	//console.log('start generating puzzle!');
-	const qq = new qqwing();
-	qq.setRecordHistory((level > 0));
-	qq.setPrintStyle(qqwing.PrintStyle.COMPACT);
-	qq.generatePuzzle(qqwing.Symmetry.RANDOM);
-	qq.solve();
-	if (level > 0 && qq.getDifficulty() != level) {
-		generatePuzzle(level);
-	} else {
-		parseSudokuProblem(qq.getPuzzleString());
-		//console.log(qq.getPuzzleString());
-	}
-}
-function showInstruction() {
-	let puzzle = [];
-	for (let row = 0; row < 9; row++) {
-		for (let col = 0; col < 9; col++) {
-			const cell = $j('td#block-' + row + '-' + col);
-			let val = 0;
-			if (cell.length > 0) {
-				val = textToNumber(cell.text());
-			}
-			puzzle.push(val);
-		}
-	}
-	const qq = new qqwing();
-	qq.setRecordHistory(true);
-	qq.setPuzzle(puzzle);
-	qq.solve();
-	//console.log(qq.getSolveInstructions());
-	console.log(qq.getSolveInstructionsString());
 }

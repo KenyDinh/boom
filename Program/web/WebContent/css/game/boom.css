@@ -70,12 +70,6 @@
 	margin-top:1rem;
 	text-align:left;
 }
-#score-panel {
-	position:absolute;
-	left:0;
-	top:0;
-	z-index:99;
-}
 .custom-select {
 	width:10rem;
 }
@@ -121,4 +115,7 @@
 }
 .score-board-player-container + .score-board-group-container {
 	margin-top: 0.5rem;
+}
+div.death {
+	text-decoration: line-through;
 }

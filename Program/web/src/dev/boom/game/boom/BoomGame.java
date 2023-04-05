@@ -747,8 +747,9 @@ public class BoomGame {
 	private void updatePlayers() {
 		for (BoomPlayer bp : playersList) {
 			// update move
-			bp.update(getWidth(), getHeight(), collisionsList, playersList, bombsList, itemsList, teleportPortalsList, itemUtils, fireEffectList, specialItems);
+			bp.update(getWidth(), getHeight(), collisionsList, playersList, bombsList, itemsList, teleportPortalsList, itemUtils, fireEffectList, specialItems, playerScore);
 			playerAbilityEffects.addAll(bp.checkActiveAbility(collisionsList, playersList, bombsList, itemsList, idGenerator, itemUtils, playerScore));
+			bp.clearCacheBombExploded();
 		}
 	}
 	
@@ -878,8 +879,12 @@ public class BoomGame {
 		int hcount = getWidth() / getUnitSize();
 		int vcount = getHeight() / getUnitSize();
 		for (int i = 0; i < index; i++) {
-			count += (hcount - 2 * i) * 2;
-			count += (vcount - 2 * (i + 1)) * 2;
+			if ((hcount - 2 * i) > 0) {
+				count += (hcount - 2 * i) * 2;
+			}
+			if ((vcount - 2 * (i + 1)) > 0) {
+				count += (vcount - 2 * (i + 1)) * 2;
+			}
 		}
 		if (this.fireEffectList.size() >= count) {
 			return;

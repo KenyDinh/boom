@@ -63,9 +63,9 @@ public class BoomGameRevivalParam {
 		if (passTime <= 0) {
 			return;
 		}
-		long checkGauge = ((1000 * passTime) / (BoomGameManager.NANO_SECOND * BoomGameManager.REVIVAL_TIME_REQUIRED));
-		if (checkGauge > 1000) {
-			this.revivalGauge = 1000;
+		long checkGauge = ((BoomGameManager.BOOM_GAME_GAUGE_MAX_VALUE * passTime) / (BoomGameManager.NANO_SECOND * BoomGameManager.REVIVAL_TIME_REQUIRED));
+		if (checkGauge > BoomGameManager.BOOM_GAME_GAUGE_MAX_VALUE) {
+			this.revivalGauge = BoomGameManager.BOOM_GAME_GAUGE_MAX_VALUE;
 		} else if (checkGauge < 0) {
 			this.revivalGauge = 0;
 		} else {
@@ -74,7 +74,7 @@ public class BoomGameRevivalParam {
 	}
 	
 	public boolean isGaugeMax() {
-		return (this.revivalGauge >= 1000);
+		return (this.revivalGauge >= BoomGameManager.BOOM_GAME_GAUGE_MAX_VALUE);
 	}
 
 	public void incRevivalCount() {

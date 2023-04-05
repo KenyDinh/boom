@@ -296,6 +296,46 @@ class SkillEffect extends Sprite {
 	}
 }
 
+class HPChange {
+	constructor(ctx, x, y, amount) {
+		this.ctx = ctx;
+		this.x = x;
+		this.y = y;
+		if (amount > 0) {
+			this.color = "#2874A6";
+			this.amount = '+' + amount;
+		} else {
+			this.color = "#B03A2E";
+			this.amount = '' + amount;
+		}
+		this.shiftY = 0;
+		this.alpha = 255; // FF
+		this.isEnded = false;
+		this.frameCount = 0;
+	}
+	
+	update(x, y) {
+		this.shiftY++;
+		this.x = x ?? this.x;
+		this.y = y ?? this.y;
+		if (this.frameCount >= 10) {
+			this.alpha = 255 - this.frameCount * 10;
+		}
+		if (this.y - this.shiftY < 0 || this.alpha < 0) {
+			this.isEnded = true;
+			return;
+		}
+		this.draw();
+		this.frameCount++;
+	}
+	draw() {
+		this.ctx.font = "bold 16px monospace";
+		this.ctx.fillStyle = (this.color + this.alpha.toString(16).padStart(2, '0'));
+		this.ctx.textAlign = "center";
+		this.ctx.fillText(this.amount, this.x, this.y - this.shiftY);
+	}
+}
+
 class Player extends Sprite {
 	constructor(ctx, name, x, y, width, height, imgId, state, hp, maxHP, effect = [], invisible = false, isAlly = false, gauge = 0) {
 		super(ctx, x, y, CHARACTERS_IMAGE[imgId - 1], width, height, {frameHoldMax: 4});
@@ -311,10 +351,14 @@ class Player extends Sprite {
 		this.gauge = gauge;
 		this.cPut = CHARACTERS_IMAGE_PUT[CHARACTERS_IMAGE[this.imgId - 1]];
 		this.cFrame = CHARACTERS_STATE_FRAMES[this.state];
+		this.shiftY = 16;// do not change
+		this.hpChangeList = [];
 	}
 
 	sync(data) {
 		super.sync(data);
+		const preHP = this.hp;
+		//
 		this.name = data.name ?? this.name;
 		this.state = data.state ?? this.state;
 		this.hp = data.hp ?? this.hp;
@@ -337,11 +381,18 @@ class Player extends Sprite {
 			this.currentFrame = 0;
 			this.frameHold = 0;
 		}
+		if (preHP != this.hp) {
+			this.hpChangeList.push(new HPChange(this.ctx, this.x + this.width / 2, this.y - this.shiftY + 1, this.hp - preHP));
+		}
 	}
 
 	update() {
 		this.frameMax = this.cFrame.maxFrame;
 		super.update();
+		if (this.hpChangeList.length) {
+			this.hpChangeList = this.hpChangeList.filter((e) => !e.isEnded);
+			this.hpChangeList.forEach((e) => e.update(this.x + this.width / 2, this.y - this.shiftY + 1));
+		}
 	}
 
 	draw() {
@@ -362,17 +413,17 @@ class Player extends Sprite {
 		this.ctx.font = "12px Comic Sans MS";
 		this.ctx.fillStyle = "#2145b0";
 		this.ctx.textAlign = "center";
-		this.ctx.fillText(this.name, this.x + this.width / 2, this.y - 16 - 1);
+		this.ctx.fillText(this.name, this.x + this.width / 2, this.y - this.shiftY - 1);
 		this.ctx.fillStyle = "#0d0d0d";
-		this.ctx.fillRect(this.x, this.y - 16, this.width, 8);
+		this.ctx.fillRect(this.x, this.y - this.shiftY, this.width, this.shiftY/2);
 		this.ctx.fillStyle = "#262626";
-		this.ctx.fillRect(this.x + 1, this.y - 16 + 1, this.width - 2, 8 - 2);
+		this.ctx.fillRect(this.x + 1, this.y - this.shiftY + 1, this.width - 2, this.shiftY/2 - 2);
 		this.ctx.fillStyle = (this.isAlly ? "#1fa155" : "#b02121");
-		this.ctx.fillRect(this.x + 1, this.y - 16 + 1, (this.hp / this.maxHP) * (this.width - 2), 8 - 2);
+		this.ctx.fillRect(this.x + 1, this.y - this.shiftY + 1, (this.hp / this.maxHP) * (this.width - 2), this.shiftY/2 - 2);
 		//gauge
 		if (this.gauge > 0) {
 			this.ctx.fillStyle = "#FCB40E";
-			this.ctx.fillRect(this.x + 1, this.y - 16 + 1 + 4, (this.gauge / 1000) * (this.width - 2), 2);
+			this.ctx.fillRect(this.x + 1, this.y - this.shiftY + 1 + 4, (this.gauge / 1000) * (this.width - 2), 2);
 		}
 		if (this.effect.length) {
 			let sx = this.x;
@@ -426,6 +477,7 @@ class BoomGame {
 		this.keyStack = [];
 		this.hasSeExplosion = false;
 		this.mapPidNameGroup = new Map();
+		this.mapPidNameStatus = new Map();
 		this.init();
 	}
 
@@ -635,13 +687,17 @@ class BoomGame {
 		return total;
 	}
 	
-	drawDynamicScoreBoard() {
-		$j('#left-panel').hide();
+	drawDynamicScoreBoard(isp) {
+		//$j('#left-panel').hide();
+		if (isp) {
+			$j('.force-exit-game').show();
+		}
 		$j('#score-panel').show();
 		if (this.scores) {
 			const tableScore = $j('#player-score');
 			tableScore.empty();
 			const func = this.calculateTotalScore;
+			this.mapPidNameStatus;
 			if (this.mapPidNameGroup.size) {
 				const groupArr = []; // {}
 				for (const playerObj of this.scores) {
@@ -690,7 +746,11 @@ class BoomGame {
 						} else {
 							html += '<div class="character"></div>';
 						}
-						html += '<div>' + mem.name + '</div>';
+						if (!this.mapPidNameStatus.get(mem.name)) {
+							html += '<div class="death">' + mem.name + '</div>';
+						} else {
+							html += '<div>' + mem.name + '</div>';
+						}
 						html += '<div class="score-board-gp-score">' + mem.point + '</div>';
 						html += '</div>';
 					}
@@ -713,7 +773,11 @@ class BoomGame {
 							} else {
 								player_score.append('<div class="character"></div>');
 							}
-							player_score.append('<div>' + name + '</div>');
+							if (!this.mapPidNameStatus.get(name)) {
+								player_score.append('<div class="death">' + name + '</div>');
+							} else {
+								player_score.append('<div>' + name + '</div>');
+							}
 							player_score.append('<div class="score-board-gp-score">' + func(playerObj) + '</div>');
 							scoreBoard.append(player_score);
 							break;
@@ -853,9 +917,8 @@ class BoomGame {
 		} 
 		if (this.status != GAME_STATUS.INIT && this.status != GAME_STATUS.PREPARING) {
 			const cpid = this.currentPID;
-			if (this.inspectors && this.inspectors.find((id)=>(id==cpid))) {
-				this.drawDynamicScoreBoard();
-			}
+			const isp = (this.inspectors && this.inspectors.find((id)=>(id==cpid)));
+			this.drawDynamicScoreBoard(isp);
 		} else {
 			$j('#score-panel').hide();
 		}
@@ -997,6 +1060,7 @@ class BoomGame {
 		this.playerAvas = jsonObj.data.pava;
 		this.scores = jsonObj.data.pscore;
 		this.mapPidNameGroup.clear();
+		this.mapPidNameStatus.clear();
 		if (jsonObj.data.stid) {
 			this.updateSoundTrack(jsonObj.data.stid);
 		}
@@ -1167,6 +1231,7 @@ class BoomGame {
 				if (mapAlivePlayers.has(player.id)) {
 					mapAlivePlayers.delete(player.id);
 				}
+				this.mapPidNameStatus.set(full_name, 0);
 			} else {
 				if (!mapAlivePlayers.has(player.id)) {
 					mapAlivePlayers.set(player.id, new Player(this.ctx, player.name, player.x, player.y, this.unitSize, this.unitSize, player.img, player.state, player.hp, player.maxHP, player.effect, player.invisible));
@@ -1176,6 +1241,7 @@ class BoomGame {
 				if (mapDeadthPlayers.has(player.id)) {
 					mapDeadthPlayers.delete(player.id);
 				}
+				this.mapPidNameStatus.set(full_name, 1);
 			}
 			// pid - name - group
 			if (player.gid) {

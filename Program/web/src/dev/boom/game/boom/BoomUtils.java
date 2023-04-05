@@ -7,6 +7,8 @@ import java.util.Map;
 
 import org.apache.commons.lang.RandomStringUtils;
 
+import dev.boom.common.CommonMethod;
+
 public class BoomUtils {
 	
 	private static final Map<Integer, Integer> MAP_ITEM_SPAWN_PER_PLAYER;
@@ -68,6 +70,10 @@ public class BoomUtils {
 			}
 		}
 		return false;
+	}
+	
+	public static boolean boolRandom() {
+		return (CommonMethod.random(100) < 50);
 	}
 	
 	public static boolean isDestroyableItem(int id) {

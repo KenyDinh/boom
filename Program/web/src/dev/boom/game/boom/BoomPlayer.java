@@ -4,10 +4,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import java.util.Stack;
 
 import dev.boom.common.CommonMethod;
@@ -39,6 +41,7 @@ public class BoomPlayer extends BoomSprite {
 	private String groupName;
 	private BoomGameRevivalParam revivalParam;
 	private List<BoomDirectionEnum> directionList;// for confuse effect
+	private Set<String> cacheBombExploded;
 
 	public BoomPlayer(long id, String name, BoomCharater character, int x, int y, int width, int height) {
 		super(character.getId(), x, y, width, height);
@@ -51,6 +54,7 @@ public class BoomPlayer extends BoomSprite {
 		this.bombCreationRequest = new Stack<>();
 		this.revivalParam = new BoomGameRevivalParam();
 		this.directionList = Arrays.asList(BoomDirectionEnum.UP, BoomDirectionEnum.DOWN, BoomDirectionEnum.LEFT, BoomDirectionEnum.RIGHT);
+		this.cacheBombExploded = new HashSet<>();
 		init(character);
 	}
 	
@@ -67,6 +71,7 @@ public class BoomPlayer extends BoomSprite {
 		} else {
 			this.character = BoomCharater.CHARACTER_00;
 		}
+		this.initGroupEffect();
 		this.hp = this.character.getHp();
 		this.damage = this.character.getDamage();
 		this.atkSpeed = this.character.getAttackSpeed();
@@ -125,7 +130,11 @@ public class BoomPlayer extends BoomSprite {
 	}
 	
 	public int getSendHp() {
-		return (int)Math.round(hp);
+		int shp = (int)Math.round(hp);
+		if (shp == 0 && hp > 0) {
+			shp = 1;
+		}
+		return shp;
 	}
 
 	public double getHp() {
@@ -453,6 +462,18 @@ public class BoomPlayer extends BoomSprite {
 		return is(BoomGameManager.BOOM_SPRITE_FLAG_PLAYERS_DEAD);
 	}
 	
+	public void addBombExploded(String key) {
+		cacheBombExploded.add(key);
+	}
+	
+	public boolean isBombExploded(String key) {
+		return cacheBombExploded.contains(key);
+	}
+	
+	public void clearCacheBombExploded() {
+		cacheBombExploded.clear();
+	}
+	
 	public boolean isRankingChecked() {
 		return is(BoomGameManager.BOOM_SPRITE_FLAG_PLAYERS_RANKING);
 	}
@@ -472,12 +493,12 @@ public class BoomPlayer extends BoomSprite {
 		long passTime = currentTime - this.lastActiveAbilityTime;
 		long checkGauge = 0;
 		if (this.character.getType() == BoomCharacterType.MONK.ordinal() || this.character.getType() == BoomCharacterType.WARRIOR.ordinal()) {
-			checkGauge = ((1000 * passTime) / ((BoomGameManager.NANO_SECOND / this.atkSpeed) * 100));
+			checkGauge = ((BoomGameManager.BOOM_GAME_GAUGE_MAX_VALUE * passTime) / ((BoomGameManager.NANO_SECOND / this.atkSpeed) * 100));// attack speed default multiply by 100
 		} else {
-			checkGauge = ((1000 * passTime) / (BoomGameManager.NANO_SECOND * 2));
+			checkGauge = ((BoomGameManager.BOOM_GAME_GAUGE_MAX_VALUE * passTime) / (BoomGameManager.NANO_SECOND * BoomGameManager.BOOM_GAME_MELEE_ABILITY_DEFAULT_SPEED));
 		}
-		if (checkGauge > 1000) {
-			this.currentGauge = 1000;
+		if (checkGauge > BoomGameManager.BOOM_GAME_GAUGE_MAX_VALUE) {
+			this.currentGauge = BoomGameManager.BOOM_GAME_GAUGE_MAX_VALUE;
 		} else if (checkGauge < 0) {
 			this.currentGauge = 0;
 		} else {
@@ -512,7 +533,7 @@ public class BoomPlayer extends BoomSprite {
 		if (!activeAbilities.isEmpty()) {
 			return;
 		}
-		if (this.currentGauge < 1000) {
+		if (this.currentGauge < BoomGameManager.BOOM_GAME_GAUGE_MAX_VALUE) {
 			return;
 		}
 		this.currentGauge = 0;
@@ -583,7 +604,7 @@ public class BoomPlayer extends BoomSprite {
 				tmp = new BoomSprite(ability.getId(), newX + adjX, newY + adjY, getWidth() + adjW, getHeight() + adjH);
 				meleeAttack = true;
 			} else {
-				ba = new BoomPlayerSkillEffect(getId(), ability.getDamage(), ability.getId(), newX, newY, getWidth(), getHeight());
+				ba = new BoomPlayerSkillEffect(getId(), getGroupId(), ability.getDamage(), ability.getId(), newX, newY, getWidth(), getHeight());
 				tmp = ba;
 			}
 			if (ability.isBleeding()) {
@@ -615,16 +636,19 @@ public class BoomPlayer extends BoomSprite {
 				}
 				if (BoomUtils.checkCollision(tmp, bp)) {
 					long start = System.nanoTime();
+					long end;
 					if (ability.isBleeding()) {
-						long end = start + BoomGameManager.NANO_SECOND * ability.getBleedingDuration();
-						bp.addEffect(new BoomPlayerItemEffect(BoomGameItemEffect.BLEEDING, 0, start, end));
+						end = start + BoomGameManager.NANO_SECOND * ability.getBleedingDuration();
+						bp.addEffect(new BoomPlayerItemEffect(BoomGameItemEffect.BLEEDING, 0, start, end, new BoomGamePlayerEffectParam(getId(), getGroupId())));
 					}
-					if (meleeAttack && getGroupId() > 0 && getGroupId() == bp.getGroupId()) {
+					boolean sameGroup = (getGroupId() > 0 && getGroupId() == bp.getGroupId());
+					if (meleeAttack && sameGroup) {
 						// ally melee attack (take no damage but effect for 2 seconds)
-						if (effectType == BoomGameItemEffect.MONK_ATTACK) {
-							bp.applyConfuseEffect(start, start + BoomGameManager.NANO_SECOND * 2);
+						end = start + BoomGameManager.NANO_SECOND * BoomGameManager.BOOM_GAME_ALLY_ATTACK_EFFECT_LASTS;
+						if (BoomUtils.boolRandom()) {
+							bp.applyConfuseEffect(start, end);
 						} else {
-							bp.addEffect(new BoomPlayerItemEffect(BoomGameItemEffect.SUPER_GLUE, 0, start, start + BoomGameManager.NANO_SECOND * 2));
+							bp.addEffect(new BoomPlayerItemEffect(BoomGameItemEffect.SUPER_GLUE, 0, start, end));
 						}
 					} else {
 						if (!bp.checkShieldProtectorEffect()) {
@@ -633,7 +657,7 @@ public class BoomPlayer extends BoomSprite {
 								if (!bp.checkDamageAbsorbEffect(nDamage)) {
 									bp.subHp(nDamage);
 									//
-									if (bp.isDead()) {
+									if (bp.isDead() && !sameGroup) {
 										playerScore.addScore(getId(), BoomGameManager.BOOM_GAME_REWARD_POINT_ON_KILL);
 									}
 								}
@@ -682,6 +706,7 @@ public class BoomPlayer extends BoomSprite {
 		}
 		if (bombCreationRequest.isEmpty()) {
 			BoomGameBomb bomb = new BoomGameBomb(getId(), getBombType(), 0, 0, getWidth(), getHeight(), getBombSize(), getBombSize(), this.getDamage());
+			bomb.setGroupId(getGroupId());
 			if (checkIfHasValidEffect(BoomGameItemEffect.QUICK_BOMBER)) {
 				bomb.addFlag(BoomGameManager.BOOM_SPRITE_FLAG_BOMD_FAST_EXPLODE);
 			}
@@ -771,7 +796,7 @@ public class BoomPlayer extends BoomSprite {
 	}
 	
 	public void update(int maxX, int maxY, List<BoomSprite> collisions, List<BoomPlayer> players,
-			List<BoomGameBomb> bombs, List<BoomItem> itemsList, List<BoomGameTeleportPortal> portals, BoomGameItemUtils itemUtils, List<BoomSprite> fireWalls, List<BoomItem> specialItems) {
+			List<BoomGameBomb> bombs, List<BoomItem> itemsList, List<BoomGameTeleportPortal> portals, BoomGameItemUtils itemUtils, List<BoomSprite> fireWalls, List<BoomItem> specialItems, BoomPlayerScore playerScore) {
 		if (isDead()) {
 			if (revivalParam.getRevivalCount() == 0) {
 				checkRevivalState(players);
@@ -789,7 +814,7 @@ public class BoomPlayer extends BoomSprite {
 		updateSpecialAbilityGauge();
 		checkFireWall(fireWalls);
 		checkPhantomEffect(collisions, players, bombs);
-		checkBleedingEffect();
+		checkBleedingEffect(playerScore);
 		checkSpecialtItems(specialItems, itemUtils);
 		if (checkTeleportPlayer(maxX, maxY, collisions, players, bombs, itemsList, portals, itemUtils)) {
 			return;
@@ -999,11 +1024,19 @@ public class BoomPlayer extends BoomSprite {
 		}
 	}
 	
-	private void checkBleedingEffect() {
-		if (checkIfHasValidEffect(BoomGameItemEffect.BLEEDING)) {
+	private void checkBleedingEffect(BoomPlayerScore playerScore) {
+		BoomPlayerItemEffect effect = getValidEffect(BoomGameItemEffect.BLEEDING);
+		
+		if (effect != null) {
 			double damage = (double)(BoomGameManager.BLEEDING_PARAM_EFFECT_DAMAGE * getMaxHp()) / BoomGameManager.BLEEDING_PARAM_EFFECT_ADJUST;
 			if (damage > 0) {
 				subHp(damage);
+				if (effect.getParam().getPlayerId() > 0) {
+					boolean sameGroup = (effect.getParam().getGroupId() > 0 && effect.getParam().getGroupId() == getGroupId());
+					if (isDead() && !sameGroup) {
+						playerScore.addScore(effect.getParam().getPlayerId(), BoomGameManager.BOOM_GAME_REWARD_POINT_ON_KILL);
+					}
+				}
 			}
 		}
 	}
@@ -1398,6 +1431,9 @@ public class BoomPlayer extends BoomSprite {
 			this.effectsList = newEffectsList;
 		}
 		removeFlag(BoomGameManager.BOOM_SPRITE_FLAG_PLAYERS_DEAD);
+		long start = System.nanoTime();
+		long end = start + BoomGameManager.NANO_SECOND * 2;
+		addEffect(new BoomPlayerItemEffect(BoomGameItemEffect.PHANTOM, 0, start, end));
 		revivalParam.incRevivalCount();
 	}
 	

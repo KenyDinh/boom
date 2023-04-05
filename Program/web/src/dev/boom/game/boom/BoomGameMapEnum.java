@@ -411,7 +411,6 @@ public enum BoomGameMapEnum {
 					{17, 20},
 					{21, 10},
 					{22, 5},
-					{23, 10},
 			}),
 	MAP_06(7, // corresponding to the map position in boom-image.js->MAPS_IMAGE
 			"map/map_06.png",

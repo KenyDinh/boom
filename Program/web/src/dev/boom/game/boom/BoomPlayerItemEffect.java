@@ -12,12 +12,18 @@ public class BoomPlayerItemEffect {
 	private long lastCheck;
 	private int curStack;
 	private int baseEffectParam;
+	private BoomGamePlayerEffectParam param;
 
 	public BoomPlayerItemEffect() {
 		super();
+		this.param = new BoomGamePlayerEffectParam();
 	}
 
 	public BoomPlayerItemEffect(BoomGameItemEffect effectType, int effectParam, long start, long end) {
+		this(effectType, effectParam, start, end, new BoomGamePlayerEffectParam());
+	}
+	
+	public BoomPlayerItemEffect(BoomGameItemEffect effectType, int effectParam, long start, long end, BoomGamePlayerEffectParam param) {
 		super();
 		this.id = effectType.getId();
 		this.effectType = effectType;
@@ -29,6 +35,15 @@ public class BoomPlayerItemEffect {
 		}
 		this.lastCheck = System.nanoTime();
 		this.baseEffectParam = effectParam;
+		this.param = param;
+	}
+	
+	public BoomGamePlayerEffectParam getParam() {
+		return param;
+	}
+
+	public void setParam(BoomGamePlayerEffectParam param) {
+		this.param = param;
 	}
 
 	public int getId() {

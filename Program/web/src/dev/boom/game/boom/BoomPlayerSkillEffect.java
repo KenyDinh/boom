@@ -7,12 +7,14 @@ import dev.boom.services.BoomGameItem;
 public class BoomPlayerSkillEffect extends BoomSprite {
 
 	private long playerId;
+	private long groupId;
 	private int damage;
 	
-	public BoomPlayerSkillEffect(long pid, int damage, int imageID, int x, int y, int width, int height) {
+	public BoomPlayerSkillEffect(long pid, long gid, int damage, int imageID, int x, int y, int width, int height) {
 		super(imageID, x, y, width, height);
 		setId(System.nanoTime());
 		this.playerId = pid;
+		this.groupId = gid;
 		this.damage = damage;
 	}
 
@@ -120,9 +122,10 @@ public class BoomPlayerSkillEffect extends BoomSprite {
 					int nDamage = bp.checkDamageBlockedEffect(damage);
 					if (nDamage > 0) {
 						if (!bp.checkDamageAbsorbEffect(nDamage)) {
+							boolean sameGroup = (groupId > 0 && groupId == bp.getGroupId());
 							bp.subHp(nDamage);
 							//
-							if (bp.isDead()) {
+							if (bp.isDead() && !sameGroup) {
 								playerScore.addScore(getId(), BoomGameManager.BOOM_GAME_REWARD_POINT_ON_KILL);
 							}
 						}

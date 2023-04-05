@@ -12,6 +12,7 @@ public enum GameTypeEnum {
 	SUDOKU(2, 1, "MSG_GAME_TYPE_SUDOKU", "img/game/sudoku/sudoku_game.png", "game/sudoku.htm"),
 	BOOM(3, 1, "MSG_GAME_TYPE_BOOM", "img/game/boom/boom_game.jpg", "game/boom.htm"),
 	POKER(4, 1, "MSG_GAME_TYPE_POKER", "img/game/poker/poker_game.png", "game/poker.htm"),
+	KILLER_SUDOKU(5, 1, "MSG_GAME_TYPE_KILLER_SUDOKU", "img/game/killer_sudoku/killer_sudoku_game.png", "game/killer_sudoku.htm"),
 	;
 
 	private int index;

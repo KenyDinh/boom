@@ -21,6 +21,7 @@ public class FixDataLoader {
 			{ "QuizJapaneseData", "quiz_japanese_data" },
 			{ "QuizOptionJapaneseData", "quiz_option_japanese_data" },
 			{ "SudokuData", "sudoku_data" },
+			{ "KillerSudokuData", "killer_sudoku_data" },
 			{ "BoomGameItemData", "boom_game_item_data" },
 
 	};

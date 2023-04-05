@@ -36,6 +36,6 @@ public class KillerSudoku extends Game {
 
 	@Override
 	protected int getGameIndex() {
-		return GameTypeEnum.SUDOKU.getIndex();
+		return GameTypeEnum.KILLER_SUDOKU.getIndex();
 	}
 }

@@ -48,6 +48,14 @@ html{
 	<div id="game-board">
 		<div id="left-panel">
 			<div style="display:flex;flex-direction:column;">
+			<div id="score-panel">
+				<div style="margin-top:1rem;">
+					<h5>Player Score:</h5>
+					<div id="player-score">
+					</div>
+				</div>
+				<div class="force-exit-game" style="margin-top:3rem;text-align:center;display:none;"><button class="btn btn-danger">Force Finish</button></div>
+			</div>
 			<div id="map-list" style="display:none;">
 			<h5 class="text-center">Available maps</h5>
 			<div style="display:flex;max-width:240px;flex-wrap: wrap;">
@@ -114,14 +122,6 @@ html{
 				</p>
 			</div>
 			</div>
-		</div>
-		<div id="score-panel">
-			<div style="margin-top:1rem;">
-				<h5>Player Score:</h5>
-				<div id="player-score">
-				</div>
-			</div>
-			<div class="force-exit-game" style="margin-top:3rem;text-align:center;"><button class="btn btn-danger">Force Finish</button></div>
 		</div>
 		<div class="exit-game" style="position:absolute;top:-3rem;display:none;"><button class="btn btn-danger" >Exit Game</button></div>
 		<div id="character-list" style="max-width:864px;overflow-x:auto;display:none;cursor:grab;">
