@@ -4,4 +4,5 @@
 - Order milk tea, ranking, statistics.
 - Create internal events.
 - Manage internal devices.
-- There are some games to play together outside of working hours.
+- Provide puzzle game and online multiplayer game.
+- Support Quiz game on Mattermost chat.
